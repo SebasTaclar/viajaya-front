@@ -1,0 +1,502 @@
+/* ES GESTION EMPRESARIAL - Paleta Dorado, Gris Oscuro, Blanco */
+:root {
+  /* Colores principales - Dorado, Gris Oscuro, Blanco */
+  --primary-gold: #C89B2D;
+  --primary-gold-light: #D4AD4B;
+  --primary-gold-dark: #A88224;
+  --dark-gray: #4A4A4A;
+  --medium-gray: #757575;
+  --light-gray: #F5F5F5;
+  --white: #ffffff;
+  --black: #1A1A1A;
+
+  /* Paleta de marca ESG */
+  --brand-primary: #C89B2D;
+  --brand-primary-contrast: #ffffff;
+  --brand-bg-start: #1A1A1A;
+  --brand-bg-end: #2A2A2A;
+  --brand-surface: #F5F5F5;
+  --brand-border: rgba(200, 155, 45, 0.3);
+  --brand-accent: #C89B2D;
+  --brand-accent-alt: #D4AD4B;
+  --brand-accent-glow: rgba(200, 155, 45, 0.5);
+  --brand-gradient: linear-gradient(135deg, var(--brand-bg-start) 0%, var(--brand-bg-end) 100%);
+  --brand-accent-gradient: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-accent-alt) 100%);
+  --brand-success: #10b981;
+  --brand-warning: #f59e0b;
+  --brand-info: #C89B2D;
+
+  /* Colores adicionales */
+  --light-gray: #F5F5F5;
+  --medium-gray: #757575;
+  --dark-gray: #4A4A4A;
+
+  /* Colores de estado */
+  --success: #4caf50;
+  --warning: #ff9800;
+  --danger: #C89B2D;
+  --info: var(--primary-gold);
+
+  /* Sombras modernas con efecto depth */
+  --shadow-light: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-heavy: 0 12px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
+  --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.16), 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-gold: 0 8px 32px rgba(200, 155, 45, 0.2);
+
+  /* Bordes redondeados modernos */
+  --border-radius-sm: 6px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 24px;
+  --border-radius-full: 9999px;
+
+  /* Transiciones suaves */
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* Efectos de producto cards */
+  --card-hover-lift: translateY(-8px);
+  --card-hover-scale: scale(1.03);
+
+  /* Variables centralizadas para tema claro */
+  --app-bg-primary: var(--white);
+  --app-bg-secondary: var(--light-gray);
+  --app-text-primary: var(--dark-gray);
+  --app-text-secondary: var(--medium-gray);
+  --app-border-color: #E0E0E0;
+  --app-hover-bg: rgba(200, 155, 45, 0.05);
+  --app-input-bg: var(--white);
+  --app-table-header-bg: var(--light-gray);
+  --app-shadow: var(--shadow-light);
+
+  /* Variables adicionales para consistencia */
+  --app-text-on-surface: var(--dark-gray);
+  --app-text-muted: var(--medium-gray);
+  --app-surface-elevated: var(--white);
+  --app-border-light: #E0E0E0;
+  --app-accent-text: var(--primary-gold);
+
+  /* Variables específicas para componentes */
+  --app-surface: var(--white);
+  --app-border: #E0E0E0;
+  --app-primary: var(--primary-gold);
+  --app-primary-dark: var(--primary-gold-dark);
+  --app-primary-light: var(--primary-gold-light);
+  --app-accent: #C89B2D;
+  --app-success: #4caf50;
+  --app-warning: #ff9800;
+  --app-error: #C89B2D;
+  --app-info: #C89B2D;
+}
+
+/* Modo Oscuro */
+:root[data-theme='dark'] {
+  --app-bg-primary: #1A1A1A;
+  --app-bg-secondary: #2A2A2A;
+  --app-text-primary: var(--white);
+  --app-text-secondary: rgba(255, 255, 255, 0.87);
+  --app-border-color: rgba(200, 155, 45, 0.3);
+  --app-hover-bg: rgba(200, 155, 45, 0.08);
+  --app-input-bg: rgba(255, 255, 255, 0.05);
+  --app-table-header-bg: rgba(255, 255, 255, 0.05);
+  --app-shadow: 0 4px 12px rgba(200, 155, 45, 0.15);
+
+  /* Variables adicionales para mejor contraste en modo oscuro */
+  --app-text-on-surface: var(--white);
+  --app-text-muted: rgba(255, 255, 255, 0.6);
+  --app-surface-elevated: #2A2A2A;
+  --app-border-light: rgba(255, 255, 255, 0.12);
+  --app-accent-text: var(--primary-gold-light);
+
+  /* Variables específicas para componentes */
+  --app-surface: #2A2A2A;
+  --app-border: rgba(255, 255, 255, 0.12);
+  --app-primary: var(--primary-gold);
+  --app-primary-dark: var(--primary-gold-dark);
+  --app-primary-light: var(--primary-gold-light);
+  --app-accent: #C89B2D;
+  --app-success: #4caf50;
+  --app-warning: #ff9800;
+  --app-error: #C89B2D;
+  --app-info: #C89B2D;
+
+  /* Ajustes de marca en modo oscuro */
+  --brand-bg-start: #1A1A1A;
+  --brand-bg-end: #2A2A2A;
+  --brand-surface: #2A2A2A;
+  --brand-border: rgba(200, 155, 45, 0.3);
+  --brand-accent: #C89B2D;
+  --brand-accent-alt: #D4AD4B;
+  --brand-accent-glow: rgba(200, 155, 45, 0.55);
+  --brand-gradient: linear-gradient(135deg, var(--brand-bg-start) 0%, var(--brand-bg-end) 100%);
+  --brand-accent-gradient: linear-gradient(135deg, var(--brand-accent) 0%, var(--brand-accent-alt) 100%);
+}
+
+/* Reset básico */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body, h1, h2, h3, h4, h5, h6, p, ol, ul {
+  margin: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--app-bg-primary);
+  color: var(--app-text-primary);
+  line-height: 1.6;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+/* Clases utilitarias globales para todos los componentes */
+.app-bg-primary {
+  background-color: var(--app-bg-primary);
+}
+
+.app-bg-secondary {
+  background-color: var(--app-bg-secondary);
+}
+
+.app-text-primary {
+  color: var(--app-text-primary);
+}
+
+.app-text-secondary {
+  color: var(--app-text-secondary);
+}
+
+.app-border {
+  border-color: var(--app-border-color);
+}
+
+/* Estilos base para formularios que funcionan en ambos temas */
+.form-input-base,
+.form-select-base {
+  background: var(--app-input-bg);
+  color: var(--app-text-primary);
+  border: 2px solid var(--app-border-color);
+  transition: border-color var(--transition-normal), background-color var(--transition-normal);
+}
+
+.form-input-base:focus,
+.form-select-base:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 3px rgba(200, 155, 45, 0.1);
+}
+
+/* Estilos base para cards/secciones */
+.card-base {
+  background: var(--app-bg-secondary);
+  border: 1px solid var(--app-border-color);
+  box-shadow: var(--app-shadow);
+  transition: background-color var(--transition-normal), border-color var(--transition-normal);
+}
+
+/* Estilos base para tablas */
+.table-base {
+  background: var(--app-bg-secondary);
+  color: var(--app-text-primary);
+}
+
+.table-base th {
+  background: var(--app-table-header-bg);
+  color: var(--app-text-primary);
+  border-bottom: 1px solid var(--app-border-color);
+}
+
+/* Estilos modernos para product cards */
+.product-card-modern {
+  position: relative;
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-light);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.product-card-modern:hover {
+  transform: var(--card-hover-lift);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--primary-gold);
+}
+
+.product-card-modern .product-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: var(--light-gray);
+}
+
+.product-card-modern .product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.product-card-modern:hover .product-image img {
+  transform: scale(1.08);
+}
+
+.product-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: var(--primary-gold);
+  color: var(--white);
+  padding: 6px 12px;
+  border-radius: var(--border-radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(200, 155, 45, 0.3);
+}
+
+.product-info-modern {
+  padding: 1.25rem;
+}
+
+.product-title-modern {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-price-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.price-current {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-gold);
+}
+
+.price-original {
+  font-size: 1rem;
+  color: var(--medium-gray);
+  text-decoration: line-through;
+}
+
+.discount-badge {
+  background: var(--brand-success);
+  color: var(--white);
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* Botones modernos estilo e-commerce */
+.btn-modern {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-full);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary-modern {
+  background: var(--primary-gold);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(200, 155, 45, 0.25);
+}
+
+.btn-primary-modern:hover {
+  background: var(--primary-gold-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(200, 155, 45, 0.35);
+}
+
+.btn-secondary-modern {
+  background: var(--black);
+  color: var(--white);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-secondary-modern:hover {
+  background: #1a1a1a;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.btn-outline-modern {
+  background: transparent;
+  color: var(--black);
+  border: 2px solid var(--black);
+}
+
+.btn-outline-modern:hover {
+  background: var(--black);
+  color: var(--white);
+  transform: translateY(-2px);
+}
+
+.table-base td {
+  border-bottom: 1px solid var(--app-border-color);
+  color: var(--app-text-primary);
+}
+
+.table-base tr:hover {
+  background: var(--app-hover-bg);
+}
+
+/* Componentes de carga */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(26, 26, 26, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.spinner {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--white);
+  border-top: 5px solid var(--primary-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Botones estándar */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.btn-primary {
+  background-color: var(--primary-gold);
+  color: var(--white);
+}
+
+.btn-primary:hover {
+  background-color: var(--primary-gold-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.btn-secondary {
+  background-color: var(--dark-gray);
+  color: var(--white);
+}
+
+.btn-secondary:hover {
+  background-color: var(--primary-gold);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--primary-gold);
+  border: 2px solid var(--primary-gold);
+}
+
+.btn-outline:hover {
+  background-color: var(--primary-gold);
+  color: var(--white);
+}
+
+/* Cards */
+.card {
+  background-color: var(--white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-light);
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  transition: box-shadow var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-medium);
+}
+
+/* Inputs */
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e9ecef;
+  border-radius: var(--border-radius-md);
+  font-size: 1rem;
+  transition: border-color var(--transition-normal);
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-gold);
+  box-shadow: 0 0 0 3px rgba(200, 155, 45, 0.1);
+}
+
+/* Utilidades */
+.text-primary { color: var(--primary-gold) !important; }
+.text-secondary { color: var(--dark-gray) !important; }
+.text-white { color: var(--white) !important; }
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.bg-primary { background-color: var(--primary-gold); }
+.bg-secondary { background-color: var(--dark-gray); }
+.bg-white { background-color: var(--white); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+  }
+
+  .card {
+    padding: 1rem;
+  }
+}

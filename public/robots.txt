@@ -1,0 +1,36 @@
+# Robots.txt para ES GESTIÓN EMPRESARIAL
+# Permite el rastreo de todos los motores de búsqueda
+
+User-agent: *
+Allow: /
+
+# Excluir páginas administrativas y privadas
+Disallow: /admin
+Disallow: /login
+Disallow: /login-clientes
+Disallow: /api/
+
+# Permitir específicamente páginas importantes
+Allow: /nosotros
+Allow: /servicios
+Allow: /clientes-recursos
+Allow: /terms-and-conditions
+
+# Crawl-delay para ser amigable con los servidores
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://www.esgestionempresarial.com/sitemap.xml
+
+# Motores de búsqueda específicos
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 1
