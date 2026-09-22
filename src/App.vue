@@ -1,135 +1,49 @@
 <template>
-  <header v-if="showUtilityBar" class="site-header" :class="{ scrolled: isScrolled || isNosotros }">
+  <header v-if="showUtilityBar" class="site-header" :class="{ scrolled: isScrolled || isNosotros || isLoginPage }">
     <nav class="header-main">
       <RouterLink class="brand-container" to="/" @click="closeMobileMenu">
         <div class="brand-logo">
-          <img src="/images/LOGO.PNG" alt="ESG" class="brand-logo-img" />
-          <span class="brand-divider" aria-hidden="true"></span>
-          <div class="brand-text">
-            <span class="brand-text-main">ES GESTIÓN</span>
-            <span class="brand-text-sub">EMPRESARIAL</span>
-          </div>
+          <img src="/images/Logo.png" alt="Viaja Ya" class="brand-logo-img" />
         </div>
       </RouterLink>
 
-      <div class="nav-menu desktop-only">
-        <RouterLink to="/" class="nav-link" :class="{ active: isCurrentRoute('/') }" @click="closeMobileMenu">Inicio</RouterLink>
-        <RouterLink to="/nosotros" class="nav-link" :class="{ active: isCurrentRoute('/nosotros') }" @click="closeMobileMenu">Nosotros</RouterLink>
-        <div class="nav-dropdown" @mouseenter="servicesOpen = true" @mouseleave="servicesOpen = false">
-          <RouterLink to="/servicios" class="nav-link" :class="{ active: isCurrentRoute('/servicios') }">
-            Servicios <i class="fas fa-chevron-down dropdown-arrow"></i>
-          </RouterLink>
-          <div class="nav-dropdown-menu" :class="{ active: servicesOpen }">
-            <RouterLink to="/servicios#consultoria" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-building"></i> Consultoría
-            </RouterLink>
-            <RouterLink to="/servicios#auditorias" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-clipboard-check"></i> Auditorías
-            </RouterLink>
-            <RouterLink to="/servicios#gestion-sg" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-cogs"></i> Gestión del SG
-            </RouterLink>
-            <RouterLink to="/servicios#formaciones" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-graduation-cap"></i> Formaciones
-            </RouterLink>
-            <RouterLink to="/servicios#proyectos" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-chart-line"></i> Gestión de Proyectos
-            </RouterLink>
-            <RouterLink to="/servicios#supervision" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-users"></i> Supervisión de Personal
-            </RouterLink>
-            <RouterLink to="/servicios#proveedores" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-handshake"></i> Gestión de Proveedores
-            </RouterLink>
-            <RouterLink to="/servicios#metologia" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-ruler-combined"></i> Gestión Metrológica
-            </RouterLink>
-            <RouterLink to="/servicios#in-house" class="dropdown-item" @click="closeMobileMenu">
-              <i class="fas fa-user-tie"></i> Administración In House
-            </RouterLink>
-          </div>
-        </div>
-        <RouterLink to="/clientes-recursos" class="nav-link" :class="{ active: isCurrentRoute('/clientes-recursos') }" @click="closeMobileMenu">Clientes / Recursos</RouterLink>
+      <div v-if="!isLoginPage" class="nav-menu desktop-only">
+        <a href="/#destinos" class="nav-link" @click="closeMobileMenu">Destinos</a>
+        <a href="/#destinos" class="nav-link" @click="closeMobileMenu">Experiencias</a>
+        <a href="/#ahorra" class="nav-link" @click="closeMobileMenu">Nosotros</a>
         <a href="/#contacto" class="nav-link" @click="closeMobileMenu">Contacto</a>
       </div>
 
       <div class="nav-actions desktop-only">
-        <RouterLink v-if="isClientLoggedIn" to="/portal-clientes" class="btn-portal">
-          <i class="fas fa-th-large" aria-hidden="true"></i>
-          Mi Portal
-        </RouterLink>
-        <RouterLink v-else to="/login-clientes" class="btn-portal">
-          Portal Clientes
+        <RouterLink to="/login-clientes" class="auth-link auth-link--user">
+          <i class="fas fa-user" aria-hidden="true"></i>
+          Usuarios
         </RouterLink>
         <button v-if="isClientLoggedIn" type="button" class="btn-logout-sm" @click="logoutClient" title="Cerrar sesión clientes">
           <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
         </button>
-        <RouterLink v-if="!isAdmin" to="/login" class="btn-login">
-          <i class="fas fa-user" aria-hidden="true"></i>
-          Iniciar sesión
-        </RouterLink>
-        <RouterLink v-if="isLoggedIn && isAdmin" to="/admin/products" class="btn-login">
+        <RouterLink :to="isAdmin ? '/admin/products' : '/login'" class="auth-link auth-link--admin">
           <i class="fas fa-user-shield" aria-hidden="true"></i>
-          Mi cuenta
+          {{ isAdmin ? 'Panel admin' : 'Ingreso admins' }}
         </RouterLink>
         <button v-if="isLoggedIn && isAdmin" type="button" class="btn-logout-sm" @click="logoutAdmin" title="Cerrar sesión admin">
           <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
         </button>
       </div>
 
-      <div class="mobile-header-controls">
-        <button type="button" class="mobile-contact-btn" aria-label="Contactar">
-          <i class="fas fa-phone" aria-hidden="true"></i>
-        </button>
-      </div>
-
-      <button class="hamburger-menu" @click="toggleMobileMenu" :class="{ active: isMobileMenuOpen }">
+      <button v-if="!isLoginPage" class="hamburger-menu" @click="toggleMobileMenu" :class="{ active: isMobileMenuOpen }">
         <span></span>
         <span></span>
         <span></span>
       </button>
     </nav>
 
-    <div class="mobile-menu" :class="{ active: isMobileMenuOpen }">
+    <div v-if="!isLoginPage" class="mobile-menu" :class="{ active: isMobileMenuOpen }">
       <div class="mobile-menu-content">
         <div class="mobile-nav-links">
-          <RouterLink to="/" class="mobile-link" :class="{ active: isCurrentRoute('/') }" @click="closeMobileMenu">Inicio</RouterLink>
-          <RouterLink to="/nosotros" class="mobile-link" :class="{ active: isCurrentRoute('/nosotros') }" @click="closeMobileMenu">Nosotros</RouterLink>
-          <div class="mobile-dropdown">
-            <div class="mobile-link mobile-dropdown-toggle" @click="mobileServicesOpen = !mobileServicesOpen">
-              Servicios <i class="fas" :class="mobileServicesOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-            </div>
-            <div class="mobile-dropdown-menu" :class="{ active: mobileServicesOpen }">
-              <RouterLink to="/servicios#consultoria" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-building"></i> Consultoría
-              </RouterLink>
-              <RouterLink to="/servicios#auditorias" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-clipboard-check"></i> Auditorías
-              </RouterLink>
-              <RouterLink to="/servicios#gestion-sg" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-cogs"></i> Gestión del SG
-              </RouterLink>
-              <RouterLink to="/servicios#formaciones" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-graduation-cap"></i> Formaciones
-              </RouterLink>
-              <RouterLink to="/servicios#proyectos" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-chart-line"></i> Gestión de Proyectos
-              </RouterLink>
-              <RouterLink to="/servicios#supervision" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-users"></i> Supervisión de Personal
-              </RouterLink>
-              <RouterLink to="/servicios#proveedores" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-handshake"></i> Gestión de Proveedores
-              </RouterLink>
-              <RouterLink to="/servicios#metologia" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-ruler-combined"></i> Gestión Metrológica
-              </RouterLink>
-              <RouterLink to="/servicios#in-house" class="mobile-dropdown-item" @click.stop="handleServiceClick">
-                <i class="fas fa-user-tie"></i> Administración In House
-              </RouterLink>
-            </div>
-          </div>
-          <RouterLink to="/clientes-recursos" class="mobile-link" :class="{ active: isCurrentRoute('/clientes-recursos') }" @click="closeMobileMenu">Clientes / Recursos</RouterLink>
+          <a href="/#destinos" class="mobile-link" @click="closeMobileMenu">Destinos</a>
+          <a href="/#destinos" class="mobile-link" @click="closeMobileMenu">Experiencias</a>
+          <a href="/#ahorra" class="mobile-link" @click="closeMobileMenu">Nosotros</a>
           <a href="/#contacto" class="mobile-link" @click="closeMobileMenu">Contacto</a>
         </div>
 
@@ -139,14 +53,15 @@
             Mi Portal
           </RouterLink>
           <RouterLink v-else to="/login-clientes" class="mobile-btn btn-portal-mobile" @click="closeMobileMenu">
-            Portal Clientes
+            <i class="fas fa-user" aria-hidden="true"></i>
+            Usuarios
           </RouterLink>
           <button v-if="isClientLoggedIn" class="mobile-btn logout-btn" @click="handleMobileLogoutClient">
             Cerrar sesión clientes
           </button>
-          <RouterLink v-if="!isAdmin" class="mobile-btn btn-login-mobile" to="/login" @click="closeMobileMenu">
-            <i class="fas fa-user" aria-hidden="true"></i>
-            Iniciar sesión
+          <RouterLink class="mobile-btn btn-login-mobile" :to="isAdmin ? '/admin/products' : '/login'" @click="closeMobileMenu">
+            <i class="fas fa-user-shield" aria-hidden="true"></i>
+            {{ isAdmin ? 'Mi cuenta' : 'Ingreso admins' }}
           </RouterLink>
           <div v-if="isLoggedIn && isAdmin" class="mobile-user-greeting">
             <span>Hola, {{ username }}</span>
@@ -164,29 +79,20 @@
   </header>
 
   <RouterView />
+  <SocialFloating v-if="!hideGlobalSections" />
+  <ContactSection v-if="!hideGlobalSections" />
+  <AppFooter v-if="!hideGlobalSections" />
 
-  <AppFooter v-if="showUtilityBar" />
-
-  <ProductQuickViewModal
-    :open="quickViewOpen"
-    :product="quickViewProduct"
-    @close="closeQuickView"
-  />
-
-  <GlobalCart v-if="showUtilityBar" />
-  <SocialFloating v-if="showUtilityBar" />
 </template>
 
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
+import SocialFloating from '@/components/SocialFloating.vue'
+import AppFooter from '@/components/AppFooter.vue'
+import ContactSection from '@/components/ContactSection.vue'
 import { authService, clientAuthService } from '@/services/api'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import router from './router'
-import SocialFloating from '@/components/SocialFloating.vue'
-import GlobalCart from '@/components/GlobalCart.vue'
-import ProductQuickViewModal from '@/components/ProductQuickViewModal.vue'
-import AppFooter from '@/components/AppFooter.vue'
-import { useProductQuickView } from '@/composables/useProductQuickView'
 
 const username = ref('')
 const isMobileMenuOpen = ref(false)
@@ -197,10 +103,15 @@ const isLoggedIn = ref(false)
 const isAdmin = ref(false)
 const isClientLoggedIn = ref(false)
 
-const { isOpen: quickViewOpen, product: quickViewProduct, close: closeQuickView } = useProductQuickView()
-
 const currentRoute = useRoute()
 const showUtilityBar = computed(() => !currentRoute.path.startsWith('/admin') && !currentRoute.path.startsWith('/portal-clientes'))
+const hideGlobalSections = computed(
+  () =>
+    !showUtilityBar.value ||
+    currentRoute.path === '/login-clientes' ||
+    currentRoute.path === '/login',
+)
+const isLoginPage = computed(() => currentRoute.path === '/login-clientes' || currentRoute.path === '/login')
 const isNosotros = computed(() => currentRoute.path === '/nosotros')
 
 const isCurrentRoute = (path: string): boolean => currentRoute.path === path
@@ -307,15 +218,15 @@ defineOptions({
   z-index: 9999;
   background: transparent;
   color: #4A4A4A;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   box-shadow: none;
   transition: background 0.35s ease, box-shadow 0.35s ease;
 }
 
 .site-header.scrolled {
-  background: #FFFFFF;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-  color: #4A4A4A;
+  background: #adbcd3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  color: #1a2a4a;
 }
 
 .header-main {
@@ -330,7 +241,7 @@ defineOptions({
 }
 
 .site-header.scrolled .header-main {
-  background: #FFFFFF;
+  background-color: rgb(22, 194, 202);
 }
 
 .brand-container {
@@ -347,8 +258,7 @@ defineOptions({
 }
 
 .brand-logo-img {
-  height: 64px;
-  width: auto;
+  height: 84px;
   object-fit: contain;
 }
 
@@ -375,7 +285,7 @@ defineOptions({
 }
 
 .site-header.scrolled .brand-text-main {
-  color: #4A4A4A;
+  color: #1a2a4a;
 }
 
 .brand-text-sub {
@@ -387,7 +297,7 @@ defineOptions({
 }
 
 .site-header.scrolled .brand-text-sub {
-  color: #9A9A9A;
+  color: #3a4a6a;
 }
 
 /* Navigation Menu */
@@ -414,12 +324,12 @@ defineOptions({
 }
 
 .site-header.scrolled .nav-link {
-  color: #4A4A4A;
+  color: #1a2a4a;
 }
 
 .site-header.scrolled .nav-link:hover,
 .site-header.scrolled .nav-link.active {
-  color: #C89B2D;
+  color: #203ec9;
 }
 
 .nav-link:hover,
@@ -627,36 +537,6 @@ defineOptions({
 }
 
 /* Mobile Controls */
-.mobile-header-controls {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.mobile-contact-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  border: 1px solid #E8E8E8;
-  background: transparent;
-  color: #C89B2D;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.site-header.scrolled .mobile-contact-btn {
-  border-color: #E8E8E8;
-  color: #C89B2D;
-}
-
-.mobile-contact-btn:hover {
-  background: rgba(200, 155, 45, 0.06);
-  border-color: rgba(200, 155, 45, 0.3);
-}
 
 .hamburger-menu {
   margin-left: 10px;
@@ -683,7 +563,7 @@ defineOptions({
 }
 
 .site-header.scrolled .hamburger-menu span {
-  background-color: #4A4A4A;
+  background-color: #1a2a4a;
 }
 
 .hamburger-menu.active span:nth-child(1) {
@@ -706,7 +586,7 @@ defineOptions({
   left: 0;
   width: 100%;
   height: calc(100vh - 80px);
-  background: #FFFFFF;
+  background: #adbcd3;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
   z-index: 9998;
@@ -731,7 +611,7 @@ defineOptions({
 }
 
 .mobile-link {
-  color: #4A4A4A;
+  color: #1a2a4a;
   text-decoration: none;
   padding: 14px 16px;
   font-size: 15px;
@@ -740,15 +620,15 @@ defineOptions({
   transition: all 0.25s ease;
   text-align: left;
   background: transparent;
-  border: 1px solid #F0F0F0;
-  font-family: 'Montserrat', sans-serif;
+  border: 1px solid rgba(26, 42, 74, 0.15);
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .mobile-link.active,
 .mobile-link:hover {
-  color: #C89B2D;
-  border-color: rgba(200, 155, 45, 0.3);
-  background: rgba(200, 155, 45, 0.04);
+  color: #203ec9;
+  border-color: rgba(32, 62, 201, 0.3);
+  background: rgba(32, 62, 201, 0.08);
 }
 
 .mobile-controls {
@@ -756,12 +636,12 @@ defineOptions({
   flex-direction: column;
   gap: 10px;
   padding-top: 16px;
-  border-top: 1px solid #F0F0F0;
+  border-top: 1px solid rgba(26, 42, 74, 0.15);
 }
 
 .mobile-btn {
   padding: 14px 16px;
-  border-radius: 10px;
+  border-radius: 20px;
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
@@ -792,8 +672,8 @@ defineOptions({
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #C89B2D;
-  color: #FFFFFF;
+  background: var(--travel-yellow, #f0c009);
+  color: #071522;
   border: none;
 }
 
@@ -803,17 +683,17 @@ defineOptions({
 
 .logout-btn {
   background: transparent;
-  color: #4A4A4A;
-  border: 1px solid #E8E8E8;
+  color: #1a2a4a;
+  border: 1px solid rgba(26, 42, 74, 0.3);
 }
 
 .logout-btn:hover {
-  border-color: rgba(200, 155, 45, 0.3);
-  color: #C89B2D;
+  border-color: rgba(32, 62, 201, 0.5);
+  color: #203ec9;
 }
 
 .mobile-user-greeting {
-  color: #4A4A4A;
+  color: #1a2a4a;
   text-align: center;
   padding: 14px 16px;
   font-weight: 600;
@@ -834,12 +714,9 @@ defineOptions({
     display: none;
   }
 
-  .mobile-header-controls {
-    display: flex;
-  }
-
   .hamburger-menu {
     display: flex;
+    margin-left: auto;
   }
 
   .mobile-menu {
@@ -866,6 +743,203 @@ defineOptions({
   .mobile-menu {
     top: 72px;
     height: calc(100vh - 72px);
+  }
+}
+
+/* Header principal de Viaja Ya sobre el hero */
+.site-header:not(.scrolled) {
+  color: #ffffff;
+}
+
+.site-header:not(.scrolled) .brand-logo-img {
+  filter: brightness(0) invert(1);
+}
+
+.site-header:not(.scrolled) .nav-link {
+  color: rgba(255, 255, 255, 0.82);
+  border-radius: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-header:not(.scrolled) .nav-link:hover,
+.site-header:not(.scrolled) .nav-link.active {
+  color: #f0c009;
+}
+
+.site-header.scrolled .nav-link {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.auth-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 8px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 3px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.auth-link:hover {
+  border-color: #f0c009;
+  background: rgba(240, 192, 9, 0.16);
+  color: #ffffff;
+}
+
+.auth-link--admin {
+  border-color: #f0c009;
+  background: #f0c009;
+  color: #10215f;
+}
+
+.auth-link--admin:hover {
+  background: #ffd83f;
+  color: #10215f;
+}
+
+.site-header.scrolled .auth-link--user {
+  border-color: #f0c009;
+  background: #f0c009;
+  color: #071522;
+  border-radius: 20px;
+  padding: 8px 16px;
+}
+
+.site-header.scrolled .auth-link--admin {
+  border-color: #203ec9;
+  background: #203ec9;
+  color: #ffffff;
+  border-radius: 20px;
+  padding: 8px 16px;
+}
+
+.site-header.scrolled .auth-link--admin:hover {
+  background: #162e9e;
+}
+
+.site-header.scrolled .brand-logo-img {
+  filter: none;
+}
+
+@media (max-width: 768px) {
+  .site-header:not(.scrolled) .hamburger-menu span {
+    background-color: #ffffff;
+  }
+}
+
+/* Header principal de Viaja Ya */
+.site-header:not(.scrolled) {
+  background: transparent;
+  color: #fff;
+}
+
+.site-header:not(.scrolled) .header-main {
+  min-height: 72px;
+  height: 72px;
+  padding: 0 3.75vw;
+  gap: 28px;
+}
+
+.site-header:not(.scrolled) .brand-logo-img {
+  width: 96px;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+.site-header:not(.scrolled) .nav-menu {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.site-header:not(.scrolled) .nav-link {
+  padding: 8px 14px;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.site-header:not(.scrolled) .nav-link:hover,
+.site-header:not(.scrolled) .nav-link.active {
+  color: #f0c009;
+}
+
+.site-header:not(.scrolled) .nav-actions {
+  gap: 8px;
+}
+
+.site-header:not(.scrolled) .auth-link {
+  min-height: 32px;
+  padding: 7px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.48);
+  border-radius: 15px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.site-header:not(.scrolled) .auth-link--admin {
+  border-color: #f0c009;
+  background: #f0c009;
+  color: #071522;
+}
+
+.site-header:not(.scrolled) .auth-link--user:hover {
+  border-color: #f0c009;
+  background: rgba(240, 192, 9, 0.16);
+  color: #fff;
+}
+
+.site-header:not(.scrolled) .auth-link--admin:hover {
+  background: #ffd83f;
+  color: #071522;
+}
+
+.site-header.scrolled .header-main {
+  min-height: 72px;
+  height: 72px;
+}
+
+.site-header.scrolled .brand-logo-img {
+  width: 110px;
+  height: auto;
+}
+
+@media (max-width: 900px) {
+  .site-header:not(.scrolled) .header-main {
+    padding: 0 24px;
+  }
+
+  .site-header:not(.scrolled) .nav-link {
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .site-header:not(.scrolled) .auth-link {
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 768px) {
+  .site-header:not(.scrolled) .brand-logo-img,
+  .site-header.scrolled .brand-logo-img {
+    width: 88px;
   }
 }
 </style>

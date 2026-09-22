@@ -16,7 +16,7 @@
           </p>
         </div>
         <div class="hero-image">
-          <img src="https://res.cloudinary.com/dlwzazojt/image/upload/v1784587269/WhatsApp_Image_2025-11-11_at_12.40.10_yccmqt.jpg" alt="Equipo ESG" />
+          <img src="https://res.cloudinary.com/dlwzazojt/image/upload/v1784587269/WhatsApp_Image_2025-11-11_at_12.40.10_yccmqt.jpg" alt="Equipo Viaja Ya" />
         </div>
       </div>
     </section>
@@ -68,7 +68,7 @@
             <div class="team-photo">
               <img src="https://res.cloudinary.com/dlwzazojt/image/upload/v1784746118/WhatsApp-Image-2022-06-28-at-10.25.30-AM-e1705703868283_v1k2pb.jpg" alt="Ing. Camila Escobar F." />
               <div class="team-socials">
-                <a href="mailto:comercial@esgestionempresarial.com" class="team-social"><i class="fas fa-envelope"></i></a>
+                <a href="mailto:comercial@somosviajaya.com" class="team-social"><i class="fas fa-envelope"></i></a>
                 <a href="https://co.linkedin.com/in/camila-andrea-escobar-fernandez" target="_blank" class="team-social"><i class="fab fa-linkedin-in"></i></a>
               </div>
             </div>
@@ -91,7 +91,7 @@
             <div class="team-photo">
               <img src="https://res.cloudinary.com/dlwzazojt/image/upload/v1784746118/WhatsApp-Image-2024-01-16-at-8.59.07-PM-e1705704103313_yckiwk.jpg" alt="Ing. Luis Eduardo Salcedo" />
               <div class="team-socials">
-                <a href="mailto:comercial@esgestionempresarial.com" class="team-social"><i class="fas fa-envelope"></i></a>
+                <a href="mailto:comercial@somosviajaya.com" class="team-social"><i class="fas fa-envelope"></i></a>
                 <a href="https://www.linkedin.com/in/luis-eduardo-salcedo-lara-a84555b9" target="_blank" class="team-social"><i class="fab fa-linkedin-in"></i></a>
               </div>
             </div>
@@ -117,7 +117,7 @@
             <div class="team-photo">
               <img src="https://res.cloudinary.com/dlwzazojt/image/upload/v1785693127/WhatsApp_Image_2026-07-24_at_11.00.28_dg2ctl.jpg" alt="María Paula Salcedo" />
               <div class="team-socials">
-                <a href="mailto:comercial@esgestionempresarial.com" class="team-social"><i class="fas fa-envelope"></i></a>
+                <a href="mailto:comercial@somosviajaya.com" class="team-social"><i class="fas fa-envelope"></i></a>
               </div>
             </div>
             <div class="team-info">

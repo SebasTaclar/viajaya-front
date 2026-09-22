@@ -2,12 +2,13 @@
   <main class="login-page">
     <div class="login-container">
       <div class="login-card">
+        <img src="/images/Logo.png" alt="Viaja Ya" class="login-logo" />
         <div class="login-icon">
-          <i class="fas fa-user-lock"></i>
+          <i class="fas fa-user-shield"></i>
         </div>
 
-        <h1 class="login-title">Portal ESG</h1>
-        <p class="login-subtitle">Ingrese sus credenciales para acceder al sistema</p>
+        <h1 class="login-title">Acceso Administrativo</h1>
+        <p class="login-subtitle">Panel de gestion Viaja Ya</p>
 
         <form @submit.prevent="handleLogin" class="login-form">
           <div v-if="errorMessage" class="error-message">
@@ -16,14 +17,15 @@
           </div>
 
           <div class="input-group">
-            <label for="email">Correo electrónico</label>
+            <label for="email">Correo electronico</label>
             <div class="input-wrapper">
               <i class="fas fa-envelope"></i>
               <input
                 type="email"
                 id="email"
                 v-model="email"
-                placeholder="correo@ejemplo.com"
+                placeholder="admin@somosviajaya.com"
+                autocomplete="username"
                 required
                 class="form-input"
               />
@@ -31,14 +33,14 @@
           </div>
 
           <div class="input-group">
-            <label for="password">Contraseña</label>
+            <label for="password">Contrasena</label>
             <div class="input-wrapper">
               <i class="fas fa-lock"></i>
               <input
                 :type="showPassword ? 'text' : 'password'"
                 id="password"
                 v-model="password"
-                placeholder="••••••••"
+                placeholder="Ingrese su contrasena"
                 required
                 class="form-input"
               />
@@ -60,13 +62,17 @@
               <i class="fas fa-spinner fa-spin"></i> Accediendo...
             </span>
             <span v-else>
-              Iniciar sesión <i class="fas fa-arrow-right"></i>
+              Ingresar al panel <i class="fas fa-arrow-right"></i>
             </span>
           </button>
         </form>
 
         <div class="login-footer">
-          <p>¿No tiene cuenta? <a href="/#contacto">Contáctenos</a></p>
+          <p class="login-hint">
+            Admin: <strong>admin@somosviajaya.com</strong> / <strong>ViajaYa2026</strong><br />
+            Super Admin: <strong>superadmin@somosviajaya.com</strong> / <strong>ViajaYaAdmin2026</strong>
+          </p>
+          <p><a href="/"><i class="fas fa-arrow-left"></i> Volver al sitio</a></p>
         </div>
       </div>
     </div>
@@ -151,29 +157,48 @@ const handleLogin = async () => {
   border: 1px solid #F0F0F0;
   box-shadow: 0 12px 48px rgba(0, 0, 0, 0.06);
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #16C2CA 0%, #13ABB2 100%);
+}
+
+.login-logo {
+  height: 56px;
+  object-fit: contain;
+  margin-bottom: 16px;
 }
 
 .login-icon {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background: rgba(200, 155, 45, 0.1);
+  background: rgba(22, 194, 202, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 24px;
+  margin: 0 auto 20px;
+  border: 2px solid rgba(22, 194, 202, 0.2);
 }
 
 .login-icon i {
-  font-size: 28px;
-  color: #C89B2D;
+  font-size: 24px;
+  color: #16C2CA;
 }
 
 .login-title {
   margin: 0 0 8px;
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
-  color: #2F2F2F;
+  color: #1A1A1A;
 }
 
 .login-subtitle {
@@ -247,9 +272,9 @@ const handleLogin = async () => {
 
 .form-input:focus {
   outline: none;
-  border-color: #C89B2D;
+  border-color: #16C2CA;
   background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(200, 155, 45, 0.1);
+  box-shadow: 0 0 0 3px rgba(22, 194, 202, 0.12);
 }
 
 .toggle-password {
@@ -264,7 +289,7 @@ const handleLogin = async () => {
 }
 
 .toggle-password:hover {
-  color: #C89B2D;
+  color: #16C2CA;
 }
 
 .login-options {
@@ -283,12 +308,12 @@ const handleLogin = async () => {
 }
 
 .remember-me input {
-  accent-color: #C89B2D;
+  accent-color: #16C2CA;
 }
 
 .forgot-password {
   font-size: 13px;
-  color: #C89B2D;
+  color: #16C2CA;
   text-decoration: none;
   font-weight: 600;
 }
@@ -300,7 +325,7 @@ const handleLogin = async () => {
 .btn-login {
   width: 100%;
   padding: 16px;
-  background: #C89B2D;
+  background: #16C2CA;
   color: #FFFFFF;
   border: none;
   border-radius: 10px;
@@ -317,9 +342,9 @@ const handleLogin = async () => {
 }
 
 .btn-login:hover:not(:disabled) {
-  background: #D4A82F;
+  background: #13ABB2;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(200, 155, 45, 0.3);
+  box-shadow: 0 8px 24px rgba(22, 194, 202, 0.3);
 }
 
 .btn-login:disabled {
@@ -339,10 +364,24 @@ const handleLogin = async () => {
   color: #888888;
 }
 
+.login-hint {
+  margin-bottom: 10px !important;
+  font-size: 12px !important;
+  color: #AAAAAA !important;
+}
+
+.login-hint strong {
+  color: #6B6B6B;
+  font-weight: 600;
+}
+
 .login-footer a {
-  color: #C89B2D;
+  color: #16C2CA;
   text-decoration: none;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .login-footer a:hover {

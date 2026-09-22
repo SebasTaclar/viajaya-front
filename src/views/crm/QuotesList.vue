@@ -798,7 +798,7 @@ function downloadPDF(cot: Cotizacion) {
     <body>
       <div class="header">
         <div>
-          <div class="company-name">ESG Consultoria</div>
+          <div class="company-name">Viaja Ya</div>
           <div class="doc-title">Cotizacion</div>
         </div>
         <div style="text-align:right;">
@@ -821,7 +821,7 @@ function downloadPDF(cot: Cotizacion) {
       ${cot.services && cot.services.length > 0 ? '<h3 style="font-size:15px;font-weight:700;margin-bottom:12px;">Servicios</h3><table><thead><tr><th>Actividad</th><th style="text-align:center;">Tiempo (Días)</th><th>Tipo</th><th style="text-align:right;">VALOR * DÍA (COP)</th></tr></thead><tbody>' + servicesRows + '<tr class="total-row"><td colspan="3" style="text-align:right;padding-right:12px;">Total:</td><td style="text-align:right;">$ ' + (cot.totalAmount || 0).toLocaleString('es-CO') + '</td></tr></tbody></table>' : ''}
 
       <div class="footer">
-        Documento generado el ${new Date().toLocaleDateString('es-CO')} a las ${new Date().toLocaleTimeString('es-CO')} &mdash; ESG Consultoria
+        Documento generado el ${new Date().toLocaleDateString('es-CO')} a las ${new Date().toLocaleTimeString('es-CO')} &mdash; Viaja Ya
       </div>
 
       <script>window.onload = function() { window.print(); }<\/script>

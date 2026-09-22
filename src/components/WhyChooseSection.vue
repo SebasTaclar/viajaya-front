@@ -431,7 +431,11 @@ const benefits = [
 /* Mobile Landscape / Small Tablet */
 @media (max-width: 992px) {
   .why-choose {
-    padding: 70px 0;
+    padding: 56px 0;
+  }
+
+  .why-choose__header {
+    margin-bottom: 36px;
   }
 
   .why-choose__stats {
@@ -459,41 +463,50 @@ const benefits = [
 /* Mobile Portrait */
 @media (max-width: 768px) {
   .why-choose {
-    padding: 60px 0;
+    padding: 44px 0;
+  }
+
+  .why-choose__header {
+    margin-bottom: 28px;
   }
 
   .why-choose__title {
-    font-size: clamp(26px, 6vw, 32px);
+    font-size: clamp(22px, 6vw, 30px);
+  }
+
+  .why-choose__subtitle {
+    font-size: 13px;
   }
 
   .why-choose__stats {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
   .why-choose__stat {
-    padding: 20px 18px;
+    padding: 16px 14px;
+    gap: 12px;
   }
 
   .why-choose__benefits {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
 
   .why-choose__benefit {
-    padding: 24px 20px;
+    padding: 20px 16px;
   }
 
   .why-choose__bottom-img {
-    min-height: 220px;
+    min-height: 200px;
   }
 
   .why-choose__bottom-content {
-    padding: 28px 24px;
+    padding: 24px 20px;
   }
 
   .why-choose__bottom-title {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .why-choose__deco {
@@ -504,29 +517,45 @@ const benefits = [
 /* Small Mobile */
 @media (max-width: 480px) {
   .why-choose {
-    padding: 48px 0;
+    padding: 36px 0;
+  }
+
+  .why-choose__title {
+    font-size: clamp(20px, 7vw, 26px);
   }
 
   .why-choose__stat-icon {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
   }
 
   .why-choose__stat-icon i {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .why-choose__stat-number {
-    font-size: 20px;
+    font-size: 18px;
+  }
+
+  .why-choose__stat-label {
+    font-size: 11px;
   }
 
   .why-choose__benefit-icon {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
   }
 
   .why-choose__benefit-icon i {
-    font-size: 16px;
+    font-size: 15px;
+  }
+
+  .why-choose__benefit-title {
+    font-size: 13px;
+  }
+
+  .why-choose__benefit-desc {
+    font-size: 11px;
   }
 }
 </style>

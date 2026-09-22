@@ -1,8 +1,8 @@
-# Backend Specifications - ESG CRM
+# Backend Specifications - Viaja Ya CRM
 
 ## Overview
 
-REST API backend for the ESG CRM module. The backend handles data storage, validation, and CRUD operations. The frontend manages code generation (project codes) and catalog values (free-form strings).
+REST API backend for the Viaja Ya CRM module. The backend handles data storage, validation, and CRUD operations. The frontend manages code generation (project codes) and catalog values (free-form strings).
 
 ---
 
@@ -315,7 +315,7 @@ POST   /api/documents/upload          # Upload file (multipart/form-data)
 ```json
 POST /api/clients
 {
-  "name": "RESPALDO VITAL S.A.S",
+  "name": "HOTEL EJEMPLO S.A.S",
   "nit": "900123456-7",
   "code": "0001-SG",
   "organizationType": "Sistema de Gestión de Calidad",
@@ -324,8 +324,8 @@ POST /api/clients
   "department": "Cundinamarca",
   "address": "Carrera 15 # 88-56, Oficina 502",
   "phone": "+57 601 3456789",
-  "email": "contacto@respaldovital.com",
-  "website": "https://respaldovital.com",
+  "email": "contacto@somosviajaya.com",
+  "website": "https://www.somosviajaya.com",
   "isActive": true,
   "isProspect": false,
   "observations": "Cliente corporativo desde 2021",
@@ -334,14 +334,14 @@ POST /api/clients
       "name": "María Torres",
       "position": "Gerente de Calidad",
       "phone": "300 123 4567",
-      "email": "mtorres@respaldovital.com",
+      "email": "mtorres@somosviajaya.com",
       "isPrimary": true
     },
     {
       "name": "Carlos Ruiz",
       "position": "Jefe de Operaciones",
       "phone": "310 987 6543",
-      "email": "cruiz@respaldovital.com",
+      "email": "cruiz@somosviajaya.com",
       "isPrimary": false
     }
   ],

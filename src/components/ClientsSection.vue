@@ -160,20 +160,38 @@ const duplicatedClients = computed(() => [...clients, ...clients, ...clients])
 }
 
 @media (max-width: 768px) {
+  .clients {
+    padding: 24px 0;
+    padding-top: 0;
+  }
+
+  .clients__header {
+    margin-bottom: 32px;
+  }
+
+  .clients__label {
+    font-size: 12px;
+    gap: 12px;
+  }
+
+  .clients__label-line {
+    width: 24px;
+  }
+
   .clients__item {
-    width: 160px;
-    height: 90px;
-    padding: 16px 20px;
+    width: 150px;
+    height: 80px;
+    padding: 14px 18px;
   }
 
   .clients__logo {
-    max-width: 120px;
-    max-height: 50px;
+    max-width: 110px;
+    max-height: 45px;
   }
 
   .clients__track {
-    gap: 20px;
-    animation: scroll 120s linear infinite;
+    gap: 16px;
+    animation: scroll 100s linear infinite;
   }
 
   .clients__track.is-paused {
@@ -185,7 +203,7 @@ const duplicatedClients = computed(() => [...clients, ...clients, ...clients])
       transform: translateX(0);
     }
     100% {
-      transform: translateX(calc(-160px * 20 - 20px * 20));
+      transform: translateX(calc(-150px * 20 - 16px * 20));
     }
   }
 }

@@ -1,4 +1,4 @@
-# Integración de API Backend — ESG Gestión Empresarial
+# Integración de API Backend — Viaja Ya
 
 ## Estructura de Servicios
 
@@ -118,7 +118,7 @@ const { isAuthenticated, currentUser, isAdmin, userRole, userName, login, logout
 Para extender la integración del backend:
 
 1. **Crear servicios adicionales** en `src/services/api/`
-2. **Implementar llamadas CRUD** para entidades del dominio ESG
+2. **Implementar llamadas CRUD** para entidades del dominio Viaja Ya
 3. **Añadir manejo de errores** global
 4. **Implementar refresh de tokens** automático
 5. **Añadir interceptors** para manejo de respuestas

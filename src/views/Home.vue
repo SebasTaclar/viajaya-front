@@ -3,35 +3,13 @@
     <section class="section">
       <MainBanner />
     </section>
-    <section class="section">
-      <PurposeSection />
-    </section>
-    <section class="section">
-      <MethodologySection />
-    </section>
-    <section class="section">
-      <ServicesSection />
-    </section>
-    <section class="section">
-      <WhyChooseSection />
-    </section>
-    <section class="section">
-      <ClientsSection />
-    </section>
-    <section class="section">
-      <ContactSection />
-    </section>
+    <TravelDiscoverySections />
   </main>
 </template>
 
 <script setup lang="ts">
 import MainBanner from '@/components/MainBanner.vue'
-import PurposeSection from '@/components/PurposeSection.vue'
-import MethodologySection from '@/components/MethodologySection.vue'
-import ServicesSection from '@/components/ServicesSection.vue'
-import WhyChooseSection from '@/components/WhyChooseSection.vue'
-import ClientsSection from '@/components/ClientsSection.vue'
-import ContactSection from '@/components/ContactSection.vue'
+import TravelDiscoverySections from '@/components/TravelDiscoverySections.vue'
 
 defineOptions({
   name: 'HomeView'
@@ -41,7 +19,7 @@ defineOptions({
 <style scoped>
 .home-main {
   padding-top: 0;
-  background: #FAFAFA;
+  background: transparent;
   color: #1A1A1A;
   width: 100%;
   max-width: 100vw;

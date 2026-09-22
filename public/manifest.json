@@ -1,11 +1,11 @@
 {
-  "name": "ES Gestión Empresarial",
-  "short_name": "ESG",
-  "description": "Consultoría especializada en sistemas de gestión, implementación de normas ISO y auditorías para empresas y laboratorios.",
+  "name": "Viaja Ya",
+  "short_name": "Viaja Ya",
+  "description": "Descubre destinos, viajes y experiencias con Viaja Ya.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FFFFFF",
-  "theme_color": "#C89B2D",
+  "theme_color": "#203EC9",
   "orientation": "portrait-primary",
   "lang": "es-CO",
   "dir": "ltr",
@@ -60,12 +60,12 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "education"],
+  "categories": ["travel", "lifestyle"],
   "shortcuts": [
     {
-      "name": "Servicios",
-      "short_name": "Servicios",
-      "description": "Consultoría, auditorías y formación ISO",
+      "name": "Destinos",
+      "short_name": "Destinos",
+      "description": "Explora destinos y experiencias de viaje",
       "url": "/servicios",
       "icons": [
         {
@@ -75,9 +75,9 @@
       ]
     },
     {
-      "name": "Nosotros",
-      "short_name": "Nosotros",
-      "description": "Conoce a ES Gestión Empresarial",
+      "name": "Viajes",
+      "short_name": "Viajes",
+      "description": "Conoce las opciones de viaje disponibles",
       "url": "/nosotros",
       "icons": [
         {
@@ -89,7 +89,7 @@
     {
       "name": "Contacto",
       "short_name": "Contacto",
-      "description": "Contáctanos para asesoría",
+      "description": "Comunícate con Viaja Ya",
       "url": "/clientes-recursos",
       "icons": [
         {

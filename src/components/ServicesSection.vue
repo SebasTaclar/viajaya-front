@@ -57,7 +57,7 @@
             <h3 class="services__card-title">Administración In House</h3>
           </div>
           <p class="services__card-desc">
-            Integramos un profesional ESG dentro de su organización
+            Integramos un profesional de Viaja Ya dentro de su organización
             para acompañar la gestión de forma permanente.
           </p>
           <a href="/servicios" class="services__card-link">
@@ -251,7 +251,7 @@ const services = [
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 clamp(24px, vw, 80px);
+  padding: 0 clamp(24px, 4vw, 80px);
 }
 
 /* ---- Header ---- */
@@ -590,18 +590,18 @@ const services = [
 /* Tablet */
 @media (max-width: 1200px) {
   .services__grid {
-    gap: 16px;
+    gap: 14px;
   }
 
   .services__card {
-    padding: 24px 20px;
+    padding: 22px 18px;
   }
 }
 
 /* Mobile Landscape / Small Tablet */
 @media (max-width: 992px) {
   .services {
-    padding: 70px 0 0;
+    padding: 60px 0 0;
   }
 
   .services__grid {
@@ -618,14 +618,14 @@ const services = [
   }
 
   .services__cta-wrapper {
-    padding: 60px clamp(24px, 5vw, 60px);
+    padding: 48px 24px;
   }
 
   .services__cta-content {
     flex-direction: column;
     text-align: center;
-    padding: 40px 36px;
-    gap: 32px;
+    padding: 36px 28px;
+    gap: 28px;
   }
 
   .services__cta-left {
@@ -646,37 +646,66 @@ const services = [
 /* Mobile Portrait */
 @media (max-width: 768px) {
   .services {
-    padding: 60px 0 0;
+    padding: 48px 0 0;
+  }
+
+  .services__header {
+    margin-bottom: 24px;
   }
 
   .services__title {
-    font-size: clamp(26px, 6vw, 34px);
+    font-size: clamp(24px, 6vw, 32px);
+  }
+
+  .services__description {
+    font-size: 13px;
+    padding: 0 16px;
   }
 
   .services__grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
+    padding: 0 16px;
   }
 
   .services__card {
-    padding: 22px 20px;
+    padding: 20px 18px;
+  }
+
+  .services__centered-wrapper {
+    padding: 0 16px;
   }
 
   .services__cta-wrapper {
-    padding: 48px clamp(24px, 5vw, 32px);
+    padding: 32px 16px;
   }
 
   .services__cta-content {
-    padding: 32px 24px;
+    padding: 28px 20px;
   }
 
   .services__cta-title {
-    font-size: 19px;
+    font-size: 18px;
+  }
+
+  .services__cta-desc {
+    font-size: 12px;
   }
 
   .services__cta-features {
     grid-template-columns: 1fr;
     gap: 10px;
+  }
+
+  .services__cta-feature {
+    font-size: 12px;
+    justify-content: center;
+  }
+
+  .services__cta-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
   }
 
   .services__deco {
@@ -687,30 +716,67 @@ const services = [
 /* Small Mobile */
 @media (max-width: 480px) {
   .services {
-    padding: 48px 0 0;
+    padding: 40px 0 0;
+  }
+
+  .services__header {
+    margin-bottom: 20px;
+  }
+
+  .services__kicker {
+    font-size: 11px;
+    gap: 8px;
+  }
+
+  .services__kicker-line {
+    width: 20px;
   }
 
   .services__card-icon {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
   }
 
   .services__card-icon i {
-    font-size: 18px;
+    font-size: 16px;
+  }
+
+  .services__card-title {
+    font-size: 13px;
+  }
+
+  .services__card-desc {
+    font-size: 11px;
+  }
+
+  .services__card-link {
+    font-size: 11px;
   }
 
   .services__cta-icon {
-    width: 50px;
-    height: 50px;
+    width: 46px;
+    height: 46px;
   }
 
   .services__cta-icon i {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .services__cta-btn {
-    padding: 12px 24px;
+    padding: 12px 20px;
     font-size: 13px;
+  }
+
+  .services__cta-content {
+    padding: 24px 16px;
+  }
+
+  .services__cta-title {
+    font-size: 16px;
+  }
+
+  .services__cta-desc {
+    font-size: 11px;
   }
 }
 </style>

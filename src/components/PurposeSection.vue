@@ -392,16 +392,17 @@ const cards = [
 /* Tablet */
 @media (max-width: 1200px) {
   .purpose__float-card {
-    right: 30px;
-    bottom: 40px;
-    max-width: 280px;
+    right: 20px;
+    bottom: 30px;
+    max-width: 260px;
+    padding: 32px 18px;
   }
 }
 
 /* Mobile Landscape / Small Tablet */
 @media (max-width: 992px) {
   .purpose {
-    padding: 80px 0;
+    padding: 60px 0;
   }
 
   .purpose__container {
@@ -413,7 +414,7 @@ const cards = [
     order: 2;
     text-align: center;
     align-items: center;
-    padding: 48px clamp(24px, 5vw, 60px);
+    padding: 40px clamp(20px, 5vw, 48px);
   }
 
   .purpose__kicker {
@@ -422,6 +423,7 @@ const cards = [
 
   .purpose__description {
     text-align: center;
+    font-size: 13px;
   }
 
   .purpose__cards {
@@ -446,13 +448,14 @@ const cards = [
   }
 
   .purpose__image {
-    min-height: 260px;
+    min-height: 240px;
   }
 
   .purpose__float-card {
     left: 20px;
     bottom: 20px;
-    max-width: 280px;
+    max-width: 260px;
+    padding: 28px 18px;
   }
 
   .purpose__image-overlay {
@@ -468,11 +471,19 @@ const cards = [
 /* Mobile Portrait */
 @media (max-width: 768px) {
   .purpose {
-    padding: 60px 0;
+    padding: 48px 0;
+  }
+
+  .purpose__content {
+    padding: 32px 20px;
   }
 
   .purpose__title {
-    font-size: clamp(24px, 6vw, 32px);
+    font-size: clamp(22px, 6vw, 30px);
+  }
+
+  .purpose__description {
+    font-size: 12px;
   }
 
   .purpose__cards {
@@ -481,7 +492,7 @@ const cards = [
   }
 
   .purpose__card {
-    padding: 26px 16px 24px;
+    padding: 22px 12px 20px;
     border-right: 1px solid #D8D5D0;
     border-bottom: 1px solid #D8D5D0;
   }
@@ -495,12 +506,20 @@ const cards = [
   }
 
   .purpose__card-icon {
-    width: 62px;
-    height: 62px;
+    width: 56px;
+    height: 56px;
   }
 
   .purpose__card-icon i {
-    font-size: 22px;
+    font-size: 20px;
+  }
+
+  .purpose__card-title {
+    font-size: 12px;
+  }
+
+  .purpose__card-desc {
+    font-size: 10px;
   }
 
   .purpose__visual {
@@ -515,8 +534,8 @@ const cards = [
   }
 
   .purpose__image {
-    min-height: 280px;
-    max-height: 350px;
+    min-height: 240px;
+    max-height: 300px;
     height: auto;
   }
 
@@ -524,29 +543,29 @@ const cards = [
     position: relative;
     right: auto;
     bottom: auto;
-    margin: -40px 40px 0;
+    margin: -30px 20px 0;
     max-width: none;
     animation: none;
-    padding: 24px 20px;
-    border-radius: 14px;
+    padding: 20px 16px;
+    border-radius: 12px;
     z-index: 5;
   }
 
   .purpose__float-icon {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
   }
 
   .purpose__float-icon i {
-    font-size: 16px;
-  }
-
-  .purpose__float-content strong {
     font-size: 14px;
   }
 
+  .purpose__float-content strong {
+    font-size: 13px;
+  }
+
   .purpose__float-content span {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .purpose__deco {
@@ -557,7 +576,11 @@ const cards = [
 /* Small Mobile */
 @media (max-width: 480px) {
   .purpose {
-    padding: 48px 0;
+    padding: 40px 0;
+  }
+
+  .purpose__content {
+    padding: 28px 16px;
   }
 
   .purpose__cards {
@@ -568,8 +591,8 @@ const cards = [
   .purpose__card {
     flex-direction: row;
     text-align: left;
-    padding: 16px 18px;
-    gap: 14px;
+    padding: 14px 16px;
+    gap: 12px;
     border-right: none;
     border-bottom: 1px solid #D8D5D0;
   }
@@ -579,13 +602,13 @@ const cards = [
   }
 
   .purpose__card-icon {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     flex-shrink: 0;
   }
 
   .purpose__card-icon i {
-    font-size: 16px;
+    font-size: 15px;
   }
 
   .purpose__card-desc {
@@ -594,18 +617,18 @@ const cards = [
 
   .purpose__float-card {
     flex-direction: column;
-    margin: -30px 20px 0;
-    padding: 20px 18px;
+    margin: -24px 16px 0;
+    padding: 18px 14px;
     text-align: center;
     align-items: center;
   }
 
   .purpose__float-content strong {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .purpose__float-content span {
-    font-size: 11px;
+    font-size: 10px;
   }
 }
 </style>

@@ -370,18 +370,19 @@ const steps = [
 /* Mobile Landscape / Small Tablet */
 @media (max-width: 992px) {
   .methodology {
-    padding: 60px 0;
+    padding: 48px 0;
   }
 
   .methodology__container {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 40px;
   }
 
   .methodology__content {
     order: 1;
     text-align: center;
     align-items: center;
+    padding: 0 24px;
   }
 
   .methodology__kicker {
@@ -396,7 +397,8 @@ const steps = [
     order: 2;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 24px;
+    gap: 20px;
+    padding: 0 24px;
     padding-top: 0;
   }
 
@@ -405,29 +407,34 @@ const steps = [
   }
 
   .methodology__step {
-    flex: 0 0 calc(33.33% - 16px);
-    min-width: 110px;
+    flex: 0 0 calc(33.33% - 14px);
+    min-width: 100px;
   }
 }
 
 /* Mobile Portrait */
 @media (max-width: 768px) {
   .methodology {
-    padding: 48px 0;
+    padding: 40px 0;
   }
 
   .methodology__title {
-    font-size: clamp(24px, 5vw, 32px);
+    font-size: clamp(22px, 5vw, 30px);
+  }
+
+  .methodology__description {
+    font-size: 13px;
+    padding: 0 8px;
   }
 
   .methodology__step {
-    flex: 0 0 calc(50% - 12px);
-    min-width: 130px;
+    flex: 0 0 calc(50% - 10px);
+    min-width: 120px;
   }
 
   .methodology__step-circle {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
   }
 
   .methodology__step-icon i {
@@ -435,10 +442,10 @@ const steps = [
   }
 
   .methodology__step-number {
-    top: 44px;
-    width: 24px;
-    height: 24px;
-    font-size: 9px;
+    top: 42px;
+    width: 22px;
+    height: 22px;
+    font-size: 8px;
   }
 
   .methodology__step-title {
@@ -453,20 +460,31 @@ const steps = [
 /* Small Mobile */
 @media (max-width: 480px) {
   .methodology {
-    padding: 40px 0;
+    padding: 32px 0;
+  }
+
+  .methodology__container {
+    gap: 32px;
   }
 
   .methodology__step {
     flex: 0 0 100%;
     flex-direction: row;
     text-align: left;
-    gap: 16px;
+    gap: 14px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
   }
 
   .methodology__step-circle {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
     flex-shrink: 0;
+  }
+
+  .methodology__step-icon i {
+    font-size: 16px;
   }
 
   .methodology__step-number {
@@ -474,16 +492,24 @@ const steps = [
     top: auto;
     left: auto;
     transform: none;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     font-size: 8px;
-    margin-top: -12px;
-    margin-left: -12px;
+    margin-top: -10px;
+    margin-left: -10px;
   }
 
   .methodology__step-info {
     max-width: none;
     margin-top: 0;
+  }
+
+  .methodology__step-title {
+    font-size: 13px;
+  }
+
+  .methodology__step-desc {
+    font-size: 11px;
   }
 }
 </style>

@@ -1,4 +1,4 @@
-# Configuración de SEO y Google Search Console — ESG Gestión Empresarial
+# Configuración de SEO y Google Search Console — Viaja Ya
 
 ## ✅ Configuraciones Implementadas
 
@@ -43,7 +43,7 @@
 2. Inicia sesión con tu cuenta de Google
 3. Haz clic en "Agregar propiedad"
 4. Selecciona "Prefijo de URL"
-5. Ingresa: `https://www.esgestionempresarial.com`
+5. Ingresa: `https://www.somosviajaya.com`
 
 ### Paso 2: Verificar Propiedad del Sitio
 Elige uno de estos métodos:
@@ -73,12 +73,12 @@ Elige uno de estos métodos:
 
 ### Paso 4: Solicitar Indexación
 1. Ve a "Inspección de URLs"
-2. Ingresa tu URL principal: `https://www.esgestionempresarial.com`
+2. Ingresa tu URL principal: `https://www.somosviajaya.com`
 3. Haz clic en "Solicitar indexación"
 4. Repite para páginas importantes:
-   - https://www.esgestionempresarial.com/nosotros
-   - https://www.esgestionempresarial.com/servicios
-   - https://www.esgestionempresarial.com/clientes-recursos
+   - https://www.somosviajaya.com/nosotros
+   - https://www.somosviajaya.com/servicios
+   - https://www.somosviajaya.com/clientes-recursos
 
 ---
 
@@ -90,7 +90,7 @@ Elige uno de estos métodos:
 3. Haz clic en "Add a Site"
 
 ### Paso 2: Verificación
-1. Ingresa: `https://www.esgestionempresarial.com`
+1. Ingresa: `https://www.somosviajaya.com`
 2. Selecciona método de verificación (Meta Tag)
 3. Copia el código que te proporcionen
 4. Edita `index.html` y descomenta:
@@ -101,7 +101,7 @@ Elige uno de estos métodos:
 
 ### Paso 3: Enviar Sitemap a Bing
 1. Ve a "Sitemaps"
-2. Agrega: `https://www.esgestionempresarial.com/sitemap.xml`
+2. Agrega: `https://www.somosviajaya.com/sitemap.xml`
 3. Haz clic en "Submit"
 
 ---
@@ -112,7 +112,7 @@ Elige uno de estos métodos:
 Crea y sube estas imágenes a `public/images/`:
 - **og-image.jpg** (1200x630px) - Para Open Graph/Facebook
 - **twitter-image.jpg** (1200x600px) - Para Twitter Cards
-- Usa imágenes de alta calidad de la marca ESG
+- Usa imágenes de alta calidad de la marca Viaja Ya
 
 ### 2. Generar Favicons
 Asegúrate de tener estos iconos en `public/icons/`:
@@ -158,7 +158,7 @@ Puedes usar: https://realfavicongenerator.net/
 
 1. **Google PageSpeed Insights**
    - URL: https://pagespeed.web.dev/
-   - Analiza: `https://www.esgestionempresarial.com`
+   - Analiza: `https://www.somosviajaya.com`
 
 2. **Google Rich Results Test**
    - URL: https://search.google.com/test/rich-results
@@ -174,7 +174,7 @@ Puedes usar: https://realfavicongenerator.net/
 
 5. **Security Headers**
    - URL: https://securityheaders.com/
-   - Analiza: `https://www.esgestionempresarial.com`
+   - Analiza: `https://www.somosviajaya.com`
 
 ---
 
@@ -190,7 +190,7 @@ Puedes usar: https://realfavicongenerator.net/
 
 ## ✅ Checklist de Verificación
 
-- [ ] Sitio desplegado y accesible en `https://www.esgestionempresarial.com`
+- [ ] Sitio desplegado y accesible en `https://www.somosviajaya.com`
 - [ ] Certificado SSL activo (HTTPS)
 - [ ] Google Search Console configurado y verificado
 - [ ] Sitemap enviado a Google Search Console
@@ -208,7 +208,7 @@ Puedes usar: https://realfavicongenerator.net/
 ## 🆘 Solución de Problemas
 
 ### El sitio no aparece en Google
-1. Verifica que el sitio esté indexado: `site:esgestionempresarial.com` en Google
+1. Verifica que el sitio esté indexado: `site:somosviajaya.com` en Google
 2. Revisa Google Search Console > Cobertura
 3. Asegúrate de que robots.txt no bloquee el rastreo
 4. Verifica que el sitemap esté enviado correctamente

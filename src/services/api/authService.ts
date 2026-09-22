@@ -36,11 +36,48 @@ export interface UserInfo {
 class AuthService {
   private readonly TOKEN_KEY = 'authToken'
   private readonly USER_INFO_KEY = 'userInfo'
+  private readonly MOCK_ADMINS = [
+    {
+      email: 'admin@somosviajaya.com',
+      password: 'ViajaYa2026',
+      name: 'Coordinador Viaja Ya',
+      role: 'admin',
+    },
+    {
+      email: 'superadmin@somosviajaya.com',
+      password: 'ViajaYaAdmin2026',
+      name: 'Super Admin Viaja Ya',
+      role: 'superadmin',
+    },
+  ]
 
   /**
    * Realiza el login del usuario
    */
   async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
+    // Mock: acceso admin sin backend
+    const email = credentials.email.trim().toLowerCase()
+    const mockAdmin = this.MOCK_ADMINS.find(
+      m => m.email === email && m.password === credentials.password,
+    )
+
+    if (mockAdmin) {
+      await new Promise(resolve => setTimeout(resolve, 600))
+      const mockToken = this.generateMockAdminToken(mockAdmin)
+      this.setToken(mockToken)
+      const userInfo = this.decodeToken(mockToken)
+      if (userInfo) {
+        this.setUserInfo(userInfo)
+      }
+      return {
+        success: true,
+        message: 'Inicio de sesión exitoso',
+        data: { token: mockToken },
+        timestamp: new Date().toISOString(),
+        statusCode: 200,
+      }
+    }
+
     const response = await apiClient.post<LoginResponse>('/login', credentials)
 
     if (response.success && response.data.token) {
@@ -53,6 +90,26 @@ class AuthService {
     }
 
     return response
+  }
+
+  private generateMockAdminToken(mockAdmin: { email: string; name: string; role: string }): string {
+    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
+    const now = Math.floor(Date.now() / 1000)
+    const payload = btoa(
+      JSON.stringify({
+        id: mockAdmin.role === 'superadmin' ? 2 : 1,
+        email: mockAdmin.email,
+        name: mockAdmin.name,
+        role: mockAdmin.role,
+        membershipPaid: true,
+        teamId: null,
+        clientId: null,
+        iat: now,
+        exp: now + 3600,
+      }),
+    )
+    const signature = btoa('mock-admin-signature')
+    return `${header}.${payload}.${signature}`
   }
 
   /**

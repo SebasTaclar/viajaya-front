@@ -53,7 +53,7 @@
             <p class="service-desc">{{ service.description }}</p>
             <div class="service-hover-content">
               <p class="service-summary">{{ service.summary }}</p>
-              <a :href="`https://wa.me/573242899188?text=${encodeURIComponent(`Hola, cordial saludo.\n\nMe interesa el servicio de *${service.name}*.\n\n¿Podrían enviarme información detallada, alcances, tiempos de ejecución y costos?\n\nQuedo atento(a).`)}`" target="_blank" class="service-btn">Solicitar asesoría <i class="fas fa-arrow-right"></i></a>
+              <a :href="`https://wa.me/573132783573?text=${encodeURIComponent(`Hola, cordial saludo.\n\nMe interesa el servicio de *${service.name}*.\n\n¿Podrían enviarme información detallada, alcances, tiempos de ejecución y costos?\n\nQuedo atento(a).`)}`" target="_blank" class="service-btn">Solicitar asesoría <i class="fas fa-arrow-right"></i></a>
             </div>
           </div>
         </div>
@@ -66,7 +66,7 @@
         <div class="bottom-cta-image">
           <img
             src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&h=700&fit=crop&q=80"
-            alt="Equipo ESG reunido en ambiente corporativo"
+            alt="Equipo Viaja Ya reunido en ambiente corporativo"
           />
         </div>
         <div class="bottom-cta-content">
@@ -216,7 +216,7 @@ const services = [
     name: 'Administración In House',
     icon: 'fas fa-user-tie',
     image: 'https://brigoperu.com/wp-content/uploads/2021/04/inmoimagen18.jpg',
-    description: 'Un consultor ESG trabajando directamente dentro de la organización.',
+    description: 'Un asesor Viaja Ya trabajando directamente dentro de la organización.',
     summary: 'Nuestro equipo se integra a su organización para liderar la gestión interna con un enfoque de excelencia.'
   }
 ]

@@ -2,7 +2,7 @@ import { createI18n } from 'vue-i18n'
 
 export type SupportedLocale = 'es' | 'en'
 
-const STORAGE_KEY = 'esg_locale'
+const STORAGE_KEY = 'viajaya_locale'
 
 const messages = {
 	es: {
@@ -28,7 +28,7 @@ const messages = {
 			explore: 'VER SERVICIOS',
 			learnMore: 'CONOCER MÁS',
 			scrollDown: 'Desliza',
-			logoAlt: 'ESG Gestión Empresarial'
+			logoAlt: 'Viaja Ya'
 		},
 		visit: {
 			title: 'Contáctanos',
@@ -44,7 +44,7 @@ const messages = {
 			quickLinks: 'Enlaces Rápidos',
 			customerSupport: 'Atención al Cliente',
 			madeWith: 'Soluciones en sistemas de gestión ✨',
-			copyright: '© {year} ESG Gestión Empresarial. Todos los derechos reservados.',
+			copyright: '© {year} Viaja Ya. Todos los derechos reservados.',
 			links: {
 				products: 'Servicios',
 				categories: 'Soluciones',
@@ -58,7 +58,7 @@ const messages = {
 		},
 		whatsapp: {
 			defaultMessage:
-				'Hola, cordial saludo. Me interesa recibir información sobre sus servicios de consultoría ISO. ¿Podrían ayudarme?'
+				'Hola, cordial saludo. Me interesa conocer más sobre los viajes y experiencias de Viaja Ya. ¿Podrían ayudarme?'
 		},
 		store: {
 			pickup: {
@@ -100,7 +100,7 @@ const messages = {
 				{
 					title: '1. Información general',
 					paragraphs: [
-						'Estos Términos y Condiciones regulan el uso del sitio web y la contratación de servicios ofrecidos por ESG Gestión Empresarial.',
+						'Estos Términos y Condiciones regulan el uso del sitio web y la contratación de servicios ofrecidos por Viaja Ya.',
 						'Al navegar, registrarte o contratar nuestros servicios, aceptas estos términos. Si no estás de acuerdo, por favor no uses el sitio.',
 						'Podemos actualizar estos términos cuando sea necesario. La versión vigente será la publicada en esta página.'
 					]
@@ -142,7 +142,7 @@ const messages = {
 					title: '5. Cambios y cancelaciones',
 					paragraphs: [
 						'Si necesitas gestionar un cambio o cancelación, contáctanos por nuestros canales oficiales para validar el caso y los pasos a seguir.',
-						'Algunos servicios pueden no ser elegibles para cancelación una vez iniciada la ejecución, salvo por incumplimiento de ESG.'
+						'Algunos servicios pueden no ser elegibles para cancelación una vez iniciada la ejecución, salvo por incumplimiento de Viaja Ya.'
 					],
 					bullets: [
 						'Para cambios/cancelaciones, la solicitud debe hacerse por escrito.',
@@ -205,7 +205,7 @@ const messages = {
 			explore: 'VIEW SERVICES',
 			learnMore: 'LEARN MORE',
 			scrollDown: 'Scroll',
-			logoAlt: 'ESG Gestión Empresarial'
+			logoAlt: 'Viaja Ya'
 		},
 		visit: {
 			title: 'Contact us',
@@ -221,7 +221,7 @@ const messages = {
 			quickLinks: 'Quick Links',
 			customerSupport: 'Customer Support',
 			madeWith: 'Management systems solutions ✨',
-			copyright: '© {year} ESG Gestión Empresarial. All rights reserved.',
+			copyright: '© {year} Viaja Ya. All rights reserved.',
 			links: {
 				products: 'Services',
 				categories: 'Solutions',
@@ -234,7 +234,7 @@ const messages = {
 			}
 		},
 		whatsapp: {
-			defaultMessage: 'Hello, I am interested in receiving information about your ISO consulting services. Could you help me?'
+			defaultMessage: 'Hello, I am interested in learning more about Viaja Ya trips and experiences. Could you help me?'
 		},
 		store: {
 			pickup: {
@@ -276,7 +276,7 @@ const messages = {
 				{
 					title: '1. General information',
 					paragraphs: [
-						'These Terms & Conditions govern the use of the website and the hiring of services offered by ESG Gestión Empresarial.',
+						'These Terms & Conditions govern the use of the website and the hiring of services offered by Viaja Ya.',
 						'By browsing, signing up, or hiring our services, you agree to these terms. If you do not agree, please do not use the site.',
 						'We may update these terms when needed. The current version is the one published on this page.'
 					]
@@ -318,7 +318,7 @@ const messages = {
 					title: '5. Changes and cancellations',
 					paragraphs: [
 						'If you need to manage a change or cancellation, contact us through our official channels so we can validate the case and next steps.',
-						'Some services may not be eligible for cancellation once execution has begun, except in case of ESG non-compliance.'
+						'Some services may not be eligible for cancellation once execution has begun, except in case of Viaja Ya non-compliance.'
 					],
 					bullets: [
 						'For changes/cancellations, the request must be made in writing.',
