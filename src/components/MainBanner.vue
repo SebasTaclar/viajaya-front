@@ -17,15 +17,17 @@
           Cada viaje es una historia que contar.
         </p>
 
-        <div class="travel-hero__location">
-          <strong>COLOMBIA</strong>
-          <span>Tu aventura comienza aquí.</span>
-        </div>
+        <div class="travel-hero__cta-row">
+          <div class="travel-hero__location">
+            <strong>COLOMBIA</strong>
+            <span>Tu aventura comienza aquí.</span>
+          </div>
 
-        <a href="#contacto" class="travel-hero__btn travel-hero__btn--primary">
-          Reservar ahora
-          <i class="fas fa-arrow-right" aria-hidden="true"></i>
-        </a>
+          <a href="#contacto" class="travel-hero__btn travel-hero__btn--primary">
+            Reservar ahora
+            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
       </div>
 
       <div class="travel-hero__steps" aria-live="polite">
@@ -1235,19 +1237,23 @@ onBeforeUnmount(() => {
   position: sticky;
   top: 0;
   display: block;
-  width: 100%;
+  width: min(1440px, 100%);
   min-height: 100svh;
   height: 100svh;
-  margin: 0;
+  margin: 0 auto;
 }
 
 .travel-hero__content {
   position: relative;
   z-index: 2;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(16px, 2.5vh, 28px);
   width: 100%;
   height: 100%;
-  padding: clamp(90px, 16vh, 150px) clamp(24px, 4.1vw, 56px) 52px;
+  padding: clamp(90px, 14vh, 140px) clamp(24px, 4.1vw, 56px) clamp(80px, 12vh, 120px);
 }
 
 .travel-hero__steps {
@@ -1304,9 +1310,9 @@ onBeforeUnmount(() => {
 }
 
 .travel-hero__kicker {
-  position: absolute;
-  top: clamp(148px, 18vh, 194px);
-  left: clamp(24px, 4.1vw, 56px);
+  position: relative;
+  top: auto;
+  left: auto;
   margin: 0;
   color: #f0c009;
   font-family: 'Be Vietnam Pro', sans-serif;
@@ -1322,10 +1328,10 @@ onBeforeUnmount(() => {
 }
 
 .travel-hero__title {
-  position: absolute;
-  top: clamp(198px, 29vh, 252px);
-  left: clamp(24px, 4.1vw, 56px);
-  max-width: 560px;
+  position: relative;
+  top: auto;
+  left: auto;
+  max-width: min(560px, 100%);
   color: #fff;
   font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
   font-size: clamp(54px, 9vw, 120px);
@@ -1342,30 +1348,34 @@ onBeforeUnmount(() => {
 }
 
 .travel-hero__description {
-  position: absolute;
-  top: clamp(432px, 71vh, 182px);
-  left: clamp(24px, 4.1vw, 56px);
-  max-width: 470px;
+  position: relative;
+  top: auto;
+  left: auto;
+  max-width: min(470px, 100%);
   color: rgba(255, 255, 255, 0.76);
   font-size: 14px;
   line-height: 1.7;
 }
 
-.travel-hero__kicker,
-.travel-hero__title,
-.travel-hero__description {
-  transform: translateY(-18px);
-}
-
 .travel-hero__location {
-  position: absolute;
-  top: clamp(550px, 58vh, 860px);
-  left: clamp(24px, 4.1vw, 56px);
+  position: relative;
+  top: auto;
+  left: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
   color: rgba(255, 255, 255, 0.68);
   font-size: 12px;
+}
+
+.travel-hero__cta-row {
+  position: absolute;
+  left: clamp(24px, 4.1vw, 56px);
+  bottom: clamp(28px, 5vh, 56px);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(16px, 3vw, 40px);
 }
 
 .travel-hero__location strong {
@@ -1375,9 +1385,12 @@ onBeforeUnmount(() => {
 }
 
 .travel-hero__btn--primary {
-  position: absolute;
-  right: clamp(884px, 3.6vw, 48px);
-  top: clamp(540px, 58vh, 860px);
+  position: relative;
+  left: auto;
+  top: auto;
+  right: auto;
+  transform: none;
+  margin-top: 4px;
   min-height: 46px;
   padding: 12px 22px;
   border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1394,11 +1407,12 @@ onBeforeUnmount(() => {
   background: #f0c009;
   border-color: #f0c009;
   color: #071522;
+  transform: translateY(-2px);
 }
 
 .travel-hero__scroll {
   position: absolute;
-  top: clamp(540px, 58vh, 960px);
+  bottom: clamp(28px, 5vh, 56px);
   left: 50%;
   z-index: 3;
   display: flex;
@@ -1428,8 +1442,9 @@ onBeforeUnmount(() => {
 
 @media (max-width: 700px) {
   .travel-hero {
-    min-height: 180svh;
-    height: auto;
+    min-height: 100svh;
+    height: 100svh;
+    overflow: visible;
   }
 
   .travel-hero__image {
@@ -1443,27 +1458,18 @@ onBeforeUnmount(() => {
   }
 
   .travel-hero__title {
-    top: 25vh;
-    font-size: clamp(52px, 14vw, 76px);
+    font-size: clamp(40px, 12vw, 56px);
+    text-align: center;
   }
 
   .travel-hero__description {
-    top: 60vh;
-    right: 24px;
-    font-size: 13px;
+    font-size: 14px;
+    line-height: 1.55;
+    text-align: center;
   }
 
   .travel-hero__scroll {
     display: none;
-  }
-
-  .travel-hero__btn--primary {
-    right: 24px;
-    top: 46vh;
-  }
-
-  .travel-hero__location {
-    top: 46vh;
   }
 
   .travel-hero__steps {
@@ -1488,8 +1494,10 @@ onBeforeUnmount(() => {
 .travel-hero__container {
   position: relative;
   z-index: 2;
+  width: min(1440px, 100%);
   height: 100svh;
   min-height: 100svh;
+  margin: 0 auto;
 }
 
 .travel-hero__background {
@@ -1533,23 +1541,32 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 700px) {
-  .travel-hero,
+  .travel-hero {
+    min-height: 100svh;
+    height: 100svh;
+    overflow: visible;
+  }
+
   .travel-hero__container {
     min-height: 100svh;
     height: 100svh;
+    overflow: hidden;
   }
 
   .travel-hero__content {
+    position: absolute;
+    inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
-    padding: 0 20px 60px;
-    height: auto;
-    position: absolute;
-    top: auto;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    height: 100%;
+    min-height: 100%;
+    padding: 84px 20px 40px;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-align: center;
     z-index: 3;
   }
 
@@ -1558,7 +1575,8 @@ onBeforeUnmount(() => {
     top: auto;
     left: auto;
     transform: none;
-    margin-bottom: 8px;
+    margin-bottom: 0;
+    justify-content: center;
   }
 
   .travel-hero__title {
@@ -1566,8 +1584,9 @@ onBeforeUnmount(() => {
     top: auto;
     left: auto;
     transform: none;
-    font-size: clamp(40px, 12vw, 64px);
+    font-size: clamp(38px, 11vw, 56px);
     max-width: 100%;
+    text-align: center;
   }
 
   .travel-hero__description {
@@ -1577,8 +1596,22 @@ onBeforeUnmount(() => {
     right: auto;
     transform: none;
     font-size: 14px;
+    line-height: 1.55;
     max-width: 100%;
-    margin-bottom: 12px;
+    margin-bottom: 0;
+    text-align: center;
+  }
+
+  .travel-hero__cta-row {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: 100%;
+    max-width: 360px;
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 8px;
+    gap: 14px;
   }
 
   .travel-hero__location {
@@ -1586,21 +1619,35 @@ onBeforeUnmount(() => {
     top: auto;
     left: auto;
     transform: none;
-    margin-bottom: 16px;
+    align-items: center;
+    margin-bottom: 0;
+    text-align: center;
   }
 
   .travel-hero__btn--primary {
     position: relative;
     top: auto;
     right: auto;
-    align-self: flex-start;
+    left: auto;
+    transform: none;
+    justify-content: center;
+    width: 100%;
+    margin-top: 0;
     border-radius: 7px;
     font-size: 13px;
-    padding: 12px 24px;
+    padding: 14px 24px;
   }
 
   .travel-hero__background {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: auto;
+    height: 100svh;
+    min-height: 100svh;
     margin-top: 0;
+    z-index: 0;
   }
 }
 </style>
