@@ -245,7 +245,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label required">Responsable ESG</label>
+              <label class="form-label required">Responsable</label>
               <input v-model="form.responsible" type="text" class="form-input" :class="{ 'field-error': submitted && !form.responsible.trim() }" placeholder="Nombre del responsable" />
             </div>
             <div class="form-group">

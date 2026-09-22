@@ -10,7 +10,7 @@
             <span class="highlight">nuestra experiencia</span>
           </h1>
           <p class="hero-desc">
-            En ES Gestion Empresarial SAS acompañamos a empresas de diversos sectores a fortalecer sus sistemas de gestión, optimizar procesos y alcanzar el cumplimiento de estándares internacionales.
+            En Viaja Ya acompañamos a empresas de diversos sectores a fortalecer sus sistemas de gestión, optimizar procesos y alcanzar el cumplimiento de estándares internacionales.
           </p>
 
           <!-- Stats -->
@@ -42,7 +42,7 @@
           <div class="hero-img-main">
             <img
               src="https://gestioncalidadsas.com/wp-content/uploads/2020/05/Gestion-Calidad-01-e1664921517462.jpg"
-              alt="Equipo ESG en reunión con cliente"
+              alt="Equipo Viaja Ya en reunión con cliente"
             />
           </div>
           <div class="hero-img-secondary">
@@ -53,8 +53,8 @@
           </div>
           <div class="hero-img-logo">
             <img
-              src="/images/LOGO.PNG"
-              alt="ESG Logo"
+              src="/images/Logo.png"
+              alt="Viaja Ya"
             />
           </div>
         </div>
@@ -182,7 +182,7 @@
             <p class="cta-contact-desc">
               Nuestro equipo está listo para ayudarle a encontrar la mejor solución para su organización.
             </p>
-            <a href="https://wa.me/573242899188?text=Hola,%20cordial%20saludo.%20Me%20interesa%20recibir%20informaci%C3%B3n%20sobre%20sus%20servicios.%20%C2%BFPodr%C3%ADan%20ayudarme?" target="_blank" class="cta-contact-btn">
+            <a href="https://wa.me/573132783573?text=Hola,%20cordial%20saludo.%20Me%20interesa%20recibir%20informaci%C3%B3n%20sobre%20sus%20servicios.%20%C2%BFPodr%C3%ADan%20ayudarme?" target="_blank" class="cta-contact-btn">
               <i class="fab fa-whatsapp"></i> Contactar ahora
             </a>
           </div>
@@ -207,7 +207,9 @@ interface Card {
   image: string
 }
 
-const API_BASE = 'https://esg-back-cve6gyd9fgfnh5f3.centralus-01.azurewebsites.net/api/v1'
+const API_BASE = import.meta.env.DEV
+  ? 'http://localhost:7071/api/v1'
+  : 'https://lemon-plant-0833a680f.3.azurestaticapps.net/api/v1'
 
 const cards = ref<Card[]>([])
 const loadingCards = ref(false)

@@ -4,7 +4,7 @@
     <aside class="sidebar">
       <div class="sidebar-header">
         <router-link to="/" class="sidebar-logo">
-          <img src="/images/LOGO_1.jpeg" alt="ESG" class="logo-img" />
+          <img src="/images/Logo.png" alt="Viaja Ya" class="logo-img" />
         </router-link>
       </div>
 
@@ -64,7 +64,7 @@
 
         <div class="topbar-greeting">
           <h1>¡Hola, {{ currentUser?.name || 'Usuario' }}! 👋</h1>
-          <p>Bienvenido al Centro de Gestión ESG</p>
+          <p>Bienvenido al panel de gestión Viaja Ya</p>
         </div>
 
         <div class="topbar-search">
@@ -646,7 +646,7 @@
                     </div>
                     <h5 class="event-card-title">{{ evt.title }}</h5>
                     <p class="event-card-meta"><strong>Cliente / Entidad:</strong> {{ evt.client || '-' }}</p>
-                    <p class="event-card-meta" v-if="evt.responsible"><strong>Responsable ESG:</strong> {{ evt.responsible }}</p>
+                    <p class="event-card-meta" v-if="evt.responsible"><strong>Responsable:</strong> {{ evt.responsible }}</p>
                     <p class="event-card-meta" v-if="evt.modalidad">Modalidad: {{ evt.modalidad }}</p>
                     <p class="event-card-desc" v-if="evt.description">{{ evt.description }}</p>
                   </div>
@@ -784,7 +784,7 @@
               </select>
             </div>
             <div class="coti-filter-group">
-              <label>Responsable ESG</label>
+              <label>Responsable</label>
               <select v-model="eventoFilterUser" class="coti-select">
                 <option value="">Todos</option>
                 <option value="Camila Escobar">Camila Escobar</option>
@@ -830,7 +830,7 @@
                     <th>Cliente / Entidad</th>
                     <th>Modalidad</th>
                     <th>Descripción</th>
-                    <th>Responsable <br>ESG</th>
+                    <th>Responsable</th>
                     <th>Fecha</th>
                     <th>Estado</th>
                     <th>Acciones</th>
@@ -1080,7 +1080,7 @@
                       <input v-model="eventForm.personaContacto" type="text" class="form-input" placeholder="Nombre de la persona de contacto" />
                     </div>
                     <div class="form-group">
-                      <label>Responsable de Ejecución ESG *</label>
+                      <label>Responsable de Ejecución *</label>
                       <select v-model="eventForm.user" class="form-input" required @change="clearFieldError('user')">
                         <option value="">Seleccionar...</option>
                         <option value="Camila Escobar">Camila Escobar</option>
@@ -1255,6 +1255,15 @@ import { projectService } from '@/services/api/projectService'
 import { tenderService } from '@/services/api/tenderService'
 import { documentService } from '@/services/api/documentService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
+import {
+  createMockClientes,
+  createMockProyectos,
+  createMockCotizaciones,
+  createMockEventos,
+  createMockColaboradores,
+  createMockLicitaciones,
+  createMockEntityNames,
+} from '@/mock/adminDashboard'
 import ProjectsList from '@/views/crm/ProjectsList.vue'
 import LicitacionesList from '@/views/crm/LicitacionesList.vue'
 import QuotesList from '@/views/crm/QuotesList.vue'
@@ -1829,16 +1838,6 @@ async function handleDeleteEvento() {
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
-  { id: 'clientes', label: 'Clientes', route: '/admin/crm/clientes', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>' },
-  { id: 'proyectos', label: 'Proyectos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' },
-  { id: 'licitaciones', label: 'Licitaciones', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' },
-  { id: 'cotizaciones', label: 'Cotizaciones', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' },
-  { id: 'documentos', label: 'Documentos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>' },
-  { id: 'recursos', label: 'Recursos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>' },
-  { id: 'adm-eventos', label: 'ADM Eventos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
-  { id: 'calendario', label: 'Calendario', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
-  { id: 'colaboradores', label: 'Colaboradores', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
-  { id: 'usuarios', label: 'Usuarios', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' },
 ]
 
 const recentActivities = computed(() => {
@@ -2542,14 +2541,34 @@ function getStatusLabel(status: EstadoCotizacion): string {
   return map[status] || status
 }
 
+function seedDashboardIfEmpty() {
+  if (clientes.value.length === 0) clientes.value = createMockClientes()
+  if (proyectos.value.length === 0) proyectos.value = createMockProyectos()
+  if (cotizaciones.value.length === 0) cotizaciones.value = createMockCotizaciones()
+  if (eventos.value.length === 0) {
+    eventos.value = createMockEventos()
+    entityNameMap.value = createMockEntityNames()
+    buildCalendarEvents()
+  }
+  if (colaboradores.value.length === 0) colaboradores.value = createMockColaboradores()
+  if (licitaciones.value.length === 0) licitaciones.value = createMockLicitaciones()
+}
+
+async function loadDashboard() {
+  await Promise.allSettled([
+    fetchClientes({ page: 1, limit: 9999 }),
+    fetchProyectos({ limit: 9999 }),
+    fetchCotizacionesData(),
+    fetchEventos(),
+    fetchColaboradores(),
+    fetchLicitaciones(),
+  ])
+  seedDashboardIfEmpty()
+}
+
 onMounted(() => {
-  fetchClientes({ page: 1, limit: 9999 })
-  fetchProyectos({ limit: 9999 })
+  loadDashboard()
   fetchRecursosClientes()
-  fetchCotizacionesData()
-  fetchEventos()
-  fetchColaboradores()
-  fetchLicitaciones()
 
   document.addEventListener('click', () => {
     showEntityDropdown.value = false

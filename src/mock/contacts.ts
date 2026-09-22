@@ -8,7 +8,7 @@ export const mockContactosProyecto: ContactoProyecto[] = [
     nombre: 'Ing. Carlos Ramírez',
     cargo: 'Gerente General',
     telefono: '+57 310 1234567',
-    correo: 'carlos.ramirez@respaldovital.com',
+    correo: 'carlos.ramirez@somosviajaya.com',
     esPrincipal: true,
   },
   {
@@ -18,7 +18,7 @@ export const mockContactosProyecto: ContactoProyecto[] = [
     nombre: 'Dra. María Fernanda López',
     cargo: 'Directora de Calidad',
     telefono: '+57 311 2345678',
-    correo: 'maria.lopez@respaldovital.com',
+    correo: 'maria.lopez@somosviajaya.com',
     esPrincipal: false,
   },
   {

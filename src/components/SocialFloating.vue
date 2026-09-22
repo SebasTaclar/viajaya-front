@@ -21,8 +21,8 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-// Número de WhatsApp de ESG Gestión Empresarial
-const rawNumber = '3242899188'
+// Número de WhatsApp de Viaja Ya
+const rawNumber = '3132783573'
 // Normaliza a formato internacional (prepend 57 para Colombia)
 const whatsappNumber = '57' + rawNumber.replace(/[^\d]/g, '')
 
@@ -44,7 +44,7 @@ defineOptions({ name: 'SocialFloating' })
 /* === WHATSAPP FLOTANTE DERECHA === */
 .floating-whatsapp {
   position: fixed;
-  bottom: 40px;
+  bottom: 17px;
   right: 20px;
   z-index: 1000;
 }
@@ -185,8 +185,8 @@ defineOptions({ name: 'SocialFloating' })
   }
 
   .social-btn {
-    width: 52px;
-    height: 52px;
+    width: 54px;
+    height: 54px;
   }
 
   .social-icon {
@@ -200,24 +200,56 @@ defineOptions({ name: 'SocialFloating' })
   }
 
   .floating-whatsapp .social-tooltip.left {
-    right: 62px;
+    right: 64px;
+  }
+
+  .floating-whatsapp .social-btn.whatsapp {
+    animation: slideInLeft 0.6s ease, pulse 2s ease-in-out infinite;
   }
 }
 
 @media (max-width: 480px) {
   .floating-whatsapp {
-    bottom: 10px;
-    right: 10px;
+    bottom: 12px;
+    right: 12px;
   }
 
   .social-btn {
-    width: 48px;
-    height: 48px;
+    width: 50px;
+    height: 50px;
   }
 
   .social-icon {
     width: 26px;
     height: 26px;
+  }
+
+  .social-tooltip {
+    display: none;
+  }
+}
+
+/* Touch device support */
+@media (hover: none) and (pointer: coarse) {
+  .social-btn:hover {
+    transform: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  }
+
+  .floating-whatsapp .social-btn.whatsapp:hover {
+    background: #25d366;
+    border-color: #25d366;
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+    transform: scale(1.05);
+  }
+
+  .social-btn:active {
+    transform: scale(1.1);
+  }
+
+  .floating-whatsapp .social-btn.whatsapp:active {
+    transform: scale(1.15);
+    background: #20b858;
   }
 }
 </style>

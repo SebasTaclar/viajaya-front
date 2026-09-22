@@ -2,9 +2,9 @@ import type { Contacto } from '@/types/crmTypes'
 
 export const mockContactos: Contacto[] = [
   // RESPALDO VITAL
-  { id: 1, clienteId: 1, nombre: 'María Fernanda Torres', cargo: 'Gerente General', celular: '+57 310 1234567', correo: 'mf.torres@respaldovital.com', esPrincipal: true, createdAt: '2021-03-15T10:00:00Z' },
-  { id: 2, clienteId: 1, nombre: 'Carlos Andrés Méndez', cargo: 'Jefe de Calidad', celular: '+57 311 2345678', correo: 'ca.mendez@respaldovital.com', esPrincipal: false, createdAt: '2021-03-15T10:00:00Z' },
-  { id: 3, clienteId: 1, nombre: 'Laura Valentina Ríos', cargo: 'Coordinadora de Procesos', celular: '+57 312 3456789', correo: 'lv.rios@respaldovital.com', esPrincipal: false, createdAt: '2022-06-20T14:00:00Z' },
+  { id: 1, clienteId: 1, nombre: 'María Fernanda Torres', cargo: 'Gerente General', celular: '+57 310 1234567', correo: 'mf.torres@somosviajaya.com', esPrincipal: true, createdAt: '2021-03-15T10:00:00Z' },
+  { id: 2, clienteId: 1, nombre: 'Carlos Andrés Méndez', cargo: 'Jefe de Calidad', celular: '+57 311 2345678', correo: 'ca.mendez@somosviajaya.com', esPrincipal: false, createdAt: '2021-03-15T10:00:00Z' },
+  { id: 3, clienteId: 1, nombre: 'Laura Valentina Ríos', cargo: 'Coordinadora de Procesos', celular: '+57 312 3456789', correo: 'lv.rios@somosviajaya.com', esPrincipal: false, createdAt: '2022-06-20T14:00:00Z' },
 
   // CIDET
   { id: 4, clienteId: 2, nombre: 'Roberto Parra García', cargo: 'Director de Investigación', celular: '+57 320 4567890', correo: 'rp.garcia@cidet.org.co', esPrincipal: true, createdAt: '2020-06-10T08:00:00Z' },

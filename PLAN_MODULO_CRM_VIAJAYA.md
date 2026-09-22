@@ -1,4 +1,4 @@
-# Plan: Módulo Clientes y Proyectos (CRM ESG)
+# Plan: Módulo Clientes y Proyectos (CRM Viaja Ya)
 
 ## Arquitectura Actual vs Propuesta
 

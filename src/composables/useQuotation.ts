@@ -25,7 +25,7 @@ export interface QuotationProduct {
   originalPrice?: number
 }
 
-const STORAGE_KEY = 'disef_quotation'
+const STORAGE_KEY = 'viajaya_quotation'
 
 const loadFromStorage = (): QuotationItem[] => {
   try {
@@ -54,7 +54,7 @@ watch(quotationItems, (newItems) => {
 
 function buildWhatsAppMessage(items: QuotationItem[]): string {
   const lines: string[] = []
-  lines.push('Hola ESG.')
+  lines.push('Hola Viaja Ya.')
   lines.push('')
   lines.push('Estoy interesado en recibir una cotización de los siguientes productos:')
   lines.push('')
@@ -167,7 +167,7 @@ export function useQuotation() {
   const sendToWhatsApp = () => {
     const message = buildWhatsAppMessage(quotationItems.value)
     const encoded = encodeURIComponent(message)
-    window.open(`https://wa.me/573229118168?text=${encoded}`, '_blank')
+    window.open(`https://wa.me/573132783573?text=${encoded}`, '_blank')
   }
 
   return {

@@ -12,8 +12,8 @@
       </div>
 
       <div class="sidebar-brand">
-        <img src="/images/LOGO_1.jpeg" alt="ESG" class="sidebar-logo" />
-        <span class="sidebar-title">CRM ESG</span>
+        <img src="/images/Logo.png" alt="Viaja Ya" class="sidebar-logo" />
+        <span class="sidebar-title">CRM Viaja Ya</span>
       </div>
 
       <nav class="crm-nav">

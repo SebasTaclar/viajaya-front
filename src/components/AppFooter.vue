@@ -6,51 +6,27 @@
         <div class="footer__brand">
           <div class="footer__logo">
             <img
-              src="/images/LOGO.PNG"
-              alt="ESG Consulting"
+              src="/images/Logo.png"
+              alt="Viaja Ya"
               class="footer__logo-img"
             />
           </div>
           <p class="footer__brand-desc">
-            Soluciones integrales en Sistemas de Gestión para empresas y laboratorios comprometidos con la excelencia.
+            Hacemos realidad tu viaje a través del ahorro programado.
           </p>
-          <div class="footer__socials">
-            <a href="https://co.linkedin.com/company/es-gesti%C3%B3n-empresarial" target="_blank" class="footer__social" aria-label="LinkedIn">
-              <i class="fab fa-linkedin-in"></i>
-            </a>
-            <a href="https://www.instagram.com/es_gestion_empresarial/" target="_blank" class="footer__social" aria-label="Instagram">
-              <i class="fab fa-instagram"></i>
-            </a>
-            <a href="https://www.tiktok.com/@esg_empresarial" target="_blank" class="footer__social" aria-label="TikTok">
-              <i class="fab fa-tiktok"></i>
-            </a>
-            <a href="https://api.whatsapp.com/send?phone=573242899188&text=Hola,%20cordial%20saludo.%20Me%20interesa%20recibir%20informaci%C3%B3n%20sobre%20sus%20servicios.%20%C2%BFPodr%C3%ADan%20ayudarme?" target="_blank" class="footer__social" aria-label="WhatsApp">
-              <i class="fab fa-whatsapp"></i>
-            </a>
-          </div>
         </div>
 
-        <div class="footer__links">
-          <div class="footer__col">
-            <h4 class="footer__col-title">Servicios</h4>
-            <ul class="footer__list">
-              <li><a href="/servicios">Consultoría</a></li>
-              <li><a href="/servicios">Auditorías</a></li>
-              <li><a href="/servicios">Gestión del SG</a></li>
-              <li><a href="/servicios">Formación</a></li>
-              <li><a href="/servicios">Gestión de proyectos</a></li>
-            </ul>
-          </div>
-
-          <div class="footer__col">
-            <h4 class="footer__col-title">Empresa</h4>
-            <ul class="footer__list">
-              <li><a href="/nosotros">Sobre nosotros</a></li>
-              <li><a href="/#metodologia">Metodología</a></li>
-              <li><a href="/clientes-recursos">Clientes / Recursos</a></li>
-              <li><a href="/servicios">Servicios</a></li>
-              <li><a href="/#contacto">Contacto</a></li>
-            </ul>
+        <div class="footer__right">
+          <div class="footer__socials-wrapper">
+            <h4 class="footer__socials-title">Síguenos en nuestras redes sociales</h4>
+            <div class="footer__socials">
+              <a href="https://www.instagram.com/" target="_blank" class="footer__social" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+              </a>
+              <a href="https://api.whatsapp.com/send?phone=573132783573&text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n?" target="_blank" class="footer__social footer__social--whatsapp" aria-label="WhatsApp">
+                <i class="fab fa-whatsapp"></i>
+              </a>
+            </div>
           </div>
 
           <div class="footer__col">
@@ -62,11 +38,7 @@
               </li>
               <li>
                 <i class="fas fa-phone-alt"></i>
-                <span>324 289 9188 - 318 388 6699</span>
-              </li>
-              <li>
-                <i class="fas fa-envelope"></i>
-                <span>comercial@esgestionempresarial.com</span>
+                <span>+57 313 278 3573</span>
               </li>
             </ul>
           </div>
@@ -79,11 +51,12 @@
       <!-- Bottom -->
       <div class="footer__bottom">
         <p class="footer__copy">
-          &copy; {{ currentYear }} ES GESTIÓN EMPRESARIAL. Todos los derechos reservados.
+          &copy; {{ currentYear }} Viaja Ya. Todos los derechos reservados.
         </p>
-        <p class="footer__credit">
-          Desarrollado por <strong>DataOr</strong>
-        </p>
+        <div class="footer__bottom-links">
+          <a href="/terms">Términos y condiciones</a>
+          <a href="/terms">Política de privacidad</a>
+        </div>
       </div>
     </div>
   </footer>
@@ -98,55 +71,72 @@ const currentYear = new Date().getFullYear()
 </script>
 
 <style scoped>
-/* ========================================
-   Footer - Premium Corporate
-   ======================================== */
-
 .footer {
   position: relative;
   width: 100%;
-  background: #1A1A1A;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #071522;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  z-index: 2;
 }
 
 .footer__container {
-  max-width: 1400px;
+  max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 64px clamp(24px, 5vw, 80px) 0;
+  padding: 40px clamp(24px, 5vw, 80px) 0;
 }
 
-/* ---- Top ---- */
+/* ── Top ── */
 .footer__top {
   display: grid;
-  grid-template-columns: 1.2fr 2fr;
-  gap: 60px;
-  padding-bottom: 48px;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  padding-bottom: 32px;
+  align-items: start;
 }
 
-/* Brand */
+/* ── Brand ── */
 .footer__brand {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
   gap: 20px;
-}
-
-.footer__logo-img {
-  width: 100px;
-  height: 100px;
-  object-fit: contain;
-  border-radius: 50%;
-  background: rgb(255, 255, 255);
-  padding: 12px;
 }
 
 .footer__brand-desc {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
-  color: #8A8A8A;
-  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1.6;
   max-width: 280px;
+}
+
+.footer__right {
+  display: flex;
+  flex-direction: row;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.footer__logo-img {
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+}
+
+.footer__socials-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.footer__socials-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .footer__socials {
@@ -158,34 +148,33 @@ const currentYear = new Date().getFullYear()
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
-  color: #8A8A8A;
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 16px;
   transition: all 0.3s ease;
 }
 
 .footer__social:hover {
-  background: #C89B2D;
-  color: #FFFFFF;
+  background: var(--travel-yellow, #f0c009);
+  color: #071522;
   transform: translateY(-2px);
 }
 
-/* Links */
-.footer__links {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 40px;
+.footer__social--whatsapp:hover {
+  background: #25d366;
+  color: #ffffff;
 }
 
+/* ── Col ── */
 .footer__col-title {
-  margin: 0 0 18px;
+  margin: 0 0 12px;
   font-size: 14px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #ffffff;
   letter-spacing: 0.5px;
 }
 
@@ -201,13 +190,13 @@ const currentYear = new Date().getFullYear()
 .footer__list li a {
   font-size: 13px;
   font-weight: 400;
-  color: #8A8A8A;
+  color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   transition: color 0.3s ease;
 }
 
 .footer__list li a:hover {
-  color: #C89B2D;
+  color: var(--travel-yellow, #f0c009);
 }
 
 .footer__list--contact li {
@@ -217,7 +206,7 @@ const currentYear = new Date().getFullYear()
 }
 
 .footer__list--contact li i {
-  color: #C89B2D;
+  color: var(--travel-yellow, #f0c009);
   font-size: 13px;
   width: 16px;
   text-align: center;
@@ -225,17 +214,17 @@ const currentYear = new Date().getFullYear()
 
 .footer__list--contact li span {
   font-size: 13px;
-  color: #8A8A8A;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-/* Divider */
+/* ── Divider ── */
 .footer__divider {
   width: 100%;
   height: 1px;
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, transparent, rgba(240, 192, 9, 0.25), transparent);
 }
 
-/* Bottom */
+/* ── Bottom ── */
 .footer__bottom {
   display: flex;
   align-items: center;
@@ -247,71 +236,111 @@ const currentYear = new Date().getFullYear()
   margin: 0;
   font-size: 12px;
   font-weight: 400;
-  color: #6B6B6B;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.footer__credit {
-  margin: 0;
+.footer__bottom-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer__bottom-links a {
   font-size: 12px;
-  font-weight: 400;
-  color: #8A8A8A;
+  color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+  transition: color 0.3s ease;
 }
 
-.footer__credit strong {
-  color: #8a8888;
-  font-weight: 700;
+.footer__bottom-links a:hover {
+  color: var(--travel-yellow, #f0c009);
 }
 
-/* ========================================
-   RESPONSIVE DESIGN
-   ======================================== */
-
+/* ── Responsive ── */
 @media (max-width: 992px) {
   .footer__top {
     grid-template-columns: 1fr;
-    gap: 40px;
+    gap: 28px;
+  }
+
+  .footer__brand {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .footer__brand-desc {
     max-width: none;
   }
 
-  .footer__links {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 32px;
+  .footer__right {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+  }
+
+  .footer__socials-wrapper {
+    align-items: center;
+  }
+
+  .footer__socials {
+    justify-content: center;
+  }
+
+  .footer__list--contact {
+    align-items: center;
   }
 }
 
 @media (max-width: 768px) {
   .footer__container {
-    padding-top: 48px;
-  }
-
-  .footer__links {
-    grid-template-columns: 1fr;
-    gap: 28px;
+    padding-top: 28px;
   }
 
   .footer__bottom {
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     text-align: center;
   }
 
-  .footer__legal {
+  .footer__bottom-links {
     gap: 16px;
   }
 }
 
 @media (max-width: 480px) {
+  .footer__container {
+    padding: 20px 20px 0;
+  }
+
+  .footer__brand {
+    gap: 16px;
+  }
+
+  .footer__logo-img {
+    width: 100px;
+  }
+
+  .footer__brand-desc {
+    font-size: 13px;
+  }
+
   .footer__socials {
     gap: 10px;
   }
 
   .footer__social {
-    width: 36px;
-    height: 36px;
-    font-size: 13px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .footer__bottom-links {
+    gap: 12px;
+  }
+
+  .footer__bottom-links a {
+    font-size: 11px;
   }
 }
 </style>

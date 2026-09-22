@@ -1,4 +1,4 @@
-/* ES GESTION EMPRESARIAL - Paleta Dorado, Gris Oscuro, Blanco */
+/* VIAJA YA - Paleta Dorado, Gris Oscuro, Blanco */
 :root {
   /* Colores principales - Dorado, Gris Oscuro, Blanco */
   --primary-gold: #C89B2D;
@@ -10,7 +10,7 @@
   --white: #ffffff;
   --black: #1A1A1A;
 
-  /* Paleta de marca ESG */
+  /* Paleta de marca Viaja Ya */
   --brand-primary: #C89B2D;
   --brand-primary-contrast: #ffffff;
   --brand-bg-start: #1A1A1A;

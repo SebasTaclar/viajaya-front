@@ -1,7 +1,7 @@
 // EJEMPLO DE IMPLEMENTACIÓN BACKEND PARA WOMPI WIDGET
 // Este archivo es solo de referencia - implementar en tu backend de Azure Functions
 // NOTA: Este documento contiene requisitos heredados que requieren actualización.
-// Los campos "wallpaperNumbers" deben adaptarse al contexto de servicios ESG.
+// Los campos "wallpaperNumbers" deben adaptarse al contexto de servicios Viaja Ya.
 
 /*
 ENDPOINT: POST /v1/wompi/payments
@@ -37,7 +37,7 @@ RESPUESTA NECESARIA PARA EL WIDGET:
     },
     "payment": {
       "transactionId": "wompi_trans_123456789",
-      "reference": "esg_ref_123456789", // Referencia única
+      "reference": "viajaya_ref_123456789", // Referencia única
       "publicKey": "TU_LLAVE_PUBLICA_WOMPI", // Tu llave pública de Wompi
       "signature": "FIRMA_SHA256" // Firma de integridad SHA256
     }
