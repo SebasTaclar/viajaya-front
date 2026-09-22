@@ -72,7 +72,7 @@
         loop
         playsinline
         preload="auto"
-        poster="/images/Airplane_taking_off_and_landing_20260916165015_frames/Airplane_taking_off_and_landing_20260916165015_frames/frame_001.jpg"
+        poster="/images/avion_pista.jpg"
         aria-hidden="true"
         @loadedmetadata="updateScrollTarget"
       >
