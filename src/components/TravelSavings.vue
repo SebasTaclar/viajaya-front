@@ -388,35 +388,42 @@ defineOptions({ name: 'TravelSavings' })
 @media (max-width: 960px) {
   .travel-savings__container {
     flex-direction: column;
-    text-align: center;
+    align-items: flex-start;
+    text-align: left;
     padding: 80px clamp(20px, 5vw, 40px) 80px;
     gap: 28px;
   }
 
   .travel-savings__left {
     max-width: 100%;
+    text-align: left;
   }
 
   .travel-savings__title {
     white-space: normal;
     font-size: clamp(30px, 8vw, 52px);
+    text-align: left;
   }
 
   .travel-savings__subtitle {
     max-width: 100%;
     font-size: 14px;
+    text-align: left;
   }
 
   .travel-savings__cta-group {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .travel-savings__stats {
-    justify-content: center;
+    justify-content: flex-start;
   }
 
   .travel-savings__right {
     max-width: 400px;
+    align-self: center;
+    justify-content: center;
+    width: 100%;
   }
 
   .travel-savings__card--top {
@@ -435,20 +442,24 @@ defineOptions({ name: 'TravelSavings' })
 
   .travel-savings__eyebrow {
     font-size: 10px;
-    justify-content: center;
+    justify-content: flex-start;
+    white-space: normal;
   }
 
   .travel-savings__title {
     font-size: clamp(28px, 9vw, 44px);
+    text-align: left;
   }
 
   .travel-savings__subtitle {
     font-size: 13px;
     margin-bottom: 28px;
+    text-align: left;
   }
 
   .travel-savings__cta-group {
     flex-direction: column;
+    align-items: stretch;
     width: 100%;
   }
 
@@ -463,7 +474,7 @@ defineOptions({ name: 'TravelSavings' })
   .travel-savings__stats {
     flex-direction: column;
     gap: 20px;
-    align-items: center;
+    align-items: flex-start;
   }
 
   .travel-savings__image-wrapper {
@@ -471,6 +482,7 @@ defineOptions({ name: 'TravelSavings' })
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin: 0 auto;
   }
 
   .travel-savings__image {
@@ -485,6 +497,7 @@ defineOptions({ name: 'TravelSavings' })
     margin-bottom: -30px;
     z-index: 2;
     width: 90%;
+    align-self: center;
     box-sizing: border-box;
     white-space: normal;
   }
@@ -497,6 +510,7 @@ defineOptions({ name: 'TravelSavings' })
     margin-top: -30px;
     z-index: 2;
     width: 90%;
+    align-self: center;
     box-sizing: border-box;
     white-space: normal;
   }
