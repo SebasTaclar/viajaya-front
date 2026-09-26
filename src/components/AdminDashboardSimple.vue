@@ -102,15 +102,19 @@
         <!-- ========== DASHBOARD ========== -->
         <div v-if="currentSection === 'dashboard'">
           <!-- Dashboard Title -->
-          <h2 class="dashboard-title">Panel de control</h2>
-
-          <!-- Month Filter -->
-          <div class="month-filter">
-            <label>Filtrar por mes:</label>
-            <select v-model="selectedMonth" class="month-select">
-              <option value="todos">Todos</option>
-              <option v-for="m in monthOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
-            </select>
+          <div class="dashboard-title-row">
+            <h2 class="dashboard-title">Panel de control</h2>
+            <div class="live-indicator" title="Actualización automática de la información de usuarios">
+              <span class="live-dot"></span>
+              <span class="live-label">Tiempo real</span>
+              <span class="live-updated">Actualizado {{ lastUpdatedLabel }}</span>
+              <button class="refresh-btn" title="Actualizar ahora" @click="refreshDashboard">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- Stats Cards -->
@@ -125,13 +129,13 @@
                 </svg>
               </div>
               <div class="stat-content">
-                <span class="stat-label">Clientes</span>
-                <span class="stat-value">{{ filteredClientes.length }}</span>
-                <span class="stat-change" :class="filteredClientes.length > 0 ? 'up' : ''">
-                  <svg v-if="filteredClientes.length > 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <span class="stat-label">Usuarios registrados</span>
+                <span class="stat-value">{{ usuariosRegistrados }}</span>
+                <span class="stat-change" :class="usuariosActivos > 0 ? 'up' : ''">
+                  <svg v-if="usuariosActivos > 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <polyline points="18 15 12 9 6 15"/>
                   </svg>
-                  {{ selectedMonth === 'todos' ? 'Total' : filteredClientes.length + ' este mes' }}
+                  {{ usuariosActivos }} activos
                 </span>
               </div>
               <div class="stat-sparkline">
@@ -142,15 +146,37 @@
             </div>
 
             <div class="stat-card">
-              <div class="stat-icon amber">
+              <div class="stat-icon green">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                  <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/>
+                  <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/>
+                  <path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
                 </svg>
               </div>
               <div class="stat-content">
-                <span class="stat-label">Proyectos</span>
-                <span class="stat-value">{{ filteredProyectos.length }}</span>
-                <span class="stat-sub">{{ selectedMonth === 'todos' ? 'Total' : filteredProyectos.length + ' este mes' }}</span>
+                <span class="stat-label">Dinero en Fondo Viajero</span>
+                <span class="stat-value">{{ formatCurrency(fondoViajeroTotal) }}</span>
+                <span class="stat-change up">
+                  {{ fondoViajeroAportantes }} aportantes activos
+                </span>
+              </div>
+              <div class="stat-sparkline">
+                <svg viewBox="0 0 80 30" class="sparkline-svg">
+                  <polyline points="0,24 15,21 30,17 45,14 60,10 80,4" fill="none" stroke="#10B981" stroke-width="2"/>
+                </svg>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon amber">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">Viajes en progreso</span>
+                <span class="stat-value">{{ viajesEnProgreso }}</span>
+                <span class="stat-sub">de {{ totalProyectos }} proyectos</span>
               </div>
               <div class="stat-sparkline">
                 <svg viewBox="0 0 80 30" class="sparkline-svg">
@@ -162,16 +188,14 @@
             <div class="stat-card">
               <div class="stat-icon purple">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                  <line x1="16" y1="13" x2="8" y2="13"/>
-                  <line x1="16" y1="17" x2="8" y2="17"/>
+                  <path d="M12 1v22"/>
+                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                 </svg>
               </div>
               <div class="stat-content">
-                <span class="stat-label">Cotizaciones</span>
-                <span class="stat-value">{{ filteredCotizaciones.length }}</span>
-                <span class="stat-sub">{{ filteredCotizaciones.filter(c => c.status === 'pendiente').length }} pendientes</span>
+                <span class="stat-label">Próximas cuotas a cobrar</span>
+                <span class="stat-value">{{ proximasCuotas.length }}</span>
+                <span class="stat-sub">{{ formatCurrency(proximasCuotasTotal) }} · {{ proximaCuotaFecha }}</span>
               </div>
               <div class="stat-sparkline">
                 <svg viewBox="0 0 80 30" class="sparkline-svg">
@@ -179,254 +203,125 @@
                 </svg>
               </div>
             </div>
+          </div>
 
-            <div class="stat-card">
-              <div class="stat-icon green">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
+          <!-- Widgets: Top presupuesto + Alertas de inactividad -->
+          <div class="dashboard-widgets">
+            <!-- Top usuarios por presupuesto -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Top usuarios por presupuesto</h3>
+                <span class="card-badge">Top {{ topUsuariosPresupuesto.length }}</span>
               </div>
-              <div class="stat-content">
-                <span class="stat-label">Total Colaboradores</span>
-                <span class="stat-value">{{ colaboradores.length }}</span>
+              <div class="widget-body">
+                <div v-if="topUsuariosPresupuesto.length === 0" class="widget-empty">Sin datos de presupuesto</div>
+                <div v-for="(u, idx) in topUsuariosPresupuesto" :key="u.id" class="rank-row">
+                  <span class="rank-pos" :class="{ top: idx === 0 }">{{ idx + 1 }}</span>
+                  <div class="rank-info">
+                    <div class="rank-head">
+                      <span class="rank-name">{{ u.name }}</span>
+                      <span class="rank-amount">{{ formatCurrency(u.presupuesto) }}</span>
+                    </div>
+                    <div class="rank-track">
+                      <div class="rank-fill" :style="{ width: rankPercent(u.presupuesto) + '%' }"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Alertas de inactividad -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Alertas de inactividad</h3>
+                <span class="card-badge" :class="{ warn: alertasInactividad.length > 0 }">{{ alertasInactividad.length }}</span>
+              </div>
+              <div class="widget-body">
+                <div v-if="alertasInactividad.length === 0" class="widget-empty">
+                  Todos los usuarios están activos según su periodicidad de recaudo
+                </div>
+                <div v-for="a in alertasInactividad" :key="a.id" class="alert-row">
+                  <div class="alert-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                  </div>
+                  <div class="alert-info">
+                    <div class="alert-head">
+                      <span class="alert-name">{{ a.name }}</span>
+                      <span class="alert-days">{{ a.diasInactividad }} días</span>
+                    </div>
+                    <span class="alert-detail">Recaudo {{ a.periodicidad }} · sin actividad desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }})</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <!-- Middle Row: Activity, Calendar, Upcoming -->
-          <div class="dashboard-middle">
-            <!-- Actividad Reciente -->
-            <div class="card activity-card">
-              <div class="card-header">
-                <h3>Actividad reciente</h3>
-                <button class="link-btn" @click="setSection('adm-eventos')">Ver todas</button>
-              </div>
-              <div class="activity-list">
-                <div v-for="(activity, idx) in recentActivities" :key="idx" class="activity-item">
-                  <div class="activity-icon" :class="activity.type">
-                    <span v-html="activity.icon"></span>
-                  </div>
-                  <div class="activity-info">
-                    <span class="activity-text">{{ activity.text }}</span>
-                    <span class="activity-time">{{ activity.time }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <!-- Calendario -->
-            <div class="card calendar-card">
-              <div class="card-header">
-                <h3>Calendario</h3>
-                <div class="calendar-nav">
-                  <span class="calendar-month">{{ miniCalendarMonthName }} {{ miniCalendarYear }}</span>
-                  <button class="cal-nav-btn" @click="miniCalPrevMonth">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="15 18 9 12 15 6"/>
-                    </svg>
-                  </button>
-                  <button class="cal-nav-btn" @click="miniCalNextMonth">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div class="calendar-grid">
-                <div class="cal-header">
-                  <span>LUN</span><span>MAR</span><span>MIE</span><span>JUE</span><span>VIE</span><span>SAB</span><span>DOM</span>
-                </div>
-                <div class="cal-body">
-                  <span
-                    v-for="(day, idx) in miniCalendarDays"
-                    :key="idx"
-                    class="cal-day"
-                    :class="{ 'other': day.otherMonth, 'today': day.isToday }"
-                  >
-                    {{ day.day }}
-                    <span v-if="day.events.length > 0" class="cal-day-dots-inline">
-                      <span
-                        v-for="(evt, eIdx) in day.eventTypes.slice(0, 3)"
-                        :key="eIdx"
-                        class="cal-dot-inline"
-                        :style="{ background: rawTypeColorMap[evt] || '#6B7280' }"
-                      ></span>
-                    </span>
-                  </span>
-                </div>
-              </div>
-              <div class="calendar-legend">
-                <span
-                  v-for="item in miniCalendarLegendItems"
-                  :key="item.rawType"
-                  class="legend-item"
-                >
-                  <span class="legend-dot" :style="{ background: item.color }"></span>
-                  {{ item.label }}
+          <!-- Cierre presupuestal automatizado -->
+          <div class="card cierre-card">
+            <div class="card-header">
+              <div class="cierre-title">
+                <h3>Cierre presupuestal del mes</h3>
+                <span class="auto-badge">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  </svg>
+                  Automático
                 </span>
               </div>
+              <span class="cierre-next">Próximo cierre: {{ proximoCierreFecha }}</span>
             </div>
 
-            <!-- Próximas Actividades -->
-            <div class="card upcoming-card">
-              <div class="card-header">
-                <h3>Próximas actividades</h3>
-                <button class="link-btn" @click="setSection('calendario')">Ver todas</button>
+            <div class="cierre-body">
+              <div class="cierre-summary">
+                <div class="cierre-metric">
+                  <span class="cierre-label">Ingresos del mes</span>
+                  <span class="cierre-value income">{{ formatCurrency(cierreActual.ingresos) }}</span>
+                </div>
+                <div class="cierre-metric">
+                  <span class="cierre-label">Egresos del mes</span>
+                  <span class="cierre-value expense">{{ formatCurrency(cierreActual.egresos) }}</span>
+                </div>
+                <div class="cierre-metric">
+                  <span class="cierre-label">Utilidad consolidada</span>
+                  <span class="cierre-value profit">{{ formatCurrency(cierreActual.utilidad) }}</span>
+                </div>
+                <div class="cierre-metric">
+                  <span class="cierre-label">Proyectos del mes</span>
+                  <span class="cierre-value">{{ cierreActual.proyectos }}</span>
+                </div>
               </div>
-              <div class="upcoming-list">
-                <div v-for="(event, idx) in upcomingEvents" :key="idx" class="upcoming-item">
-                  <div class="upcoming-date">
-                    <span class="day-num">{{ event.day }}</span>
-                    <span class="day-month">{{ event.month }}</span>
-                  </div>
-                  <div class="upcoming-info">
-                    <div class="upcoming-title-row">
-                      <span class="upcoming-title">{{ event.title }}</span>
-                      <span class="upcoming-badge" :class="event.type">{{ event.typeLabel }}</span>
-                    </div>
-                    <span class="upcoming-client">{{ event.client }}</span>
-                    <span class="upcoming-time">{{ event.time }}</span>
-                  </div>
-                </div>
-                <div v-if="upcomingEvents.length === 0" class="upcoming-empty">
-                  No hay próximas actividades
-                </div>
+
+              <div class="cierre-table-wrap">
+                <table class="cierre-table">
+                  <thead>
+                    <tr>
+                      <th>Mes</th>
+                      <th>Ingresos</th>
+                      <th>Egresos</th>
+                      <th>Utilidad</th>
+                      <th>Proyectos</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="c in cierresPresupuestales" :key="c.key">
+                      <td class="cierre-month">{{ c.label }}</td>
+                      <td>{{ formatCurrency(c.ingresos) }}</td>
+                      <td>{{ formatCurrency(c.egresos) }}</td>
+                      <td class="cierre-profit">{{ formatCurrency(c.utilidad) }}</td>
+                      <td>{{ c.proyectos }}</td>
+                      <td><span class="cierre-status" :class="c.estado === 'Cerrado' ? 'closed' : 'open'">{{ c.estado }}</span></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
 
-          <!-- Bottom Row: Projects by Status + Recent Quotes -->
-          <div class="dashboard-bottom">
-            <!-- Proyectos por Estado -->
-            <div class="card projects-card">
-              <div class="card-header">
-                <h3>Proyectos por estado</h3>
-              </div>
-              <div class="projects-chart-area">
-                <div class="donut-container">
-                  <svg viewBox="0 0 120 120" class="donut-svg">
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#F59E0B" stroke-width="16" :stroke-dasharray="donutDashEjecucion" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#3B82F6" stroke-width="16" :stroke-dasharray="donutDashFinalizados" :stroke-dashoffset="donutOffsetFinalizados" transform="rotate(-90 60 60)"/>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#10B981" stroke-width="16" :stroke-dasharray="donutDashCotizacion" :stroke-dashoffset="donutOffsetCotizacion" transform="rotate(-90 60 60)"/>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#8B5CF6" stroke-width="16" :stroke-dasharray="donutDashAprobados" :stroke-dashoffset="donutOffsetAprobados" transform="rotate(-90 60 60)"/>
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#EF4444" stroke-width="16" :stroke-dasharray="donutDashCancelados" :stroke-dashoffset="donutOffsetCancelados" transform="rotate(-90 60 60)"/>
-                  </svg>
-                  <div class="donut-center">
-                    <span class="donut-value">{{ totalProyectos }}</span>
-                    <span class="donut-label">Total</span>
-                  </div>
-                </div>
-                <div class="projects-legend">
-                  <div class="legend-row">
-                    <span class="legend-dot-rect amber"></span>
-                    <span class="legend-text">En Ejecucion</span>
-                    <span class="legend-count">{{ proyectosEnEjecucion }} ({{ porcentajeEjecucion }}%)</span>
-                  </div>
-                  <div class="legend-row">
-                    <span class="legend-dot-rect blue"></span>
-                    <span class="legend-text">Finalizados</span>
-                    <span class="legend-count">{{ proyectosFinalizadosCount }} ({{ porcentajeFinalizados }}%)</span>
-                  </div>
-                  <div class="legend-row">
-                    <span class="legend-dot-rect green"></span>
-                    <span class="legend-text">Cotizacion</span>
-                    <span class="legend-count">{{ proyectosCotizacion }} ({{ porcentajeCotizacion }}%)</span>
-                  </div>
-                  <div class="legend-row">
-                    <span class="legend-dot-rect purple"></span>
-                    <span class="legend-text">Aprobados</span>
-                    <span class="legend-count">{{ proyectosAprobados }} ({{ porcentajeAprobados }}%)</span>
-                  </div>
-                  <div class="legend-row">
-                    <span class="legend-dot-rect red"></span>
-                    <span class="legend-text">Suspendidos</span>
-                    <span class="legend-count">{{ proyectosCancelados }} ({{ porcentajeCancelados }}%)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Proyectos creados por mes -->
-            <div class="card quotes-card">
-              <div class="card-header">
-                <h3>Proyectos creados por mes</h3>
-              </div>
-              <div class="bar-chart-container">
-                <div class="bar-chart">
-                  <div v-for="(item, idx) in proyectosPorMes" :key="idx" class="bar-col">
-                    <span class="bar-value">{{ item.count }}</span>
-                    <div class="bar-wrapper">
-                      <div class="bar-fill" :style="{ height: barHeight(item.count) + '%' }"></div>
-                    </div>
-                    <span class="bar-label">{{ item.label }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bottom Metrics Row -->
-          <div class="metrics-row">
-            <div class="metric-card">
-              <div class="metric-icon blue">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                </svg>
-              </div>
-              <div class="metric-info">
-                <span class="metric-label">Total colaboradores</span>
-                <span class="metric-value">{{ colaboradores.length }}</span>
-                <span class="metric-sub">Registrados</span>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon amber">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="8.5" cy="7" r="4"/>
-                  <line x1="20" y1="8" x2="20" y2="14"/>
-                  <line x1="23" y1="11" x2="17" y2="11"/>
-                </svg>
-              </div>
-              <div class="metric-info">
-                <span class="metric-label">Clientes nuevos</span>
-                <span class="metric-value">{{ clientesNuevosMes }}</span>
-                <span class="metric-sub">Este mes</span>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon green">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                </svg>
-              </div>
-              <div class="metric-info">
-                <span class="metric-label">Proyectos activos</span>
-                <span class="metric-value">{{ proyectosEnEjecucion }}</span>
-                <span class="metric-sub">Este mes</span>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-icon red">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-              </div>
-              <div class="metric-info">
-                <span class="metric-label">Licitaciones</span>
-                <span class="metric-value">{{ licitaciones.length }}</span>
-                <span class="metric-sub">Total</span>
-              </div>
-            </div>
-          </div>
         </div>
 
         <!-- ========== CLIENTES ========== -->
@@ -717,7 +612,7 @@
               <h2 class="page-title">ADM Eventos</h2>
               <p class="page-subtitle">{{ eventos.length }} eventos registrados</p>
             </div>
-            <button class="export-btn" style="background: var(--c-primary); color: white; border: none;" @click="openEventModal()">
+            <button class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openEventModal()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
@@ -1241,7 +1136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '@/services/api/authService'
 import { useCRM } from '@/composables/useCRM'
@@ -1254,6 +1149,7 @@ import { clientService } from '@/services/api/clientService'
 import { projectService } from '@/services/api/projectService'
 import { tenderService } from '@/services/api/tenderService'
 import { documentService } from '@/services/api/documentService'
+import { userService } from '@/services/api/userService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
 import {
   createMockClientes,
@@ -1262,8 +1158,12 @@ import {
   createMockEventos,
   createMockColaboradores,
   createMockLicitaciones,
+  createMockUsuarios,
+  createMockCuotasCobrar,
+  createMockUsuariosFondo,
   createMockEntityNames,
 } from '@/mock/adminDashboard'
+import type { UsuarioFondo } from '@/mock/adminDashboard'
 import ProjectsList from '@/views/crm/ProjectsList.vue'
 import LicitacionesList from '@/views/crm/LicitacionesList.vue'
 import QuotesList from '@/views/crm/QuotesList.vue'
@@ -1275,7 +1175,9 @@ import ColaboradorDetail from '@/views/crm/ColaboradorDetail.vue'
 
 const router = useRouter()
 const { clientes, proyectos, fetchClientes, fetchProyectos } = useCRM()
-const currentSection = ref('dashboard')
+const currentRole = ref(authService.getUserRole() || 'admin')
+const isSuperAdmin = computed(() => currentRole.value === 'superadmin')
+const currentSection = ref(isSuperAdmin.value ? 'dashboard' : 'usuarios')
 const sidebarOpen = ref(false)
 const userAvatar = ref<string | null>(null)
 const selectedProjectId = ref<number | null>(null)
@@ -1290,60 +1192,6 @@ function getUserInitials(name: string): string {
   }
   return name.substring(0, 2).toUpperCase()
 }
-
-const selectedMonth = ref('todos')
-
-const monthOptions = computed(() => {
-  const months = []
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const label = d.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' })
-    months.push({ value, label })
-  }
-  return months
-})
-
-const filteredClientes = computed(() => {
-  if (selectedMonth.value === 'todos') return clientes.value
-  const [year, month] = selectedMonth.value.split('-').map(Number)
-  return clientes.value.filter(c => {
-    if (!c.createdAt) return false
-    const d = new Date(c.createdAt)
-    return d.getFullYear() === year && d.getMonth() === month - 1
-  })
-})
-
-const filteredProyectos = computed(() => {
-  if (selectedMonth.value === 'todos') return proyectos.value
-  const [year, month] = selectedMonth.value.split('-').map(Number)
-  return proyectos.value.filter(p => {
-    if (!p.createdAt) return false
-    const d = new Date(p.createdAt)
-    return d.getFullYear() === year && d.getMonth() === month - 1
-  })
-})
-
-const filteredCotizaciones = computed(() => {
-  if (selectedMonth.value === 'todos') return cotizaciones.value
-  const [year, month] = selectedMonth.value.split('-').map(Number)
-  return cotizaciones.value.filter(c => {
-    if (!c.createdAt) return false
-    const d = new Date(c.createdAt)
-    return d.getFullYear() === year && d.getMonth() === month - 1
-  })
-})
-
-const filteredUtilidad = computed(() => {
-  return filteredProyectos.value.reduce((sum, p) => {
-    if (!p.services || p.services.length === 0) return sum
-    return sum + p.services.reduce((sSum, svc) => {
-      const utilidad = (svc.totalPrice || 0) - (svc.providerTotalPrice || 0) - (svc.ica || 0) - (svc.simpleTax || 0)
-      return sSum + Math.max(0, utilidad)
-    }, 0)
-  }, 0)
-})
 
 function viewProject(id: number) {
   selectedProjectId.value = id
@@ -1838,115 +1686,8 @@ async function handleDeleteEvento() {
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
-]
-
-const recentActivities = computed(() => {
-  const activities: Array<{ text: string; time: string; type: string; icon: string }> = []
-
-  const recentCotizaciones = [...cotizaciones.value]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 3)
-  recentCotizaciones.forEach(c => {
-    activities.push({
-      text: `Cotización ${c.code} — ${c.client?.name || 'Cliente'}`,
-      time: formatTimeAgo(c.createdAt),
-      type: 'blue',
-      icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
-    })
-  })
-
-  const recentClientes = [...clientes.value]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 2)
-  recentClientes.forEach(c => {
-    activities.push({
-      text: `Nuevo cliente registrado: ${c.razonSocial}`,
-      time: formatTimeAgo(c.createdAt),
-      type: 'green',
-      icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>'
-    })
-  })
-
-  const recentEventos = [...eventos.value]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 2)
-  recentEventos.forEach(e => {
-    activities.push({
-      text: `${e.type} — ${e.client || e.title || 'Evento'}`,
-      time: formatTimeAgo(e.date),
-      type: 'amber',
-      icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
-    })
-  })
-
-  return activities.slice(0, 4)
-})
-
-function formatTimeAgo(dateStr: string): string {
-  if (!dateStr) return ''
-  const now = new Date()
-  const date = new Date(dateStr)
-  const diffMs = now.getTime() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  if (diffMin < 1) return 'Ahora mismo'
-  if (diffMin < 60) return `Hace ${diffMin} minutos`
-  const diffHrs = Math.floor(diffMin / 60)
-  if (diffHrs < 24) return `Hace ${diffHrs} horas`
-  const diffDays = Math.floor(diffHrs / 24)
-  if (diffDays === 1) return 'Ayer'
-  if (diffDays < 7) return `Hace ${diffDays} días`
-  return formatDate(dateStr)
-}
-
-const upcomingEvents = computed(() => {
-  const now = new Date()
-  const upcoming = eventos.value
-    .filter(e => e.date && new Date(e.date) >= now)
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    .slice(0, 4)
-
-  return upcoming.map(e => {
-    const date = new Date(e.date)
-    const endDate = e.endDate ? new Date(e.endDate) : null
-
-    const typeCssMap: Record<string, string> = {
-      'Auditoría Interna': 'audit',
-      'Auditoría Interna Presencial': 'audit',
-      'Auditoría Interna Calidad': 'audit',
-      'Capacitación': 'training',
-      'Capacitación Presencial': 'training',
-      'Implementación': 'meeting',
-      'Mantenimiento': 'meeting',
-      'Asesoría Virtual': 'meeting',
-      'Asesoría Presencial': 'meeting',
-      'Diagnóstico Inicial': 'meeting',
-    }
-    const cssType = typeCssMap[e.type] || 'commitment'
-
-    let time: string
-    if (endDate && endDate.toDateString() !== date.toDateString()) {
-      if (endDate.getMonth() === date.getMonth() && endDate.getFullYear() === date.getFullYear()) {
-        time = `${date.getDate()}-${endDate.getDate()} ${monthNamesShort[date.getMonth()]}`
-      } else {
-        time = `${date.getDate()} ${monthNamesShort[date.getMonth()]} - ${endDate.getDate()} ${monthNamesShort[endDate.getMonth()]}`
-      }
-    } else {
-      const start = formatTime(e.date)
-      const end = e.endDate ? formatTime(e.endDate) : ''
-      time = end ? `${start} - ${end}` : start
-    }
-
-    return {
-      day: String(date.getDate()),
-      month: monthNamesShort[date.getMonth()],
-      title: e.title || e.type,
-      client: e.client || 'Sin cliente',
-      time,
-      type: cssType,
-      typeLabel: e.type,
-    }
-  })
-})
+  { id: 'usuarios', label: 'Usuarios', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+].filter((item) => isSuperAdmin.value || item.id === 'usuarios')
 
 // ========== CALENDARIO ==========
 interface CalEvent {
@@ -2050,7 +1791,6 @@ function buildCalendarEvents() {
 }
 
 const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
-const monthNamesShort = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC']
 
 const calMonthName = computed(() => monthNames[calCurrentDate.value.getMonth()])
 const calYear = computed(() => calCurrentDate.value.getFullYear())
@@ -2263,30 +2003,8 @@ async function fetchCotizacionesData() {
   }
 }
 
-const proyectosPorMes = computed(() => {
-  const now = new Date()
-  const months: { label: string; count: number }[] = []
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const label = d.toLocaleDateString('es-CO', { month: 'short' })
-    const year = d.getFullYear()
-    const month = d.getMonth()
-    const count = proyectos.value.filter((p: any) => {
-      if (!p.createdAt) return false
-      const pd = new Date(p.createdAt)
-      return pd.getFullYear() === year && pd.getMonth() === month
-    }).length
-    months.push({ label, count })
-  }
-  return months
-})
-
-const barHeight = (count: number) => {
-  const max = Math.max(...proyectosPorMes.value.map(m => m.count), 1)
-  return (count / max) * 100
-}
-
 const setSection = (section: string) => {
+  if (!isSuperAdmin.value && section !== 'usuarios') return
   const item = navItems.find((n) => n.id === section)
   if (item && 'route' in item && item.route) {
     router.push(item.route)
@@ -2316,39 +2034,147 @@ function matchStatus(status: string, target: string): boolean {
 }
 
 const proyectosEnEjecucion = computed(() => proyectos.value.filter(p => matchStatus(p.status, 'ejecucion')).length)
-const proyectosFinalizadosCount = computed(() => proyectos.value.filter(p => matchStatus(p.status, 'finalizad')).length)
-const proyectosCotizacion = computed(() => proyectos.value.filter(p => matchStatus(p.status, 'cotizacion')).length)
-const proyectosAprobados = computed(() => proyectos.value.filter(p => matchStatus(p.status, 'aprobad')).length)
-const proyectosCancelados = computed(() => proyectos.value.filter(p => matchStatus(p.status, 'suspendid')).length)
 
-function donutPercent(count: number): string {
-  if (totalProyectos.value === 0) return '0'
-  return (count / totalProyectos.value * 314.16).toFixed(1)
+const usuariosRegistrados = ref(0)
+const usuariosActivos = ref(0)
+const proximasCuotas = ref(createMockCuotasCobrar())
+
+const proximasCuotasTotal = computed(() => proximasCuotas.value.reduce((sum, c) => sum + c.amount, 0))
+
+const proximaCuotaFecha = computed(() => {
+  const next = [...proximasCuotas.value].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0]
+  return next ? formatDate(next.dueDate) : '-'
+})
+
+const viajesEnProgreso = computed(() =>
+  proyectos.value.filter(
+    (p) =>
+      (matchStatus(p.status, 'ejecucion') || matchStatus(p.status, 'curso') || matchStatus(p.status, 'activo')) &&
+      !matchStatus(p.status, 'inactivo'),
+  ).length,
+)
+
+async function fetchUsuarios() {
+  try {
+    const users = await userService.getAll()
+    if (users.length > 0) {
+      usuariosRegistrados.value = users.length
+      usuariosActivos.value = users.filter((u) => u.isActive !== false).length
+      return
+    }
+  } catch {
+    // sin datos del servicio: se usa el mock
+  }
+  const mocks = createMockUsuarios()
+  usuariosRegistrados.value = mocks.length
+  usuariosActivos.value = mocks.filter((u) => u.isActive !== false).length
 }
 
-const donutDashEjecucion = computed(() => `${donutPercent(proyectosEnEjecucion.value)} ${314.16 - Number(donutPercent(proyectosEnEjecucion.value))}`)
-const donutDashFinalizados = computed(() => `${donutPercent(proyectosFinalizadosCount.value)} ${314.16 - Number(donutPercent(proyectosFinalizadosCount.value))}`)
-const donutOffsetFinalizados = computed(() => `-${donutPercent(proyectosEnEjecucion.value)}`)
+// ========== FONDO VIAJERO, TOP PRESUPUESTO, ALERTAS, TIEMPO REAL ==========
+const usuariosFondo = ref<UsuarioFondo[]>(createMockUsuariosFondo())
+const lastUpdated = ref(Date.now())
+const nowTick = ref(Date.now())
 
-const donutDashCotizacion = computed(() => `${donutPercent(proyectosCotizacion.value)} ${314.16 - Number(donutPercent(proyectosCotizacion.value))}`)
-const donutOffsetCotizacion = computed(() => `-${Number(donutPercent(proyectosEnEjecucion.value)) + Number(donutPercent(proyectosFinalizadosCount.value))}`)
+const fondoViajeroTotal = computed(() => usuariosFondo.value.reduce((sum, u) => sum + u.fondoViajero, 0))
+const fondoViajeroAportantes = computed(() => usuariosFondo.value.filter((u) => u.fondoViajero > 0).length)
 
-const donutDashAprobados = computed(() => `${donutPercent(proyectosAprobados.value)} ${314.16 - Number(donutPercent(proyectosAprobados.value))}`)
-const donutOffsetAprobados = computed(() => `-${Number(donutPercent(proyectosEnEjecucion.value)) + Number(donutPercent(proyectosFinalizadosCount.value)) + Number(donutPercent(proyectosCotizacion.value))}`)
-
-const donutDashCancelados = computed(() => `${donutPercent(proyectosCancelados.value)} ${314.16 - Number(donutPercent(proyectosCancelados.value))}`)
-const donutOffsetCancelados = computed(() => `-${Number(donutPercent(proyectosEnEjecucion.value)) + Number(donutPercent(proyectosFinalizadosCount.value)) + Number(donutPercent(proyectosCotizacion.value)) + Number(donutPercent(proyectosAprobados.value))}`)
-
-function safePercent(count: number): number {
-  if (totalProyectos.value === 0) return 0
-  return Math.round(count / totalProyectos.value * 100)
+function diasDesde(iso: string): number {
+  const diff = Date.now() - new Date(iso).getTime()
+  return Math.max(0, Math.floor(diff / 86400000))
 }
 
-const porcentajeEjecucion = computed(() => safePercent(proyectosEnEjecucion.value))
-const porcentajeFinalizados = computed(() => safePercent(proyectosFinalizadosCount.value))
-const porcentajeCotizacion = computed(() => safePercent(proyectosCotizacion.value))
-const porcentajeAprobados = computed(() => safePercent(proyectosAprobados.value))
-const porcentajeCancelados = computed(() => safePercent(proyectosCancelados.value))
+const limiteDiasPorPeriodicidad: Record<UsuarioFondo['periodicidad'], number> = {
+  semanal: 7,
+  quincenal: 15,
+  mensual: 30,
+}
+
+const topUsuariosPresupuesto = computed(() =>
+  [...usuariosFondo.value].sort((a, b) => b.presupuesto - a.presupuesto).slice(0, 5),
+)
+
+const maxPresupuesto = computed(() => Math.max(...usuariosFondo.value.map((u) => u.presupuesto), 1))
+
+function rankPercent(value: number): number {
+  return Math.round((value / maxPresupuesto.value) * 100)
+}
+
+const alertasInactividad = computed(() =>
+  usuariosFondo.value
+    .map((u) => ({
+      ...u,
+      diasInactividad: diasDesde(u.ultimaActividad),
+      limiteDias: limiteDiasPorPeriodicidad[u.periodicidad],
+    }))
+    .filter((u) => u.diasInactividad > u.limiteDias)
+    .sort((a, b) => b.diasInactividad - a.diasInactividad),
+)
+
+const lastUpdatedLabel = computed(() => {
+  const seconds = Math.max(0, Math.round((nowTick.value - lastUpdated.value) / 1000))
+  if (seconds < 5) return 'ahora mismo'
+  if (seconds < 60) return `hace ${seconds} s`
+  const minutes = Math.floor(seconds / 60)
+  if (minutes < 60) return `hace ${minutes} min`
+  return `hace ${Math.floor(minutes / 60)} h`
+})
+
+// ========== CIERRE PRESUPUESTAL MENSUAL (AUTOMÁTICO) ==========
+interface CierrePresupuestal {
+  key: string
+  label: string
+  ingresos: number
+  egresos: number
+  utilidad: number
+  proyectos: number
+  estado: 'Cerrado' | 'En curso'
+}
+
+function buildCierre(offset: number): CierrePresupuestal {
+  const now = new Date()
+  const start = new Date(now.getFullYear(), now.getMonth() - offset, 1)
+  const end = new Date(now.getFullYear(), now.getMonth() - offset + 1, 1)
+  const delMes = proyectos.value.filter((p) => {
+    const created = new Date(p.createdAt)
+    return created >= start && created < end
+  })
+  let ingresos = 0
+  let egresos = 0
+  delMes.forEach((p) => {
+    ingresos += p.totalCost || 0
+    egresos += (p.services || []).reduce((sum, svc) => sum + (svc.providerTotalPrice || 0), 0)
+  })
+  return {
+    key: `${start.getFullYear()}-${start.getMonth()}`,
+    label: start.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' }),
+    ingresos,
+    egresos,
+    utilidad: Math.max(0, ingresos - egresos),
+    proyectos: delMes.length,
+    estado: offset === 0 ? 'En curso' : 'Cerrado',
+  }
+}
+
+const cierresPresupuestales = computed(() => [0, 1, 2, 3].map((offset) => buildCierre(offset)))
+const cierreActual = computed(() => cierresPresupuestales.value[0])
+
+const proximoCierreFecha = computed(() => {
+  const now = new Date()
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+  return lastDay.toLocaleDateString('es-CO', { day: '2-digit', month: 'long' })
+})
+
+let clockTimer: number | undefined
+let pollTimer: number | undefined
+
+async function refreshDashboard() {
+  await fetchUsuarios()
+  usuariosFondo.value = createMockUsuariosFondo()
+  lastUpdated.value = Date.now()
+  nowTick.value = Date.now()
+}
+
+
 
 const totalFacturacion = computed(() => {
   return proyectos.value.reduce((sum, p) => {
@@ -2397,123 +2223,9 @@ const facturacionChange = computed(() => {
   return Math.round((facturacionMesActual.value - facturacionMesAnterior.value) / facturacionMesAnterior.value * 100)
 })
 
-const clientesNuevosMes = computed(() => {
-  const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  return clientes.value.filter(c => new Date(c.createdAt) >= startOfMonth).length
-})
-
 const tasaConversion = computed(() => {
   if (totalClientes.value === 0) return 0
   return Math.round(proyectosEnEjecucion.value / totalClientes.value * 100)
-})
-
-const miniCalDate = ref(new Date())
-
-const miniCalendarMonthName = computed(() => monthNames[miniCalDate.value.getMonth()])
-const miniCalendarYear = computed(() => miniCalDate.value.getFullYear())
-
-interface MiniCalDay {
-  day: number
-  dateStr: string
-  otherMonth: boolean
-  isToday: boolean
-  events: CalEvent[]
-  eventTypes: string[]
-}
-
-const miniCalendarDays = computed<MiniCalDay[]>(() => {
-  const year = miniCalDate.value.getFullYear()
-  const month = miniCalDate.value.getMonth()
-  const today = new Date()
-
-  const firstDay = new Date(year, month, 1)
-  const lastDay = new Date(year, month + 1, 0)
-
-  let startDayOfWeek = firstDay.getDay()
-  if (startDayOfWeek === 0) startDayOfWeek = 7
-
-  const days: MiniCalDay[] = []
-
-  for (let i = startDayOfWeek - 1; i > 0; i--) {
-    const d = new Date(year, month, 1 - i)
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    const evts = calendarEvents.value[dateStr] || []
-    days.push({
-      day: d.getDate(),
-      dateStr,
-      otherMonth: true,
-      isToday: false,
-      events: evts,
-      eventTypes: [...new Set(evts.map(e => e.rawType))]
-    })
-  }
-
-  for (let d = 1; d <= lastDay.getDate(); d++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d
-    const evts = calendarEvents.value[dateStr] || []
-    days.push({
-      day: d,
-      dateStr,
-      otherMonth: false,
-      isToday,
-      events: evts,
-      eventTypes: [...new Set(evts.map(e => e.rawType))]
-    })
-  }
-
-  const remaining = 42 - days.length
-  for (let i = 1; i <= remaining; i++) {
-    const d = new Date(year, month + 1, i)
-    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    const evts = calendarEvents.value[dateStr] || []
-    days.push({
-      day: d.getDate(),
-      dateStr,
-      otherMonth: true,
-      isToday: false,
-      events: evts,
-      eventTypes: [...new Set(evts.map(e => e.rawType))]
-    })
-  }
-
-  return days
-})
-
-function miniCalPrevMonth() {
-  const d = miniCalDate.value
-  miniCalDate.value = new Date(d.getFullYear(), d.getMonth() - 1, 1)
-}
-
-function miniCalNextMonth() {
-  const d = miniCalDate.value
-  miniCalDate.value = new Date(d.getFullYear(), d.getMonth() + 1, 1)
-}
-
-const miniCalendarLegendItems = computed(() => {
-  const year = miniCalDate.value.getFullYear()
-  const month = miniCalDate.value.getMonth()
-  const monthStart = new Date(year, month, 1)
-  const monthEnd = new Date(year, month + 1, 0, 23, 59, 59)
-
-  const typeCounts: Record<string, number> = {}
-  eventos.value.forEach(ev => {
-    if (!ev.date || !ev.type) return
-    const evStart = new Date(ev.date)
-    const evEnd = ev.endDate ? new Date(ev.endDate) : evStart
-    if (evStart > monthEnd || evEnd < monthStart) return
-    if (!typeCounts[ev.type]) typeCounts[ev.type] = 0
-    typeCounts[ev.type]++
-  })
-
-  return Object.entries(typeCounts)
-    .filter(([, count]) => count > 0)
-    .map(([rawType, count]) => ({
-      rawType,
-      label: `${rawType} (${count})`,
-      color: rawTypeColorMap.value[rawType] || '#6B7280'
-    }))
 })
 
 function formatCurrency(value: number): string {
@@ -2562,6 +2274,7 @@ async function loadDashboard() {
     fetchEventos(),
     fetchColaboradores(),
     fetchLicitaciones(),
+    fetchUsuarios(),
   ])
   seedDashboardIfEmpty()
 }
@@ -2581,6 +2294,19 @@ onMounted(() => {
       else if (showEventModal.value) showEventModal.value = false
     }
   })
+
+  clockTimer = window.setInterval(() => {
+    nowTick.value = Date.now()
+  }, 1000)
+
+  pollTimer = window.setInterval(() => {
+    refreshDashboard()
+  }, 30000)
+})
+
+onUnmounted(() => {
+  if (clockTimer) window.clearInterval(clockTimer)
+  if (pollTimer) window.clearInterval(pollTimer)
 })
 </script>
 
@@ -2639,9 +2365,10 @@ onMounted(() => {
 }
 
 .logo-img {
-  height: 80px;
+  height: 44px;
   width: auto;
   object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .sidebar-nav {
@@ -2918,12 +2645,64 @@ onMounted(() => {
 }
 
 /* ===== MONTH FILTER ===== */
-.dashboard-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--c-black);
-  margin: 0 0 16px 0;
-}
+    .dashboard-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--c-black);
+      margin: 0 0 16px 0;
+    }
+
+    .dashboard-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .dashboard-title-row .dashboard-title { margin: 0; }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 1px solid var(--c-border);
+      border-radius: 999px;
+      background: var(--c-white);
+      font-size: 0.74rem;
+      color: var(--c-gray);
+    }
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--c-success);
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+      animation: livePulse 1.6s infinite;
+    }
+    @keyframes livePulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+      70% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .live-label { font-weight: 700; color: var(--c-success); text-transform: uppercase; letter-spacing: 0.04em; }
+    .live-updated { color: var(--c-gray-light); }
+    .refresh-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border: 1px solid var(--c-border);
+      border-radius: 50%;
+      background: none;
+      color: var(--c-gray);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .refresh-btn:hover { color: var(--c-black); border-color: var(--c-gray); transform: rotate(90deg); }
+
 
 .month-filter {
   display: flex;
@@ -2954,12 +2733,12 @@ onMounted(() => {
 }
 
 /* ===== STATS ROW ===== */
-.stats-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
 
 .stat-card {
   background: var(--c-white);
@@ -3049,7 +2828,7 @@ onMounted(() => {
 /* ===== DASHBOARD MIDDLE ===== */
 .dashboard-middle {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 20px;
   margin-bottom: 24px;
 }
@@ -3512,7 +3291,165 @@ onMounted(() => {
 }
 .card-footer-btn:hover { background: rgba(200, 155, 45, 0.04); }
 
-/* ===== METRICS ROW ===== */
+    /* ===== DASHBOARD WIDGETS ===== */
+    .dashboard-widgets {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .card-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.14);
+      color: var(--c-info);
+    }
+    .card-badge.warn { background: rgba(245, 158, 11, 0.16); color: var(--c-warning); }
+
+    .widget-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 4px 20px 20px;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .widget-empty { font-size: 0.82rem; color: var(--c-gray); padding: 16px 0; }
+
+    .rank-row { display: flex; align-items: center; gap: 12px; }
+    .rank-pos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: var(--c-light);
+      color: var(--c-gray);
+      flex-shrink: 0;
+    }
+    .rank-pos.top { background: rgba(240, 192, 9, 0.18); color: var(--c-primary); }
+    .rank-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .rank-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+    .rank-name { font-size: 0.82rem; font-weight: 600; color: var(--c-black); }
+    .rank-amount { font-size: 0.78rem; font-weight: 700; color: var(--c-black); white-space: nowrap; }
+    .rank-track { height: 6px; background: var(--c-light); border-radius: 999px; overflow: hidden; }
+    .rank-fill { height: 100%; background: linear-gradient(90deg, var(--c-primary), var(--c-primary-hover)); border-radius: 999px; }
+
+    .alert-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid var(--c-border);
+      border-radius: 10px;
+      background: var(--c-light);
+    }
+    .alert-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.16);
+      color: var(--c-warning);
+      flex-shrink: 0;
+    }
+    .alert-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .alert-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .alert-name { font-size: 0.82rem; font-weight: 600; color: var(--c-black); }
+    .alert-days {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--c-danger);
+      background: rgba(239, 68, 68, 0.14);
+      padding: 2px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .alert-detail { font-size: 0.72rem; color: var(--c-gray); text-transform: capitalize; }
+
+    /* ===== CIERRE PRESUPUESTAL ===== */
+    .cierre-card { margin-bottom: 24px; }
+    .cierre-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .auto-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.14);
+      color: var(--c-success);
+    }
+    .cierre-next { font-size: 0.76rem; color: var(--c-gray); }
+    .cierre-body { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 18px; }
+
+    .cierre-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+    .cierre-metric {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 14px;
+      border: 1px solid var(--c-border);
+      border-radius: 10px;
+      background: var(--c-light);
+    }
+    .cierre-label { font-size: 0.7rem; font-weight: 600; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.03em; }
+    .cierre-value { font-size: 1.05rem; font-weight: 800; color: var(--c-black); }
+    .cierre-value.income { color: var(--c-info); }
+    .cierre-value.expense { color: var(--c-danger); }
+    .cierre-value.profit { color: var(--c-success); }
+
+    .cierre-table-wrap { overflow-x: auto; border: 1px solid var(--c-border); border-radius: 10px; }
+    .cierre-table { width: 100%; border-collapse: collapse; min-width: 620px; }
+    .cierre-table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--c-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--c-light);
+      border-bottom: 1px solid var(--c-border);
+      white-space: nowrap;
+    }
+    .cierre-table td {
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      color: var(--c-black);
+      border-bottom: 1px solid var(--c-border);
+      white-space: nowrap;
+    }
+    .cierre-table tr:last-child td { border-bottom: none; }
+    .cierre-table tbody tr:hover td { background: rgba(255, 255, 255, 0.05); }
+    .cierre-month { text-transform: capitalize; font-weight: 600; }
+    .cierre-profit { font-weight: 700; color: var(--c-success); }
+    .cierre-status {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+    .cierre-status.closed { background: rgba(16, 185, 129, 0.14); color: var(--c-success); }
+    .cierre-status.open { background: rgba(59, 130, 246, 0.14); color: var(--c-info); }
+
+    /* ===== METRICS ROW ===== */
 .metrics-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -4222,6 +4159,8 @@ onMounted(() => {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .dashboard-widgets { grid-template-columns: 1fr; }
+  .cierre-summary { grid-template-columns: repeat(2, 1fr); }
   .dashboard-middle { grid-template-columns: 1fr; }
   .dashboard-bottom { grid-template-columns: 1fr; }
   .metrics-row { grid-template-columns: repeat(2, 1fr); }
@@ -4231,11 +4170,12 @@ onMounted(() => {
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
+    width: min(var(--sidebar-w), 78vw);
   }
   .sidebar-open .sidebar {
     transform: translateX(0);
   }
-  .sidebar-overlay {
+  .sidebar-open .sidebar-overlay {
     display: block;
     position: fixed;
     inset: 0;
@@ -4244,23 +4184,94 @@ onMounted(() => {
   }
   .main-area {
     margin-left: 0;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .main-content {
+    min-width: 0;
+    max-width: 100%;
   }
   .menu-toggle {
     display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
   }
   .topbar {
-    padding: 0 16px;
-    gap: 12px;
+    padding: 0 14px;
+    gap: 10px;
+    height: 64px;
   }
-  .topbar-greeting h1 { font-size: 1rem; }
-  .topbar-greeting p { font-size: 0.72rem; }
+  .topbar-greeting { min-width: 0; }
+  .topbar-greeting h1 {
+    font-size: 0.85rem;
+    line-height: 1.25;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+  .topbar-greeting p { display: none; }
   .topbar-search { display: none; }
   .export-btn { display: none; }
-  .stats-row { grid-template-columns: 1fr; }
-  .metrics-row { grid-template-columns: 1fr; }
-  .main-content { padding: 16px; }
+  .action-btn { width: 36px; height: 36px; }
+
+  .main-content { padding: 16px 14px; }
+  .page-title { font-size: 1.2rem; }
+  .section-top { margin-bottom: 16px; }
+  .dashboard-title-row { margin-bottom: 14px; }
+  .dashboard-title { font-size: 1.15rem; }
+
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stats-row > * { min-width: 0; }
+  .stat-card { padding: 12px 10px; gap: 8px; min-width: 0; border-radius: 12px; }
+  .stat-icon { width: 34px; height: 34px; border-radius: 9px; }
+  .stat-icon svg { width: 17px; height: 17px; }
+  .stat-value { font-size: 1rem; overflow-wrap: anywhere; line-height: 1.2; }
+  .stat-label { font-size: 0.68rem; line-height: 1.3; }
+  .stat-change { font-size: 0.65rem; margin-top: 0; }
+  .stat-sub { font-size: 0.65rem; margin-top: 0; }
+  .stat-content { min-width: 0; gap: 1px; }
+  .stat-sparkline { display: none; }
+
+  .dashboard-widgets { grid-template-columns: 1fr; gap: 14px; }
+  .card-header { padding: 14px 16px; flex-wrap: wrap; gap: 6px; }
+  .widget-body { padding: 4px 16px 16px; gap: 10px; }
+  .rank-head { gap: 4px; }
+  .rank-name { font-size: 0.8rem; }
+  .rank-amount { font-size: 0.76rem; }
+  .alert-row { padding: 10px; gap: 8px; }
+  .alert-detail { line-height: 1.35; }
+
+  .cierre-summary { grid-template-columns: 1fr; gap: 10px; }
+  .cierre-body { padding: 0 16px 16px; gap: 14px; }
+  .cierre-table { min-width: 540px; }
+  .cierre-table th,
+  .cierre-table td { padding: 8px 10px; font-size: 0.76rem; }
+
+  .modal-overlay { padding: 12px; }
+  .modal-card { padding: 20px; }
+  .modal-actions { flex-direction: column-reverse; }
+  .modal-actions > * { width: 100%; justify-content: center; }
+
   .cal-day-cell { min-height: 60px; padding: 4px; }
   .calendar-legend-full { gap: 12px; }
+}
+
+@media (max-width: 480px) {
+  .main-content { padding: 12px; }
+  .topbar { padding: 0 12px; gap: 8px; }
+  .topbar-greeting h1 { font-size: 0.8rem; }
+  .stats-row { gap: 8px; }
+  .stat-card { padding: 10px 8px; gap: 6px; flex-wrap: wrap; }
+  .stat-icon { width: 30px; height: 30px; border-radius: 8px; }
+  .stat-icon svg { width: 15px; height: 15px; }
+  .stat-value { font-size: 0.95rem; }
+  .dashboard-title-row { gap: 8px; }
+  .live-indicator { width: 100%; justify-content: center; }
+  .cierre-title { gap: 6px; }
+  .modal-card { padding: 16px; }
 }
 
 /* ===== ADM EVENTOS ===== */
@@ -4717,5 +4728,129 @@ onMounted(() => {
 .view-mode .btn-add-norma,
 .view-mode .entity-dropdown {
   display: none !important;
+}
+
+/* ===== TEMA OSCURO ===== */
+.admin-layout {
+  color-scheme: dark;
+  --c-primary: #F0C009;
+  --c-primary-hover: #FFD84D;
+  --c-black: #E7ECF6;
+  --c-dark: #0B1220;
+  --c-sidebar: #0A1327;
+  --c-white: #141D36;
+  --c-light: #0E162C;
+  --c-gray: #98A4BF;
+  --c-gray-light: #6F7D99;
+  --c-border: #26334F;
+}
+
+/* Fondos dorados llevan texto oscuro para mantener contraste */
+.btn-primary,
+.cal-day.today,
+.cal-today-btn,
+.summary-total-badge,
+.cal-day-cell.is-today .cal-day-number,
+.action-btn .badge {
+  color: #102857;
+}
+.btn-primary:hover {
+  background: var(--c-primary-hover);
+}
+
+/* Superficies de tablas y acciones */
+.data-table tr:hover td {
+  background: rgba(255, 255, 255, 0.05);
+}
+.cal-day-cell.has-events {
+  background: rgba(255, 255, 255, 0.05);
+}
+.action-btn {
+  color: var(--c-gray);
+}
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--c-black);
+}
+
+/* Chips y badges: tinte claro -> tinte oscuro */
+.success-banner {
+  background: rgba(16, 185, 129, 0.14);
+  color: #6EE7B7;
+}
+.type-comunicaciones,
+.type-informe,
+.rol-badge.admin,
+.rol-badge.Administrador,
+.evento-type-badge.type-reunion {
+  background: rgba(245, 158, 11, 0.16);
+  color: #FBBF24;
+}
+.type-acta,
+.tag-badge.norma-badge {
+  background: rgba(245, 158, 11, 0.12);
+  color: #FDBA74;
+}
+.type-contrato,
+.rol-badge.gerente,
+.rol-badge.Gerente,
+.evento-type-badge.type-llamada,
+.tag-badge {
+  background: rgba(59, 130, 246, 0.16);
+  color: #93C5FD;
+}
+.type-cotizacion,
+.rol-badge.colaborador,
+.rol-badge.Colaborador,
+.estado-badge.disponible,
+.status-badge.status-active,
+.evento-type-badge.type-correo {
+  background: rgba(16, 185, 129, 0.16);
+  color: #6EE7B7;
+}
+.type-certificado,
+.rol-badge.manager,
+.rol-badge.Community,
+.evento-type-badge.type-visita {
+  background: rgba(139, 92, 246, 0.18);
+  color: #C4B5FD;
+}
+.type-presentacion {
+  background: rgba(20, 184, 166, 0.16);
+  color: #5EEAD4;
+}
+.status-badge.status-inactive,
+.action-btn.delete-btn:hover,
+.evento-type-badge.type-compromiso {
+  background: rgba(239, 68, 68, 0.16);
+  color: #FCA5A5;
+}
+
+/* Iconos de KPIs con mas presencia sobre fondo oscuro */
+.stat-icon.blue { background: rgba(59, 130, 246, 0.2); }
+.stat-icon.amber { background: rgba(245, 158, 11, 0.2); }
+.stat-icon.purple { background: rgba(139, 92, 246, 0.2); }
+.stat-icon.green { background: rgba(16, 185, 129, 0.2); }
+
+/* Selects nativos */
+.admin-layout select option {
+  background: var(--c-white);
+  color: var(--c-black);
+}
+
+/* Scrollbars */
+.admin-layout ::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.admin-layout ::-webkit-scrollbar-track {
+  background: var(--c-light);
+}
+.admin-layout ::-webkit-scrollbar-thumb {
+  background: #2C3B5E;
+  border-radius: 6px;
+}
+.admin-layout ::-webkit-scrollbar-thumb:hover {
+  background: #3A4C74;
 }
 </style>

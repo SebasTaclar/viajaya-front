@@ -2,7 +2,6 @@
   <main class="login-page">
     <div class="login-container">
       <div class="login-card">
-        <img src="/images/Logo.png" alt="Viaja Ya" class="login-logo" />
         <div class="login-icon">
           <i class="fas fa-user-shield"></i>
         </div>
@@ -67,13 +66,7 @@
           </button>
         </form>
 
-        <div class="login-footer">
-          <p class="login-hint">
-            Admin: <strong>admin@somosviajaya.com</strong> / <strong>ViajaYa2026</strong><br />
-            Super Admin: <strong>superadmin@somosviajaya.com</strong> / <strong>ViajaYaAdmin2026</strong>
-          </p>
-          <p><a href="/"><i class="fas fa-arrow-left"></i> Volver al sitio</a></p>
-        </div>
+
       </div>
     </div>
   </main>
@@ -136,26 +129,29 @@ const handleLogin = async () => {
 
 <style scoped>
 .login-page {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #FAFAF8;
+  background: #102857;
   padding: 120px 24px 60px;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .login-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 440px;
 }
 
 .login-card {
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 20px;
   padding: 48px 40px;
-  border: 1px solid #F0F0F0;
-  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.06);
+  border: none;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -168,7 +164,6 @@ const handleLogin = async () => {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #16C2CA 0%, #13ABB2 100%);
 }
 
 .login-logo {
@@ -178,33 +173,35 @@ const handleLogin = async () => {
 }
 
 .login-icon {
-  width: 64px;
-  height: 64px;
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
-  background: rgba(22, 194, 202, 0.1);
+  background: linear-gradient(135deg, rgba(245, 74, 22, 0.12) 0%, rgba(245, 74, 22, 0.06) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 20px;
-  border: 2px solid rgba(22, 194, 202, 0.2);
+  margin: 0 auto 24px;
+  border: 2px solid rgba(245, 74, 22, 0.2);
 }
 
 .login-icon i {
-  font-size: 24px;
-  color: #16C2CA;
+  font-size: 30px;
+  color: #f54a16;
 }
 
 .login-title {
   margin: 0 0 8px;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
-  color: #1A1A1A;
+  color: #1a1a1a;
+  letter-spacing: -0.02em;
 }
 
 .login-subtitle {
-  margin: 0 0 32px;
+  margin: 0 0 24px;
   font-size: 14px;
-  color: #888888;
+  color: #757575;
+  line-height: 1.5;
 }
 
 .login-form {
@@ -218,17 +215,31 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: 10px;
-  color: #dc2626;
+  padding: 14px 16px;
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
+  color: #dc2626;
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
 }
 
 .error-message i {
-  font-size: 14px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -237,7 +248,7 @@ const handleLogin = async () => {
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #3F3F3F;
+  color: #4a4a4a;
 }
 
 .input-wrapper {
@@ -249,32 +260,37 @@ const handleLogin = async () => {
 .input-wrapper i:first-child {
   position: absolute;
   left: 16px;
-  color: #AAAAAA;
-  font-size: 14px;
+  color: #aaaaaa;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+
+.input-wrapper:focus-within i:first-child {
+  color: #203ec9;
 }
 
 .form-input {
   width: 100%;
-  padding: 14px 16px 14px 44px;
-  background: #FAFAF8;
-  border: 1px solid #E8E8E8;
-  border-radius: 10px;
+  padding: 14px 16px 14px 46px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
   font-size: 14px;
-  color: #2F2F2F;
-  font-family: 'Montserrat', sans-serif;
-  transition: all 0.3s ease;
+  color: #1a1a1a;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  transition: all 0.2s ease;
   box-sizing: border-box;
 }
 
 .form-input::placeholder {
-  color: #BBBBBB;
+  color: #9ca3af;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #16C2CA;
-  background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(22, 194, 202, 0.12);
+  border-color: #203ec9;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(32, 62, 201, 0.12);
 }
 
 .toggle-password {
@@ -282,14 +298,14 @@ const handleLogin = async () => {
   right: 12px;
   background: none;
   border: none;
-  color: #AAAAAA;
+  color: #aaaaaa;
   cursor: pointer;
   padding: 4px;
   font-size: 14px;
 }
 
 .toggle-password:hover {
-  color: #16C2CA;
+  color: #203ec9;
 }
 
 .login-options {
@@ -303,17 +319,17 @@ const handleLogin = async () => {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #6B6B6B;
+  color: #6b6b6b;
   cursor: pointer;
 }
 
 .remember-me input {
-  accent-color: #16C2CA;
+  accent-color: #203ec9;
 }
 
 .forgot-password {
   font-size: 13px;
-  color: #16C2CA;
+  color: #203ec9;
   text-decoration: none;
   font-weight: 600;
 }
@@ -325,58 +341,60 @@ const handleLogin = async () => {
 .btn-login {
   width: 100%;
   padding: 16px;
-  background: #16C2CA;
-  color: #FFFFFF;
+  background: #203ec9;
+  color: #ffffff;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   margin-top: 8px;
 }
 
 .btn-login:hover:not(:disabled) {
-  background: #13ABB2;
+  background: rgba(32, 62, 201, 0.85);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(22, 194, 202, 0.3);
+  box-shadow: 0 8px 24px rgba(32, 62, 201, 0.35);
 }
 
 .btn-login:disabled {
-  background: #CCCCCC;
+  background: #d1d5db;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .login-footer {
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid #F0F0F0;
+  border-top: 1px solid #e5e7eb;
 }
 
 .login-footer p {
   margin: 0;
   font-size: 14px;
-  color: #888888;
+  color: #757575;
 }
 
 .login-hint {
   margin-bottom: 10px !important;
   font-size: 12px !important;
-  color: #AAAAAA !important;
+  color: #9ca3af !important;
 }
 
 .login-hint strong {
-  color: #6B6B6B;
+  color: #6b6b6b;
   font-weight: 600;
 }
 
 .login-footer a {
-  color: #16C2CA;
+  color: #203ec9;
   text-decoration: none;
   font-weight: 600;
   display: inline-flex;

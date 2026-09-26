@@ -1,4 +1,5 @@
 import type { Cliente, Proyecto, Cotizacion, Evento, Colaborador, Licitacion } from '@/types/crmTypes'
+import type { User } from '@/services/api/userService'
 
 function daysFromNow(days: number, hour = 10, minute = 0): string {
   const d = new Date()
@@ -132,6 +133,61 @@ export function createMockLicitaciones(): Licitacion[] {
     { id: 1, oferta: 'OF-VY-011', tipo: 'minima_cuantia', tipoLabel: 'Mínima Cuantía', numeroProceso: 'MC-TUR-088-2026', clienteNombre: 'GOBERNACIÓN DEL MAGDALENA', servicio: 'Viaje de incentivo funcionarios', norma: 'Contratación estatal', estado: 'en_curso', fechaPublicacion: monthDate(0, 5), createdAt: monthsAgo(0, 5) },
     { id: 2, oferta: 'OF-VY-010', tipo: 'publica', tipoLabel: 'Licitación Pública', numeroProceso: 'LP-0452-2026', clienteNombre: 'UNIVERSIDAD NACIONAL - SEDE MEDELLÍN', servicio: 'Logística congreso académico', norma: 'Calidad de servicio', estado: 'publicada', fechaPublicacion: monthDate(1, 12), createdAt: monthsAgo(1, 12) },
     { id: 3, oferta: 'OF-VY-009', tipo: 'contratacion_especial', tipoLabel: 'Contratación especial', numeroProceso: 'CE-DICT-019-2026', clienteNombre: 'DIRECCIÓN DE TURISMO DE BOGOTÁ', servicio: 'Ruta receptiva visitantes internacionales', norma: 'Sostenibilidad turística', estado: 'adjudicada', fechaPublicacion: monthDate(3, 20), createdAt: monthsAgo(3, 20) },
+  ]
+}
+
+export function createMockUsuarios(): User[] {
+  return [
+    { id: 1, name: 'Laura Gómez', email: 'laura@somosviajaya.com', role: 'gerente', isActive: true, createdAt: monthsAgo(6, 3) },
+    { id: 2, name: 'Carlos Mejía', email: 'carlos@somosviajaya.com', role: 'gerente', isActive: true, createdAt: monthsAgo(6, 11) },
+    { id: 3, name: 'Ana Restrepo', email: 'ana@somosviajaya.com', role: 'colaborador', isActive: true, createdAt: monthsAgo(4, 22) },
+    { id: 4, name: 'Diego Torres', email: 'diego@somosviajaya.com', role: 'colaborador', isActive: true, createdAt: monthsAgo(3, 9) },
+    { id: 5, name: 'Mariana Ocampo', email: 'mariana@somosviajaya.com', role: 'colaborador', isActive: true, createdAt: monthsAgo(2, 17) },
+    { id: 6, name: 'Felipe Cárdenas', email: 'felipe@somosviajaya.com', role: 'colaborador', isActive: true, createdAt: monthsAgo(1, 5) },
+    { id: 7, name: 'Sofía Ramírez', email: 'sofia@somosviajaya.com', role: 'colaborador', isActive: true, createdAt: monthsAgo(0, 12) },
+    { id: 8, name: 'Andrés Villalba', email: 'andres@somosviajaya.com', role: 'colaborador', isActive: false, createdAt: monthsAgo(5, 28) },
+  ]
+}
+
+export interface CuotaCobrar {
+  id: number
+  client: string
+  concept: string
+  amount: number
+  dueDate: string
+}
+
+export type PeriodicidadRecaudo = 'mensual' | 'quincenal' | 'semanal'
+
+export interface UsuarioFondo {
+  id: number
+  name: string
+  cedula: string
+  periodicidad: PeriodicidadRecaudo
+  presupuesto: number
+  fondoViajero: number
+  ultimaActividad: string
+}
+
+export function createMockUsuariosFondo(): UsuarioFondo[] {
+  return [
+    { id: 1, name: 'Laura Gómez', cedula: '1032456789', periodicidad: 'mensual', presupuesto: 24000000, fondoViajero: 3200000, ultimaActividad: daysFromNow(-3, 9, 0) },
+    { id: 2, name: 'Carlos Mejía', cedula: '80123456', periodicidad: 'quincenal', presupuesto: 18500000, fondoViajero: 2450000, ultimaActividad: daysFromNow(-19, 11, 0) },
+    { id: 3, name: 'Ana Restrepo', cedula: '1098765432', periodicidad: 'semanal', presupuesto: 12800000, fondoViajero: 1980000, ultimaActividad: daysFromNow(-5, 15, 0) },
+    { id: 4, name: 'Diego Torres', cedula: '79876543', periodicidad: 'mensual', presupuesto: 31200000, fondoViajero: 4100000, ultimaActividad: daysFromNow(-45, 10, 0) },
+    { id: 5, name: 'Mariana Ocampo', cedula: '1122334455', periodicidad: 'quincenal', presupuesto: 9600000, fondoViajero: 1250000, ultimaActividad: daysFromNow(-8, 16, 0) },
+    { id: 6, name: 'Felipe Cárdenas', cedula: '98765432', periodicidad: 'semanal', presupuesto: 7400000, fondoViajero: 890000, ultimaActividad: daysFromNow(-11, 8, 0) },
+    { id: 7, name: 'Sofía Ramírez', cedula: '1055667788', periodicidad: 'mensual', presupuesto: 15750000, fondoViajero: 2760000, ultimaActividad: daysFromNow(-21, 14, 0) },
+    { id: 8, name: 'Andrés Villalba', cedula: '72223334', periodicidad: 'quincenal', presupuesto: 5300000, fondoViajero: 420000, ultimaActividad: daysFromNow(-60, 12, 0) },
+  ]
+}
+
+export function createMockCuotasCobrar(): CuotaCobrar[] {
+  return [
+    { id: 1, client: 'Corporación Turística del Caribe S.A.S', concept: 'Cuota 2/3 - Inauguración Cartagena', amount: 18500000, dueDate: daysFromNow(5, 17, 0) },
+    { id: 2, client: 'Andes Travel Group', concept: 'Cuota 3/6 - Congreso Medellín', amount: 13400000, dueDate: daysFromNow(12, 17, 0) },
+    { id: 3, client: 'Panorama Tours Bogotá', concept: 'Cuota 1/2 - Feria Corferias', amount: 8250000, dueDate: daysFromNow(19, 17, 0) },
+    { id: 4, client: 'Exportadora de Experiencias Sur', concept: 'Cuota 4/8 - Ruta gastronómica', amount: 5600000, dueDate: daysFromNow(26, 17, 0) },
   ]
 }
 

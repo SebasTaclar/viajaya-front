@@ -7,7 +7,9 @@
         </div>
 
         <h1 class="login-title">Portal de Usuarios</h1>
-        <p class="login-subtitle">Acceda a su cuenta con su cedula y codigo de verificacion</p>
+        <p class="login-subtitle">
+          {{ step === 1 ? 'Accede a tu cuenta con tu cédula' : 'Ahora, ingresa el código de verificación que te hemos enviado.' }}
+        </p>
 
         <div class="step-indicator">
           <div class="step-dot" :class="{ active: step === 1, completed: step === 2 }">
@@ -57,18 +59,18 @@
           <template v-else>
             <div class="code-sent-info">
               <i class="fas fa-check-circle"></i>
-              <span>Codigo enviado al celular registrado</span>
+              <span>Código enviado a tu celular registrado</span>
             </div>
 
             <div class="input-group">
-              <label for="code">Codigo de verificacion</label>
+              <label for="code"> Código de verificación</label>
               <div class="input-wrapper">
                 <i class="fas fa-shield-alt"></i>
                 <input
                   type="text"
                   id="code"
                   v-model="smsCode"
-                  placeholder="ingresa el codigo"
+                  placeholder="Ingresa aqui el código"
                   maxlength="6"
                   pattern="[0-9]{6}"
                   inputmode="numeric"
@@ -234,16 +236,36 @@ onUnmounted(() => {
 
 <style scoped>
 .login-page {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   background: #1A1A1A;
   padding: 120px 24px 60px;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.login-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url('/images/avion_pista.jpg') center center / cover no-repeat;
+  opacity: 0.5;
+}
+
+.login-page::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(3, 12, 22, 0.78) 0%, rgba(3, 12, 22, 0.34) 48%, rgba(3, 12, 22, 0.18) 100%),
+    linear-gradient(0deg, rgba(2, 8, 16, 0.78) 0%, transparent 38%, rgba(2, 8, 16, 0.18) 100%);
 }
 
 .login-container {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 440px;
 }
@@ -266,7 +288,6 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #16C2CA 0%, #13ABB2 100%);
 }
 
 .login-icon {
@@ -325,13 +346,13 @@ onUnmounted(() => {
 }
 
 .step-dot.active {
-  background: #16C2CA;
+  background: #203EC9;
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(22, 194, 202, 0.3);
+  box-shadow: 0 2px 8px rgba(32, 62, 201, 0.3);
 }
 
 .step-dot.completed {
-  background: #059669;
+  background: #203EC9;
   color: #FFFFFF;
 }
 
@@ -343,7 +364,7 @@ onUnmounted(() => {
 }
 
 .step-line.active {
-  background: #059669;
+  background: #203EC9;
 }
 
 .login-form {
@@ -401,7 +422,7 @@ onUnmounted(() => {
 }
 
 .input-wrapper:focus-within i:first-child {
-  color: #16C2CA;
+  color: #203EC9;
 }
 
 .form-input {
@@ -412,7 +433,7 @@ onUnmounted(() => {
   border-radius: 12px;
   font-size: 14px;
   color: #1A1A1A;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   transition: all 0.2s ease;
   box-sizing: border-box;
 }
@@ -423,9 +444,9 @@ onUnmounted(() => {
 
 .form-input:focus {
   outline: none;
-  border-color: #16C2CA;
+  border-color: #203EC9;
   background: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(22, 194, 202, 0.12);
+  box-shadow: 0 0 0 3px rgba(32, 62, 201, 0.12);
 }
 
 .code-input {
@@ -447,12 +468,12 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   padding: 14px 16px;
-  background: rgba(16, 185, 129, 0.06);
-  border: 1px solid rgba(16, 185, 129, 0.18);
+  background: rgba(32, 62, 201, 0.06);
+  border: 1px solid rgba(32, 62, 201, 0.18);
   border-radius: 12px;
   font-size: 13px;
   font-weight: 500;
-  color: #059669;
+  color: #203EC9;
 }
 
 .code-sent-info i {
@@ -479,7 +500,7 @@ onUnmounted(() => {
 }
 
 .timer i {
-  color: #16C2CA;
+  color: #203EC9;
 }
 
 .resend-btn {
@@ -488,18 +509,18 @@ onUnmounted(() => {
   gap: 6px;
   background: none;
   border: none;
-  color: #16C2CA;
+  color: #203EC9;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 20px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   transition: all 0.2s;
 }
 
 .resend-btn:hover:not(:disabled) {
-  background: rgba(22, 194, 202, 0.08);
+  background: rgba(32, 62, 201, 0.08);
 }
 
 .resend-btn:disabled {
@@ -510,7 +531,7 @@ onUnmounted(() => {
 .btn-login {
   width: 100%;
   padding: 16px;
-  background: #16C2CA;
+  background: #203EC9;
   color: #FFFFFF;
   border: none;
   border-radius: 12px;
@@ -518,7 +539,7 @@ onUnmounted(() => {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -527,13 +548,14 @@ onUnmounted(() => {
 }
 
 .btn-login:hover:not(:disabled) {
-  background: #13ABB2;
+  background: rgba(32, 62, 201, 0.85);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(22, 194, 202, 0.35);
+  box-shadow: 0 8px 24px rgba(32, 62, 201, 0.35);
 }
 
 .btn-login:disabled {
   background: #D1D5DB;
+  color: #FFFFFF;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
@@ -552,38 +574,166 @@ onUnmounted(() => {
   cursor: pointer;
   padding: 10px 20px;
   border-radius: 10px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   transition: all 0.2s;
   width: 100%;
 }
 
 .back-btn:hover {
-  border-color: #16C2CA;
-  color: #16C2CA;
-  background: rgba(22, 194, 202, 0.04);
+  border-color: #203EC9;
+  color: #203EC9;
+  background: rgba(32, 62, 201, 0.04);
 }
 
 @media (max-width: 480px) {
   .login-page {
-    padding: 100px 16px 40px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    align-items: center;
+    padding: 96px 16px 32px;
+    padding-top: max(96px, calc(env(safe-area-inset-top) + 72px));
+    padding-bottom: max(32px, env(safe-area-inset-bottom));
+  }
+
+  .login-container {
+    max-width: 100%;
   }
 
   .login-card {
-    padding: 36px 24px;
+    padding: 32px 20px;
     border-radius: 16px;
-  }
-
-  .login-title {
-    font-size: 22px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
   }
 
   .login-icon {
-    width: 68px;
-    height: 68px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 18px;
   }
 
   .login-icon i {
-    font-size: 26px;
+    font-size: 24px;
+  }
+
+  .login-title {
+    font-size: 21px;
+    margin-bottom: 6px;
+  }
+
+  .login-subtitle {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+
+  .step-indicator {
+    margin-bottom: 22px;
+  }
+
+  .step-dot {
+    width: 30px;
+    height: 30px;
+    font-size: 11px;
+  }
+
+  .step-line {
+    width: 48px;
+  }
+
+  .login-form {
+    gap: 16px;
+  }
+
+  .input-group label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .form-input {
+    padding: 15px 16px 15px 46px;
+    font-size: 16px;
+  }
+
+  .code-input {
+    font-size: 18px;
+    letter-spacing: 3px;
+    padding: 15px;
+  }
+
+  .code-input::placeholder {
+    font-size: 13px;
+  }
+
+  .login-error,
+  .code-sent-info {
+    padding: 12px 14px;
+    font-size: 12.5px;
+  }
+
+  .timer {
+    font-size: 13px;
+    padding: 7px 14px;
+  }
+
+  .btn-login {
+    padding: 15px;
+    font-size: 15px;
+    margin-top: 4px;
+  }
+
+  .back-btn {
+    padding: 13px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-page {
+    padding: 88px 12px 24px;
+    padding-top: max(88px, calc(env(safe-area-inset-top) + 72px));
+  }
+
+  .login-card {
+    padding: 26px 16px;
+  }
+
+  .login-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 14px;
+  }
+
+  .login-icon i {
+    font-size: 22px;
+  }
+
+  .login-title {
+    font-size: 19px;
+  }
+
+  .login-subtitle {
+    font-size: 12.5px;
+  }
+
+  .step-line {
+    width: 40px;
+  }
+
+  .step-dot {
+    width: 28px;
+    height: 28px;
+  }
+
+  .form-input {
+    padding: 14px 14px 14px 42px;
+  }
+
+  .input-wrapper i:first-child {
+    left: 14px;
+  }
+
+  .code-input {
+    padding: 14px 12px;
+    letter-spacing: 3px;
   }
 }
 </style>

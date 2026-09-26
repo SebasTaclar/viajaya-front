@@ -26,7 +26,7 @@ defineOptions({ name: 'TravelDiscoverySections' })
   width: min(92%, 1180px);
   height: 1px;
   margin: 60px auto 0;
-  background: linear-gradient(90deg, transparent, rgba(98, 194, 202, 0.72), transparent);
+  background: linear-gradient(90deg, transparent, rgb(249, 250, 250), transparent);
   content: '';
 }
 </style>

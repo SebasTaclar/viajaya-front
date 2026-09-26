@@ -253,7 +253,7 @@ watch(() => route.hash, () => {
 <style scoped>
 .servicios-page {
   background: #FAFAF8;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ===========================
@@ -353,7 +353,7 @@ watch(() => route.hash, () => {
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .btn-primary:hover {
@@ -537,7 +537,7 @@ watch(() => route.hash, () => {
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .service-btn:hover {

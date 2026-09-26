@@ -5,7 +5,6 @@
       <img :src="pkg.image" :alt="pkg.alt" loading="lazy" />
       <span class="package-card__tag">{{ pkg.tag }}</span>
       <div class="package-card__overlay">
-        <p class="package-card__region">{{ pkg.region }}</p>
         <h3>{{ pkg.name }}</h3>
       </div>
     </div>

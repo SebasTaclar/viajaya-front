@@ -130,7 +130,6 @@
                 <th>Celular</th>
                 <th>Ubicación</th>
                 <th>Periodicidad</th>
-                <th>Rol</th>
                 <th>Consentimiento</th>
                 <th>Acciones</th>
               </tr>
@@ -152,7 +151,6 @@
                 <td>{{ u.celular }}</td>
                 <td>{{ u.ubicacion }}</td>
                 <td><span class="period-badge">{{ u.periodicidad }}</span></td>
-                <td><span class="rol-badge" :class="u.role">{{ roleLabel(u.role) }}</span></td>
                 <td>
                   <span v-if="u.consentLey1581" class="consent-ok" title="Ley 1581 — consentimiento registrado">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -173,12 +171,6 @@
                     <button class="action-btn" title="Enviar SMS" @click="openSmsForUser(u)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                      </svg>
-                    </button>
-                    <button class="action-btn" title="Cambiar contraseña" @click="openPasswordModal(u)">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                       </svg>
                     </button>
                     <button class="action-btn delete-btn" title="Eliminar" @click="deleteUsuario(u.id, u.name)">
@@ -553,47 +545,6 @@
       </div>
     </div>
 
-    <!-- Change Password Modal -->
-    <div v-if="showPasswordModal" class="modal-overlay" @click.self="showPasswordModal = false">
-      <div class="modal-content modal-sm" @click.stop>
-        <div class="modal-header">
-          <h3>Cambiar Contraseña</h3>
-          <button class="modal-close" @click="showPasswordModal = false">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-          </button>
-        </div>
-        <div v-if="formError" class="modal-error">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-          </svg>
-          {{ formError }}
-        </div>
-        <div class="modal-body">
-          <p class="modal-info">Cambiar contraseña de <strong>{{ passwordUserName }}</strong></p>
-          <div class="form-group">
-            <label>Nueva contraseña *</label>
-            <div class="password-input-wrap">
-              <input v-model="passwordForm.newPassword" :type="showPasswordModal2 ? 'text' : 'password'" class="form-input" :class="{ 'field-error': passwordSubmitted && !passwordForm.newPassword }" placeholder="Mínimo 6 caracteres" />
-              <button type="button" class="btn-toggle-password" @click="showPasswordModal2 = !showPasswordModal2">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn-cancel" @click="showPasswordModal = false">Cancelar</button>
-          <button class="btn-save" :disabled="saving" @click="handleChangePassword">
-            <span v-if="saving" class="btn-spinner"></span>
-            {{ saving ? 'Guardando...' : 'Cambiar Contraseña' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
       <div class="modal-content modal-sm" @click.stop>
@@ -686,20 +637,15 @@ const currentPage = ref(1)
 const perPage = 20
 
 const showCreateModal = ref(false)
-const showPasswordModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
 const saving = ref(false)
 const formError = ref('')
 const createSubmitted = ref(false)
-const passwordSubmitted = ref(false)
 const showPassword = ref(false)
-const showPasswordModal2 = ref(false)
 
 const deleteId = ref(0)
 const deleteName = ref('')
-const passwordUserId = ref(0)
-const passwordUserName = ref('')
 const editUserId = ref(0)
 
 const createForm = ref({
@@ -724,8 +670,6 @@ const editForm = ref({
   email: '',
   consentLey1581: false,
 })
-
-const passwordForm = ref({ newPassword: '' })
 
 const smsForm = ref({
   targetType: 'persona' as 'persona' | 'grupo' | 'todos',
@@ -781,12 +725,6 @@ const filteredHistory = computed(() => {
 
 watch([searchTerm, roleFilter, periodFilter], () => { currentPage.value = 1 })
 
-function roleLabel(role: string): string {
-  if (role === 'admin') return 'Admin'
-  if (role === 'superadmin') return 'Super Admin'
-  return 'Cliente'
-}
-
 function typeLabel(t: string): string {
   if (t === 'persona') return 'Persona'
   if (t === 'grupo') return 'Grupo'
@@ -834,16 +772,6 @@ function openEditModal(u: MockUser) {
   }
   formError.value = ''
   showEditModal.value = true
-}
-
-function openPasswordModal(u: MockUser) {
-  passwordUserId.value = u.id
-  passwordUserName.value = u.name
-  passwordForm.value = { newPassword: '' }
-  formError.value = ''
-  passwordSubmitted.value = false
-  showPasswordModal2.value = false
-  showPasswordModal.value = true
 }
 
 function handleCreate() {
@@ -904,20 +832,6 @@ function handleUpdate() {
     }
     saving.value = false
     showEditModal.value = false
-  }, 400)
-}
-
-function handleChangePassword() {
-  formError.value = ''
-  passwordSubmitted.value = true
-  if (!passwordForm.value.newPassword || passwordForm.value.newPassword.length < 6) {
-    formError.value = 'La contraseña debe tener al menos 6 caracteres.'
-    return
-  }
-  saving.value = true
-  setTimeout(() => {
-    saving.value = false
-    showPasswordModal.value = false
   }, 400)
 }
 
@@ -1032,8 +946,8 @@ onMounted(() => {
   cursor: pointer; border-bottom: 2px solid transparent;
   margin-bottom: -1px; transition: all 0.15s; font-family: inherit;
 }
-.view-tab:hover { color: #0E3570; }
-.view-tab.active { color: #0E3570; border-bottom-color: #16C2CA; }
+.view-tab:hover { color: var(--c-primary); }
+.view-tab.active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
 .tab-lock { color: #E8483F; display: inline-flex; }
 
 .filters-bar { display: flex; flex-direction: column; gap: 10px; }
@@ -1080,7 +994,7 @@ onMounted(() => {
 
 .actions-cell { display: flex; gap: 4px; }
 .action-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: none; color: var(--c-gray); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
-.action-btn:hover { background: var(--c-light); color: #0E3570; }
+.action-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--c-black); }
 .action-btn.delete-btn:hover { background: rgba(232, 72, 63, 0.1); color: #E8483F; }
 
 .pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px; border-top: 1px solid var(--c-border); }
@@ -1090,8 +1004,8 @@ onMounted(() => {
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .page-dots { color: var(--c-gray); font-size: 0.85rem; padding: 0 4px; }
 
-.btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #0E3570; color: white; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap; font-family: inherit; }
-.btn-primary:hover:not(:disabled) { background: #0B2A5A; }
+.btn-primary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--c-primary); color: #102857; border: none; border-radius: 10px; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; font-family: inherit; }
+.btn-primary:hover:not(:disabled) { background: var(--c-primary-hover); }
 .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* SMS layout */
@@ -1170,36 +1084,41 @@ onMounted(() => {
 
 /* Modals */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
-.modal-content { background: var(--c-white); border-radius: 16px; width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; }
+.modal-content { background: var(--c-white); border-radius: 16px; width: 100%; max-width: 640px; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.45); border: 1px solid var(--c-border); }
 .modal-content.modal-sm { max-width: 480px; }
 .modal-content.modal-md { max-width: 580px; }
-.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid #e5e7eb; background: #0E3570; border-radius: 16px 16px 0 0; }
-.modal-header h3 { font-size: 1.05rem; font-weight: 700; color: white; margin: 0; }
-.modal-close { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: none; color: white; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
-.modal-close:hover { background: rgba(255,255,255,0.2); }
-.modal-error { display: flex; align-items: center; gap: 8px; padding: 12px 16px; margin: 16px 24px 0; background: #FEF2F2; color: #DC2626; border-radius: 8px; font-size: 0.85rem; border: 1px solid #FECACA; }
-.modal-body { padding: 24px; background: #f1f2f3; }
-.modal-info { margin: 0 0 16px; font-size: 0.88rem; color: #374151; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--c-border); background: var(--c-light); border-radius: 16px 16px 0 0; }
+.modal-header h3 { font-size: 1.05rem; font-weight: 700; color: var(--c-black); margin: 0; }
+.modal-close { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: none; color: var(--c-gray); border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+.modal-close:hover { background: rgba(255,255,255,0.1); color: var(--c-black); }
+.modal-error { display: flex; align-items: center; gap: 8px; padding: 12px 16px; margin: 16px 24px 0; background: rgba(239, 68, 68, 0.14); color: #FCA5A5; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(248, 113, 113, 0.35); }
+.modal-body { padding: 24px; background: var(--c-white); }
+.modal-info { margin: 0 0 16px; font-size: 0.88rem; color: var(--c-gray); }
 .required-note {
-  font-size: 0.75rem; color: #6B7280; margin-bottom: 16px;
-  padding: 8px 12px; background: #EFF6FF; border-radius: 8px;
-  border: 1px solid #BFDBFE;
+  font-size: 0.75rem; color: #93C5FD; margin-bottom: 16px;
+  padding: 8px 12px; background: rgba(59, 130, 246, 0.12); border-radius: 8px;
+  border: 1px solid rgba(96, 165, 250, 0.3);
 }
 .form-grid-modal { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .form-group-full { grid-column: 1 / -1; }
 .form-group label { font-size: 0.76rem; font-weight: 600; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.3px; }
 
+/* Campos dentro del modal: fondo más profundo que el body para que resalten */
+.modal-content .form-input { background: var(--c-light); border: 1.5px solid var(--c-border); color: var(--c-black); }
+.modal-content .form-input::placeholder { color: var(--c-gray-light); }
+.modal-content .form-input:focus { border-color: #4C63E6; box-shadow: 0 0 0 3px rgba(76, 99, 230, 0.3); }
+
 .policy-box {
   display: flex; gap: 12px; align-items: flex-start;
-  padding: 14px; background: #FFFBEB; border: 1.5px solid #FCD34D;
+  padding: 14px; background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(252, 211, 77, 0.45);
   border-radius: 10px; cursor: pointer; text-transform: none !important;
   letter-spacing: 0 !important;
 }
-.policy-box input[type="checkbox"] { margin-top: 3px; accent-color: #0E3570; width: 16px; height: 16px; flex-shrink: 0; }
-.policy-box .policy-text strong { display: block; font-size: 0.82rem; color: #92400E; margin-bottom: 6px; font-weight: 700; }
-.policy-box .policy-text p { margin: 0; font-size: 0.76rem; color: #78350F; line-height: 1.45; }
-.policy-box-compact { background: #F0FDF4; border-color: #86EFAC; }
-.policy-box-compact .policy-text p { color: #166534; }
+.policy-box input[type="checkbox"] { margin-top: 3px; accent-color: var(--c-primary); width: 16px; height: 16px; flex-shrink: 0; }
+.policy-box .policy-text strong { display: block; font-size: 0.82rem; color: #FBBF24; margin-bottom: 6px; font-weight: 700; }
+.policy-box .policy-text p { margin: 0; font-size: 0.76rem; color: var(--c-gray); line-height: 1.45; }
+.policy-box-compact { background: rgba(16, 185, 129, 0.12); border-color: rgba(110, 231, 183, 0.4); }
+.policy-box-compact .policy-text p { color: #6EE7B7; }
 
 .password-input-wrap { position: relative; }
 .password-input-wrap .form-input { padding-right: 40px; }
@@ -1209,13 +1128,13 @@ onMounted(() => {
   width: 28px; height: 28px; border: none; background: none;
   color: var(--c-gray); cursor: pointer; border-radius: 6px;
 }
-.btn-toggle-password:hover { background: #f3f4f6; color: var(--c-black); }
+.btn-toggle-password:hover { background: rgba(255,255,255,0.08); color: var(--c-black); }
 
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #e5e7eb; background: #EFF6FF; border-radius: 0 0 16px 16px; }
-.btn-cancel { padding: 10px 20px; border: 1.5px solid #d1d5db; border-radius: 10px; background: var(--c-white); color: #374151; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; }
-.btn-cancel:hover { background: #f9fafb; border-color: #9ca3af; }
-.btn-save { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: #16C2CA; color: white; border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
-.btn-save:hover { opacity: 0.9; transform: translateY(-1px); }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--c-border); background: var(--c-light); border-radius: 0 0 16px 16px; }
+.btn-cancel { padding: 10px 20px; border: 1.5px solid var(--c-border); border-radius: 10px; background: var(--c-white); color: var(--c-black); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+.btn-cancel:hover { background: rgba(255,255,255,0.08); border-color: var(--c-gray); }
+.btn-save { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--c-primary); color: #102857; border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit; }
+.btn-save:hover { background: var(--c-primary-hover); transform: translateY(-1px); }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
 
@@ -1233,11 +1152,62 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .page-header { flex-direction: column; align-items: flex-start; }
-  .header-actions { width: 100%; flex-direction: column; align-items: stretch; }
-  .summary-cards { width: 100%; }
-  .btn-primary { margin-left: 0; justify-content: center; }
-  .form-grid-modal { grid-template-columns: 1fr; }
-  .view-tabs { overflow-x: auto; }
+  .page-title { font-size: 1.2rem; }
+  .header-actions { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; }
+  .summary-cards { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .summary-card { padding: 10px; gap: 8px; justify-content: center; }
+  .summary-icon { width: 28px; height: 28px; }
+  .summary-count { font-size: 1rem; }
+  .summary-label { font-size: 0.6rem; white-space: normal; text-align: center; }
+  .btn-primary { margin-left: 0; justify-content: center; width: 100%; padding: 13px 20px; font-size: 0.92rem; }
+
+  .view-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .view-tab { padding: 12px 14px; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
+
+  .search-box { max-width: 100%; width: 100%; }
+  .filter-group { width: 100%; }
+  .filter-field { flex: 1; min-width: 0; }
+  .form-select { width: 100%; }
+
+  .table-responsive { -webkit-overflow-scrolling: touch; }
+  .data-table { min-width: 760px; }
+  .action-btn { width: 38px; height: 38px; }
+  .pagination { flex-wrap: wrap; gap: 6px; }
+
+  .form-grid-modal { grid-template-columns: 1fr; gap: 14px; }
+
+  .search-input, .form-select, .form-input { font-size: 16px; }
+
+  .sms-layout { gap: 14px; }
+  .card-panel { padding: 16px; }
   .history-header { flex-direction: column; }
+  .history-controls { width: 100%; }
+  .history-controls .form-select { width: auto; max-width: 100%; }
+  .history-item { padding: 10px; gap: 8px; }
+
+  .modal-overlay { padding: 10px; }
+  .modal-content { max-height: 94vh; border-radius: 14px; }
+  .modal-header { padding: 14px 16px; }
+  .modal-header h3 { font-size: 0.98rem; }
+  .modal-body { padding: 16px; }
+  .modal-error { margin: 12px 16px 0; padding: 10px 12px; }
+  .policy-box { padding: 12px; gap: 10px; }
+  .modal-footer { padding: 14px 16px; flex-direction: column; }
+  .modal-footer .btn-cancel,
+  .modal-footer .btn-save { width: 100%; justify-content: center; padding: 13px; }
+  .delete-modal-body { padding: 24px 16px; }
+  .delete-actions { flex-direction: column; }
+  .delete-actions .btn-cancel,
+  .delete-actions .btn-delete { width: 100%; justify-content: center; padding: 13px; }
+}
+
+@media (max-width: 480px) {
+  .page-title { font-size: 1.1rem; }
+  .summary-count { font-size: 0.95rem; }
+  .summary-icon { width: 26px; height: 26px; }
+  .filter-group { flex-direction: column; align-items: stretch; }
+  .data-table { min-width: 680px; }
+  .modal-header h3 { font-size: 0.92rem; }
+  .delete-title { font-size: 1rem; }
 }
 </style>

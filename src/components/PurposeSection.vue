@@ -123,7 +123,7 @@ const cards = [
   padding: 0px 0;
   background: #F4F3F1;
   overflow: hidden;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ---- Decorative Elements ---- */
