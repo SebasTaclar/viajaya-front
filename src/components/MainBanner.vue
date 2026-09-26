@@ -4,29 +4,28 @@
       <div class="travel-hero__content">
         <p class="travel-hero__kicker">
           <span class="travel-hero__kicker-line" aria-hidden="true"></span>
-          EXPERIENCIAS DE VIAJE
+          Viaja Ya
         </p>
 
         <h1 class="travel-hero__title">
-          TU PRÓXIMO<br />
-          <em class="travel-hero__title-accent">DESTINO</em>
+          Tu mejor<br />
+          <em class="travel-hero__title-accent">Experiencia</em>
         </h1>
 
-        <p class="travel-hero__description">
+        <!-- <p class="travel-hero__description">
           Descubre destinos únicos con la mejor experiencia de viaje.<br />
           Cada viaje es una historia que contar.
-        </p>
+        </p> -->
 
         <div class="travel-hero__cta-row">
           <div class="travel-hero__location">
-            <strong>COLOMBIA</strong>
-            <span>Tu aventura comienza aquí.</span>
+            <span>Tu aventura comienza aquí</span>
           </div>
 
-          <a href="#contacto" class="travel-hero__btn travel-hero__btn--primary">
+          <!-- <a href="#contacto" class="travel-hero__btn travel-hero__btn--primary">
             Reservar ahora
             <i class="fas fa-arrow-right" aria-hidden="true"></i>
-          </a>
+          </a> -->
         </div>
       </div>
 
@@ -57,7 +56,7 @@
     </div>
 
     <div class="travel-hero__scroll" aria-hidden="true">
-      <span>SCROLL</span>
+      <span>Desliza</span>
       <i></i>
     </div>
 
@@ -66,7 +65,22 @@
     </div>
 
     <div class="travel-hero__background" aria-hidden="true">
+      <template v-if="frameScrub">
+        <img class="travel-hero__image" src="/images/avion_pista.jpg" alt="" />
+        <div v-if="framesEnabled" class="travel-hero__frames">
+          <img
+            v-for="(frame, index) in frameUrls"
+            :key="frame"
+            class="travel-hero__image travel-hero__frame"
+            :class="{ 'is-active': index === frameIndex }"
+            :src="frame"
+            alt=""
+            decoding="async"
+          />
+        </div>
+      </template>
       <video
+        v-else
         ref="backgroundVideo"
         class="travel-hero__image"
         autoplay
@@ -102,6 +116,23 @@ let animationFrame = 0
 let scrubFrame = 0
 let targetTime = 0
 
+const frameScrub =
+  typeof window !== 'undefined' &&
+  (window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(max-width: 768px)').matches)
+
+const FRAME_COUNT = 40
+const FRAME_DURATION = 10
+const frameUrls = frameScrub
+  ? Array.from(
+      { length: FRAME_COUNT },
+      (_, index) =>
+        `https://res.cloudinary.com/dlwzazojt/video/upload/so_${(index * FRAME_DURATION) / FRAME_COUNT},w_720,q_auto/v1789596160/Airplane_taking_off_and_landing_20260916165015_ovf9b9.jpg`
+    )
+  : []
+
+const framesEnabled = ref(false)
+const frameIndex = ref(0)
+
 const steps = [
   {
     eyebrow: '01 / DESCUBRE',
@@ -123,15 +154,26 @@ const steps = [
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 
 const updateScrollTarget = () => {
-  const video = backgroundVideo.value
   const section = heroSection.value
-  if (!video || !section || !Number.isFinite(video.duration) || video.duration <= 0) return
-
   const pageScrollDistance = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
   const progress = clamp(window.scrollY / pageScrollDistance, 0, 1)
-  const heroScrollDistance = Math.max(section.offsetHeight - window.innerHeight, 1)
-  const heroProgress = clamp(-section.getBoundingClientRect().top / heroScrollDistance, 0, 1)
-  currentStep.value = Math.min(steps.length - 1, Math.floor(heroProgress * steps.length))
+
+  if (section) {
+    const rect = section.getBoundingClientRect()
+    const heroDistance = section.offsetHeight - window.innerHeight
+    const runway = heroDistance > 50 ? heroDistance : Math.max(section.offsetHeight, 1)
+    const heroProgress = clamp(-rect.top / runway, 0, 1)
+    currentStep.value = Math.min(steps.length - 1, Math.floor(heroProgress * steps.length))
+  }
+
+  if (frameScrub) {
+    const nextFrame = Math.min(FRAME_COUNT - 1, Math.floor(progress * FRAME_COUNT))
+    if (nextFrame !== frameIndex.value) frameIndex.value = nextFrame
+    return
+  }
+
+  const video = backgroundVideo.value
+  if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return
 
   targetTime = progress * video.duration
   startSmoothScrub()
@@ -175,7 +217,13 @@ const handleScroll = () => {
 
 onMounted(() => {
   heroSection.value = document.querySelector<HTMLElement>('.travel-hero')
-  backgroundVideo.value?.pause()
+  if (frameScrub) {
+    window.setTimeout(() => {
+      framesEnabled.value = true
+    }, 600)
+  } else {
+    backgroundVideo.value?.pause()
+  }
   window.addEventListener('scroll', handleScroll, { passive: true })
   window.addEventListener('resize', handleScroll)
   updateScrollTarget()
@@ -266,7 +314,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   background: #FAFAFA;
   overflow: hidden;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ---- Geometric Decorative Elements ---- */
@@ -486,7 +534,7 @@ onBeforeUnmount(() => {
   gap: 10px;
   padding: 15px 28px;
   border-radius: 10px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -619,7 +667,7 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 3;
   width: 100%;
-  background: #1A1A1A;
+  background: #1d3f7c;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin-top: auto;
 }
@@ -1316,8 +1364,7 @@ onBeforeUnmount(() => {
   margin: 0;
   color: #f0c009;
   font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 14px;
   letter-spacing: 2px;
 }
 
@@ -1333,13 +1380,12 @@ onBeforeUnmount(() => {
   left: auto;
   max-width: min(560px, 100%);
   color: #fff;
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
-  font-size: clamp(54px, 9vw, 120px);
-  font-weight: 400;
-  line-height: 0.95;
-  letter-spacing: 0.02em;
+  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
+  font-size: 6.4rem;
+  font-weight: bold;
+  line-height: 1.05;
+  letter-spacing: 0px;
   text-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
-  text-transform: uppercase;
 }
 
 .travel-hero__title-accent {
@@ -1365,7 +1411,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   gap: 2px;
   color: rgba(255, 255, 255, 0.68);
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .travel-hero__cta-row {
@@ -1420,7 +1466,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 7px;
   color: rgba(255, 255, 255, 0.38);
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 2px;
   transform: translateX(-50%);
@@ -1466,10 +1512,6 @@ onBeforeUnmount(() => {
     font-size: 14px;
     line-height: 1.55;
     text-align: center;
-  }
-
-  .travel-hero__scroll {
-    display: none;
   }
 
   .travel-hero__steps {
@@ -1540,6 +1582,22 @@ onBeforeUnmount(() => {
   background: #071522;
 }
 
+.travel-hero__frames {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.travel-hero__frame {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.travel-hero__frame.is-active {
+  opacity: 1;
+}
+
 @media (max-width: 700px) {
   .travel-hero {
     min-height: 100svh;
@@ -1558,16 +1616,35 @@ onBeforeUnmount(() => {
     inset: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     gap: 14px;
     height: 100%;
     min-height: 100%;
-    padding: 84px 20px 40px;
+    padding: 156px 20px 96px;
     box-sizing: border-box;
     overflow: hidden;
     text-align: center;
     z-index: 3;
+  }
+
+  .travel-hero__scroll {
+    display: flex;
+    bottom: 28px;
+    gap: 6px;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 10px;
+  }
+
+  .travel-hero__scroll i {
+    height: 26px;
+    background: rgba(255, 255, 255, 0.6);
+    animation: heroScrollPulse 1.6s ease-in-out infinite;
+  }
+
+  @keyframes heroScrollPulse {
+    0%, 100% { transform: scaleY(0.55); transform-origin: top; opacity: 0.5; }
+    50% { transform: scaleY(1); transform-origin: top; opacity: 1; }
   }
 
   .travel-hero__kicker {

@@ -3,22 +3,21 @@
     <div class="travel-savings__container">
       <div class="travel-savings__left">
         <p class="travel-savings__eyebrow">
-          TU FONDO VIAJERO &bull; VIAJA YA
+          Tu Fondo Viajero de Viaja Ya
         </p>
 
         <h1 class="travel-savings__title">
-          Haz realidad<br />
-          <em>tu próximo <br> viaje</em>
+          Haz realidad tu<br />
+          <em>Sueño de viajar</em>
         </h1>
 
         <p class="travel-savings__subtitle">
-          Ahorra a tu ritmo, programa tus aportes periódicos y viaja sin
-          preocupaciones financieras.
+          Ahorra a tu ritmo, programa tus aportes y planea tu próximo viaje
         </p>
 
         <div class="travel-savings__cta-group">
           <a href="https://wa.me/573132783573?text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n%20detallada?" target="_blank" class="travel-savings__btn-primary">
-            Comenzar mi Fondo Viajero
+            ! Lo quiero !
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -50,8 +49,7 @@
               </svg>
             </div>
             <div class="travel-savings__card-text">
-              <strong>Aportes Flexibles</strong>
-              <span>Te acompañamos en tu aventura</span>
+              <strong>Aportes flexibles</strong>
             </div>
           </div>
 
@@ -62,8 +60,7 @@
               </svg>
             </div>
             <div class="travel-savings__card-content">
-              <span class="travel-savings__card-eyebrow">TU PASAPORTE DE AHORRO</span>
-              <strong>Próximo Vuelo: ¡Listo!</strong>
+              <strong>El viaje de tus sueños te espera</strong>
 
             </div>
           </div>
@@ -96,7 +93,7 @@ defineOptions({ name: 'TravelSavings' })
   transform: translateX(-50%);
   width: min(80%, 1000px);
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(240, 192, 9, 0.5), transparent);
+  background: linear-gradient(90deg, transparent, rgb(250, 250, 250), transparent);
   content: '';
 }
 
@@ -114,6 +111,7 @@ defineOptions({ name: 'TravelSavings' })
 .travel-savings__left {
   flex: 1;
   max-width: 580px;
+  margin-top: 60px;
 }
 
 .travel-savings__eyebrow {
@@ -121,11 +119,10 @@ defineOptions({ name: 'TravelSavings' })
   align-items: center;
   gap: 12px;
   margin: 0 0 14px;
-  color: var(--travel-cyan);
-  font-size: 11px;
-  font-weight: 800;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 2px;
-  text-transform: uppercase;
   white-space: nowrap;
 }
 
@@ -133,24 +130,22 @@ defineOptions({ name: 'TravelSavings' })
   width: 28px;
   height: 2px;
   flex: 0 0 28px;
-  background: var(--travel-cyan);
+  background: #ffff;
   content: '';
 }
 
 .travel-savings__title {
-  font-family: 'VolkSans', sans-serif;
-  font-size: clamp(35px, 5.5vw, 65px);
-  font-weight: 500;
+  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
+  font-size: 70px;
+  font-weight: bold;
   line-height: 1.0;
-  letter-spacing: -0.01em;
   margin: 0 0 24px;
-  color: #ffffff;
-  text-transform: uppercase;
+  color: var(--travel-yellow);
   white-space: nowrap;
 }
 
 .travel-savings__title em {
-  color: var(--travel-yellow);
+  color:   rgb(236, 37, 37);
   font-style: normal;
 }
 
@@ -158,7 +153,7 @@ defineOptions({ name: 'TravelSavings' })
   font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 15px;
   line-height: 1.7;
-  color: #c0c4d0;
+  color: #f1f1f1;
   margin: 0 0 36px;
   max-width: 560px;
 }
@@ -286,13 +281,13 @@ defineOptions({ name: 'TravelSavings' })
 }
 
 .travel-savings__card--top {
-  top: -50px;
+  top: -30px;
   right: -20px;
   animation: float-card-top 4s ease-in-out infinite;
 }
 
 .travel-savings__card--bottom {
-  bottom: 20px;
+  bottom: -10px;
   left: -30px;
   white-space: normal;
   min-width: 260px;
@@ -396,13 +391,21 @@ defineOptions({ name: 'TravelSavings' })
 
   .travel-savings__left {
     max-width: 100%;
+    width: 100%;
+    align-self: stretch;
     text-align: left;
+    margin-top: 0;
+  }
+
+  .travel-savings__eyebrow {
+    justify-content: center;
+    text-align: center;
   }
 
   .travel-savings__title {
     white-space: normal;
     font-size: clamp(30px, 8vw, 52px);
-    text-align: left;
+    text-align: center;
   }
 
   .travel-savings__subtitle {
@@ -412,7 +415,8 @@ defineOptions({ name: 'TravelSavings' })
   }
 
   .travel-savings__cta-group {
-    justify-content: flex-start;
+    justify-content: center;
+    width: 100%;
   }
 
   .travel-savings__stats {
@@ -442,31 +446,31 @@ defineOptions({ name: 'TravelSavings' })
 
   .travel-savings__eyebrow {
     font-size: 10px;
-    justify-content: flex-start;
+    justify-content: center;
     white-space: normal;
   }
 
   .travel-savings__title {
-    font-size: clamp(28px, 9vw, 44px);
-    text-align: left;
+    font-size: 43px;
+    text-align: center;
   }
 
   .travel-savings__subtitle {
     font-size: 13px;
     margin-bottom: 28px;
-    text-align: left;
+    text-align: center;
   }
 
   .travel-savings__cta-group {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     width: 100%;
   }
 
   .travel-savings__btn-primary,
   .travel-savings__btn-secondary {
     justify-content: center;
-    width: 100%;
+    width: 80%;
     padding: 14px 24px;
     font-size: 14px;
   }

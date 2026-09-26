@@ -1,88 +1,138 @@
 <template>
-  <header v-if="showUtilityBar" class="site-header" :class="{ scrolled: isScrolled || isNosotros || isLoginPage }">
+  <header
+    v-if="showUtilityBar"
+    class="site-header"
+    :class="{
+      scrolled: !isLoginPage && (isScrolled || isNosotros),
+      login: isLoginPage,
+    }"
+  >
     <nav class="header-main">
       <RouterLink class="brand-container" to="/" @click="closeMobileMenu">
         <div class="brand-logo">
           <img src="/images/Logo.png" alt="Viaja Ya" class="brand-logo-img" />
         </div>
       </RouterLink>
-
       <div v-if="!isLoginPage" class="nav-menu desktop-only">
-        <a href="/#destinos" class="nav-link" @click="closeMobileMenu">Destinos</a>
         <a href="/#destinos" class="nav-link" @click="closeMobileMenu">Experiencias</a>
-        <a href="/#ahorra" class="nav-link" @click="closeMobileMenu">Nosotros</a>
+        <a href="/#ahorra" class="nav-link" @click="closeMobileMenu">Fondo Viajero</a>
         <a href="/#contacto" class="nav-link" @click="closeMobileMenu">Contacto</a>
       </div>
-
       <div class="nav-actions desktop-only">
-        <RouterLink to="/login-clientes" class="auth-link auth-link--user">
-          <i class="fas fa-user" aria-hidden="true"></i>
-          Usuarios
-        </RouterLink>
-        <button v-if="isClientLoggedIn" type="button" class="btn-logout-sm" @click="logoutClient" title="Cerrar sesión clientes">
+        <div ref="premiumMenuRef" class="premium-menu">
+          <button
+            type="button"
+            class="premium-btn"
+            :aria-expanded="premiumOpen"
+            @click="togglePremiumMenu"
+          >
+            <span>Ingreso Premium</span> <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div v-if="premiumOpen" class="premium-dropdown">
+            <RouterLink
+              :to="isClientLoggedIn ? '/portal-clientes' : '/login-clientes'"
+              class="premium-option"
+              @click="closePremiumMenu"
+            >
+              <i class="fas fa-user" aria-hidden="true"></i>
+              <span>{{ isClientLoggedIn ? 'Mi Portal' : 'Usuarios' }}</span>
+            </RouterLink>
+            <RouterLink
+              :to="isAdmin ? '/admin/products' : '/login'"
+              class="premium-option"
+              @click="closePremiumMenu"
+            >
+              <i class="fas fa-user-shield" aria-hidden="true"></i>
+              <span>{{ isAdmin ? 'Panel admin' : 'Admins' }}</span>
+            </RouterLink>
+          </div>
+        </div>
+        <button
+          v-if="isClientLoggedIn"
+          type="button"
+          class="btn-logout-sm"
+          @click="logoutClient"
+          title="Cerrar sesión clientes"
+        >
           <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
         </button>
-        <RouterLink :to="isAdmin ? '/admin/products' : '/login'" class="auth-link auth-link--admin">
-          <i class="fas fa-user-shield" aria-hidden="true"></i>
-          {{ isAdmin ? 'Panel admin' : 'Ingreso admins' }}
-        </RouterLink>
-        <button v-if="isLoggedIn && isAdmin" type="button" class="btn-logout-sm" @click="logoutAdmin" title="Cerrar sesión admin">
+        <button
+          v-if="isLoggedIn && isAdmin"
+          type="button"
+          class="btn-logout-sm"
+          @click="logoutAdmin"
+          title="Cerrar sesión admin"
+        >
           <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
         </button>
       </div>
-
-      <button v-if="!isLoginPage" class="hamburger-menu" @click="toggleMobileMenu" :class="{ active: isMobileMenuOpen }">
-        <span></span>
-        <span></span>
-        <span></span>
+      <button
+        v-if="!isLoginPage"
+        class="hamburger-menu"
+        @click="toggleMobileMenu"
+        :class="{ active: isMobileMenuOpen }"
+      >
+        <span></span> <span></span> <span></span>
       </button>
     </nav>
-
     <div v-if="!isLoginPage" class="mobile-menu" :class="{ active: isMobileMenuOpen }">
       <div class="mobile-menu-content">
         <div class="mobile-nav-links">
-          <a href="/#destinos" class="mobile-link" @click="closeMobileMenu">Destinos</a>
           <a href="/#destinos" class="mobile-link" @click="closeMobileMenu">Experiencias</a>
-          <a href="/#ahorra" class="mobile-link" @click="closeMobileMenu">Nosotros</a>
+          <a href="/#ahorra" class="mobile-link" @click="closeMobileMenu">Fondo viajero</a>
           <a href="/#contacto" class="mobile-link" @click="closeMobileMenu">Contacto</a>
         </div>
-
         <div class="mobile-controls">
-          <RouterLink v-if="isClientLoggedIn" to="/portal-clientes" class="mobile-btn btn-portal-mobile" @click="closeMobileMenu">
-            <i class="fas fa-th-large" aria-hidden="true"></i>
-            Mi Portal
-          </RouterLink>
-          <RouterLink v-else to="/login-clientes" class="mobile-btn btn-portal-mobile" @click="closeMobileMenu">
-            <i class="fas fa-user" aria-hidden="true"></i>
-            Usuarios
-          </RouterLink>
-          <button v-if="isClientLoggedIn" class="mobile-btn logout-btn" @click="handleMobileLogoutClient">
+          <button
+            type="button"
+            class="mobile-btn btn-premium-mobile"
+            :aria-expanded="premiumMobileOpen"
+            @click="togglePremiumMobile"
+          >
+            <i class="fas fa-crown" aria-hidden="true"></i> Ingreso Premium
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div v-if="premiumMobileOpen" class="premium-mobile-options">
+            <RouterLink
+              :to="isClientLoggedIn ? '/portal-clientes' : '/login-clientes'"
+              class="premium-mobile-option"
+              @click="closeMobileMenu"
+            >
+              <i class="fas fa-user" aria-hidden="true"></i>
+              {{ isClientLoggedIn ? 'Mi Portal' : 'Usuarios' }}
+            </RouterLink>
+            <RouterLink
+              :to="isAdmin ? '/admin/products' : '/login'"
+              class="premium-mobile-option"
+              @click="closeMobileMenu"
+            >
+              <i class="fas fa-user-shield" aria-hidden="true"></i>
+              {{ isAdmin ? 'Panel admin' : 'Admins' }}
+            </RouterLink>
+          </div>
+          <button
+            v-if="isClientLoggedIn"
+            class="mobile-btn logout-btn"
+            @click="handleMobileLogoutClient"
+          >
             Cerrar sesión clientes
           </button>
-          <RouterLink class="mobile-btn btn-login-mobile" :to="isAdmin ? '/admin/products' : '/login'" @click="closeMobileMenu">
-            <i class="fas fa-user-shield" aria-hidden="true"></i>
-            {{ isAdmin ? 'Mi cuenta' : 'Ingreso admins' }}
-          </RouterLink>
           <div v-if="isLoggedIn && isAdmin" class="mobile-user-greeting">
             <span>Hola, {{ username }}</span>
           </div>
-          <RouterLink v-if="isLoggedIn && isAdmin" class="mobile-btn btn-login-mobile" to="/admin/products" @click="closeMobileMenu">
-            <i class="fas fa-user-shield" aria-hidden="true"></i>
-            Mi cuenta
-          </RouterLink>
-          <button v-if="isLoggedIn && isAdmin" class="mobile-btn logout-btn" @click="handleMobileLogoutAdmin">
+          <button
+            v-if="isLoggedIn && isAdmin"
+            class="mobile-btn logout-btn"
+            @click="handleMobileLogoutAdmin"
+          >
             Cerrar sesión admin
           </button>
         </div>
       </div>
     </div>
   </header>
-
-  <RouterView />
-  <SocialFloating v-if="!hideGlobalSections" />
-  <ContactSection v-if="!hideGlobalSections" />
-  <AppFooter v-if="!hideGlobalSections" />
-
+  <RouterView /> <SocialFloating v-if="!hideGlobalSections" />
+  <ContactSection v-if="!hideGlobalSections" /> <AppFooter v-if="!hideGlobalSections" />
 </template>
 
 <script setup lang="ts">
@@ -102,18 +152,25 @@ const mobileServicesOpen = ref(false)
 const isLoggedIn = ref(false)
 const isAdmin = ref(false)
 const isClientLoggedIn = ref(false)
+const premiumOpen = ref(false)
+const premiumMobileOpen = ref(false)
+const premiumMenuRef = ref<HTMLElement | null>(null)
 
 const currentRoute = useRoute()
-const showUtilityBar = computed(() => !currentRoute.path.startsWith('/admin') && !currentRoute.path.startsWith('/portal-clientes'))
+const showUtilityBar = computed(
+  () =>
+    !currentRoute.path.startsWith('/admin') && !currentRoute.path.startsWith('/portal-clientes'),
+)
 const hideGlobalSections = computed(
   () =>
     !showUtilityBar.value ||
     currentRoute.path === '/login-clientes' ||
     currentRoute.path === '/login',
 )
-const isLoginPage = computed(() => currentRoute.path === '/login-clientes' || currentRoute.path === '/login')
+const isLoginPage = computed(
+  () => currentRoute.path === '/login-clientes' || currentRoute.path === '/login',
+)
 const isNosotros = computed(() => currentRoute.path === '/nosotros')
-
 const isCurrentRoute = (path: string): boolean => currentRoute.path === path
 
 const toggleMobileMenu = () => {
@@ -123,6 +180,35 @@ const toggleMobileMenu = () => {
 const closeMobileMenu = () => {
   isMobileMenuOpen.value = false
   mobileServicesOpen.value = false
+  premiumMobileOpen.value = false
+}
+
+const togglePremiumMenu = () => {
+  premiumOpen.value = !premiumOpen.value
+}
+
+const closePremiumMenu = () => {
+  premiumOpen.value = false
+}
+
+const togglePremiumMobile = () => {
+  premiumMobileOpen.value = !premiumMobileOpen.value
+}
+
+const handlePremiumOutside = (event: MouseEvent) => {
+  if (
+    premiumOpen.value &&
+    premiumMenuRef.value &&
+    !premiumMenuRef.value.contains(event.target as Node)
+  ) {
+    premiumOpen.value = false
+  }
+}
+
+const handlePremiumKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    premiumOpen.value = false
+  }
 }
 
 const handleServiceClick = () => {
@@ -189,15 +275,21 @@ const handleMobileLogoutClient = () => {
 
 onMounted(() => {
   checkAuthStatus()
-  window.addEventListener('scroll', handleScroll)
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  document.addEventListener('mousedown', handlePremiumOutside)
+  document.addEventListener('keydown', handlePremiumKeydown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
+  document.removeEventListener('mousedown', handlePremiumOutside)
+  document.removeEventListener('keydown', handlePremiumKeydown)
 })
 
 watch(currentRoute, () => {
   checkAuthStatus()
+  closePremiumMenu()
+  premiumMobileOpen.value = false
 })
 
 const handleScroll = () => {
@@ -205,7 +297,7 @@ const handleScroll = () => {
 }
 
 defineOptions({
-  name: 'App'
+  name: 'App',
 })
 </script>
 
@@ -217,16 +309,29 @@ defineOptions({
   right: 0;
   z-index: 9999;
   background: transparent;
-  color: #4A4A4A;
+  color: #4a4a4a;
   font-family: 'Be Vietnam Pro', sans-serif;
   box-shadow: none;
-  transition: background 0.35s ease, box-shadow 0.35s ease;
+  transition:
+    background 0.35s ease,
+    box-shadow 0.35s ease,
+    backdrop-filter 0.35s ease;
 }
 
+/* Recuadro en scroll: liquid glass con amarillo primario #f0c009 */
+
 .site-header.scrolled {
-  background: #adbcd3;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  color: #1a2a4a;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 254, 246, 0.9) 0%,
+    rgba(253, 242, 197, 0.86) 45%,
+    rgba(250, 234, 172, 0.82) 100%
+  );
+  backdrop-filter: blur(24px) saturate(185%);
+  -webkit-backdrop-filter: blur(24px) saturate(185%);
+  border-bottom: none;
+  box-shadow: 0 10px 34px rgba(29, 63, 124, 0.16);
+  color: #0a2460;
 }
 
 .header-main {
@@ -241,7 +346,8 @@ defineOptions({
 }
 
 .site-header.scrolled .header-main {
-  background-color: rgb(22, 194, 202);
+  background: transparent;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .brand-container {
@@ -272,40 +378,41 @@ defineOptions({
   display: block;
   width: 2px;
   height: 40px;
-  background: #C89B2D;
+  background: #c89b2d;
   border-radius: 1px;
 }
 
 .brand-text-main {
   font-size: 18px;
   font-weight: 800;
-  color: #4A4A4A;
+  color: #4a4a4a;
   letter-spacing: 1px;
   transition: color 0.35s ease;
 }
 
 .site-header.scrolled .brand-text-main {
-  color: #1a2a4a;
+  color: #0a2460;
 }
 
 .brand-text-sub {
   font-size: 11px;
   font-weight: 600;
-  color: #9A9A9A;
+  color: #9a9a9a;
   letter-spacing: 2px;
   transition: color 0.35s ease;
 }
 
 .site-header.scrolled .brand-text-sub {
-  color: #3a4a6a;
+  color: #2f5ba7;
 }
 
 /* Navigation Menu */
+
 .nav-menu {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
+  margin-left: auto;
 }
 
 .nav-link {
@@ -313,7 +420,7 @@ defineOptions({
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  color: #4A4A4A;
+  color: #4a4a4a;
   text-decoration: none;
   font-size: 15px;
   font-weight: 500;
@@ -324,17 +431,19 @@ defineOptions({
 }
 
 .site-header.scrolled .nav-link {
-  color: #1a2a4a;
+  color: #0a2460;
 }
 
 .site-header.scrolled .nav-link:hover,
+
 .site-header.scrolled .nav-link.active {
   color: #203ec9;
 }
 
 .nav-link:hover,
+
 .nav-link.active {
-  color: #C89B2D;
+  color: #c89b2d;
 }
 
 .nav-link i {
@@ -343,6 +452,7 @@ defineOptions({
 }
 
 /* Dropdown */
+
 .nav-dropdown {
   position: relative;
 }
@@ -352,10 +462,10 @@ defineOptions({
   top: 100%;
   left: 0;
   min-width: 260px;
-  background: #FFFFFF;
+  background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: 1px solid #F0F0F0;
+  border: 1px solid #f0f0f0;
   padding: 8px;
   z-index: 100;
   opacity: 0;
@@ -375,7 +485,7 @@ defineOptions({
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  color: #4A4A4A;
+  color: #4a4a4a;
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -385,14 +495,14 @@ defineOptions({
 
 .dropdown-item i {
   font-size: 14px;
-  color: #C89B2D;
+  color: #c89b2d;
   width: 20px;
   text-align: center;
 }
 
 .dropdown-item:hover {
   background: rgba(200, 155, 45, 0.08);
-  color: #C89B2D;
+  color: #c89b2d;
 }
 
 .dropdown-arrow {
@@ -406,6 +516,7 @@ defineOptions({
 }
 
 /* Mobile Dropdown */
+
 .mobile-dropdown {
   width: 100%;
 }
@@ -438,7 +549,7 @@ defineOptions({
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  color: #4A4A4A;
+  color: #4a4a4a;
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -448,21 +559,26 @@ defineOptions({
 
 .mobile-dropdown-item i {
   font-size: 14px;
-  color: #C89B2D;
+  color: #c89b2d;
   width: 20px;
   text-align: center;
 }
 
 .mobile-dropdown-item:hover {
   background: rgba(200, 155, 45, 0.08);
-  color: #C89B2D;
+  color: #c89b2d;
 }
 
 /* CTA Buttons */
+
 .nav-actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  margin-left: 0;
+}
+
+.site-header.login .nav-actions {
   margin-left: auto;
 }
 
@@ -471,8 +587,8 @@ defineOptions({
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #4A4A4A;
-  color: #FFFFFF;
+  background: #4a4a4a;
+  color: #ffffff;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
@@ -483,7 +599,7 @@ defineOptions({
 }
 
 .btn-portal:hover {
-  background: #3A3A3A;
+  background: #3a3a3a;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(74, 74, 74, 0.3);
 }
@@ -493,8 +609,8 @@ defineOptions({
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: #C89B2D;
-  color: #FFFFFF;
+  background: #c89b2d;
+  color: #ffffff;
   text-decoration: none;
   font-size: 14px;
   font-weight: 600;
@@ -506,7 +622,7 @@ defineOptions({
 }
 
 .btn-login:hover {
-  background: #B8891F;
+  background: #b8891f;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(200, 155, 45, 0.3);
 }
@@ -521,7 +637,7 @@ defineOptions({
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: #c09d29;
+  background: #203ec9;
   color: #f8f7f7;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -531,9 +647,9 @@ defineOptions({
 }
 
 .btn-logout-sm:hover {
-  background: #DC2626;
-  color: #FFF;
-  border-color: #DC2626;
+  background: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
 }
 
 /* Mobile Controls */
@@ -557,13 +673,13 @@ defineOptions({
   display: block;
   height: 2px;
   width: 100%;
-  background-color: #4A4A4A;
+  background-color: #4a4a4a;
   border-radius: 2px;
   transition: all 0.3s ease;
 }
 
 .site-header.scrolled .hamburger-menu span {
-  background-color: #1a2a4a;
+  background-color: #0a2460;
 }
 
 .hamburger-menu.active span:nth-child(1) {
@@ -579,6 +695,7 @@ defineOptions({
 }
 
 /* Mobile Menu */
+
 .mobile-menu {
   display: none;
   position: fixed;
@@ -625,6 +742,7 @@ defineOptions({
 }
 
 .mobile-link.active,
+
 .mobile-link:hover {
   color: #203ec9;
   border-color: rgba(32, 62, 201, 0.3);
@@ -650,7 +768,7 @@ defineOptions({
   border: none;
   cursor: pointer;
   width: 100%;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .btn-portal-mobile {
@@ -658,13 +776,13 @@ defineOptions({
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #4A4A4A;
-  color: #FFFFFF;
+  background: #4a4a4a;
+  color: #ffffff;
   border: none;
 }
 
 .btn-portal-mobile:hover {
-  background: #3A3A3A;
+  background: #3a3a3a;
 }
 
 .btn-login-mobile {
@@ -678,7 +796,7 @@ defineOptions({
 }
 
 .btn-login-mobile:hover {
-  background: #B8891F;
+  background: #b8891f;
 }
 
 .logout-btn {
@@ -692,6 +810,59 @@ defineOptions({
   color: #203ec9;
 }
 
+/* Ingreso Premium (menú móvil) */
+
+.btn-premium-mobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgb(245, 74, 22);
+  color: #ffffff;
+}
+
+.btn-premium-mobile:hover {
+  background: #db3f10;
+}
+
+.btn-premium-mobile .fa-chevron-down {
+  font-size: 10px;
+  transition: transform 0.2s ease;
+}
+
+.btn-premium-mobile[aria-expanded='true'] .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+.premium-mobile-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.premium-mobile-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(26, 42, 74, 0.25);
+  background: #ffffff;
+  color: #1a2a4a;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  transition: all 0.25s ease;
+}
+
+.premium-mobile-option:hover {
+  border-color: rgb(245, 74, 22);
+  color: rgb(245, 74, 22);
+}
+
 .mobile-user-greeting {
   color: #1a2a4a;
   text-align: center;
@@ -700,25 +871,23 @@ defineOptions({
   font-size: 15px;
   background: transparent;
   border-radius: 10px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 /* Responsive */
+
 @media (max-width: 768px) {
   .header-main {
     height: 72px;
     padding: 12px 16px;
   }
-
   .desktop-only {
     display: none;
   }
-
   .hamburger-menu {
     display: flex;
     margin-left: auto;
   }
-
   .mobile-menu {
     display: block;
     top: 72px;
@@ -730,16 +899,13 @@ defineOptions({
   .brand-logo-img {
     height: 52px;
   }
-
   .brand-text-main {
     font-size: 15px;
   }
-
   .brand-text-sub {
     font-size: 9px;
     letter-spacing: 1.5px;
   }
-
   .mobile-menu {
     top: 72px;
     height: calc(100vh - 72px);
@@ -747,6 +913,7 @@ defineOptions({
 }
 
 /* Header principal de Viaja Ya sobre el hero */
+
 .site-header:not(.scrolled) {
   color: #ffffff;
 }
@@ -761,10 +928,10 @@ defineOptions({
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .site-header:not(.scrolled) .nav-link:hover,
+
 .site-header:not(.scrolled) .nav-link.active {
   color: #f0c009;
 }
@@ -773,7 +940,6 @@ defineOptions({
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .auth-link {
@@ -790,7 +956,10 @@ defineOptions({
   letter-spacing: 0.04em;
   text-decoration: none;
   text-transform: uppercase;
-  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
 }
 
 .auth-link:hover {
@@ -808,6 +977,94 @@ defineOptions({
 .auth-link--admin:hover {
   background: #ffd83f;
   color: #10215f;
+}
+
+/* Ingreso Premium (botón único) */
+
+.premium-menu {
+  position: relative;
+}
+
+.premium-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 16px;
+  background: rgb(245, 74, 22);
+  border: none;
+  border-radius: 20px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.premium-btn:hover {
+  background: #db3f10;
+  box-shadow: 0 4px 14px rgba(245, 74, 22, 0.35);
+}
+
+.premium-btn .fa-chevron-down {
+  font-size: 9px;
+  transition: transform 0.2s ease;
+}
+
+.premium-btn[aria-expanded='true'] .fa-chevron-down {
+  transform: rotate(180deg);
+}
+
+.premium-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #ffffff;
+  border: 1px solid rgba(7, 21, 34, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 14px 34px rgba(7, 21, 34, 0.18);
+  z-index: 1200;
+}
+
+.premium-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #071522;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+.premium-option i {
+  width: 16px;
+  text-align: center;
+  color: rgb(245, 74, 22);
+}
+
+.premium-option:hover {
+  background: rgba(245, 74, 22, 0.1);
+  color: rgb(245, 74, 22);
 }
 
 .site-header.scrolled .auth-link--user {
@@ -841,6 +1098,7 @@ defineOptions({
 }
 
 /* Header principal de Viaja Ya */
+
 .site-header:not(.scrolled) {
   background: transparent;
   color: #fff;
@@ -867,12 +1125,13 @@ defineOptions({
 .site-header:not(.scrolled) .nav-link {
   padding: 8px 14px;
   color: rgba(255, 255, 255, 0.82);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.06em;
 }
 
 .site-header:not(.scrolled) .nav-link:hover,
+
 .site-header:not(.scrolled) .nav-link.active {
   color: #f0c009;
 }
@@ -924,12 +1183,10 @@ defineOptions({
   .site-header:not(.scrolled) .header-main {
     padding: 0 24px;
   }
-
   .site-header:not(.scrolled) .nav-link {
     padding-inline: 8px;
     font-size: 10px;
   }
-
   .site-header:not(.scrolled) .auth-link {
     padding-inline: 8px;
     font-size: 9px;

@@ -12,7 +12,7 @@
             />
           </div>
           <p class="footer__brand-desc">
-            Hacemos realidad tu viaje a través del ahorro programado.
+            Hacemos realidad tu sueño de viajar
           </p>
         </div>
 
@@ -98,9 +98,9 @@ const currentYear = new Date().getFullYear()
 /* ── Brand ── */
 .footer__brand {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 20px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
 }
 
 .footer__brand-desc {

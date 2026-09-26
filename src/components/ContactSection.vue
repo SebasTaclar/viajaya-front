@@ -4,23 +4,18 @@
       <div class="contact-main">
         <!-- Left Side -->
         <div class="contact-left">
-          <div class="attention-badge">
-            <span class="badge-dot"></span>
-            <span>CONTÁCTANOS</span>
-          </div>
+
 
           <h2 class="contact-title">
-            ¿Tienes dudas o quieres un plan a tu medida?
+            Encuentra el plan perfecto para tus próximas vacaciones.
           </h2>
 
           <h3 class="contact-highlight">
-            <span class="highlight-text">Hablemos!!!</span>
+            <span class="highlight-text">¡Hablémos!</span>
           </h3>
 
           <p class="contact-desc">
-            Olvidate de formularios largos o esperas por correo. Chatea
-            directamente con uno de nuestros asesores de viaje y arma tu
-            fondo de ahorro personalizado en minutos.
+            Con nosotros tienes:
           </p>
 
           <ul class="benefits-list">
@@ -31,7 +26,12 @@
 
             <li>
               <span class="check-icon">✔</span>
-              Asesoría 100% para planear tus aportes
+              Asesoría total para planear tus viajes.
+            </li>
+
+            <li>
+              <span class="check-icon">✔</span>
+              Modelo de viajes único, a tu ritmo.
             </li>
           </ul>
 
@@ -44,10 +44,7 @@
               <i class="fab fa-whatsapp"></i>
               Chatear por WhatsApp
             </a>
-            <div class="cta-info">
-              <span class="agents-online">🟡 Asesores conectados</span>
-              <span class="availability">Atención personalizada</span>
-            </div>
+
           </div>
         </div>
 
@@ -70,15 +67,7 @@
 
             <!-- Chat Messages -->
             <div class="chat-body">
-              <div class="chat-message">
-                <div class="message-header">
-                  <span class="team-name">Equipo Viaja Ya ✈️</span>
-                </div>
-                <div class="message-bubble">
-                  ¡Hola! 👋 ¿En qué te podemos ayudar? Cuéntanos qué tienes en mente y te asesoramos con todo gusto.
-                </div>
-                <span class="message-time">10:42 a.m.</span>
-              </div>
+
 
               <!-- Temas Frecuentes -->
               <div class="frequent-topics">
@@ -100,11 +89,8 @@
 
             <!-- Chat Footer -->
             <div class="chat-footer">
-              <span class="footer-left">
-                <span class="lightning">⚡</span>
-                Te esperamos
-              </span>
-              <span class="footer-right">Un viaje un recuerdo inolvidable</span>
+
+              <span class="footer-right">Tenemos viajes inolvidables para ti</span>
             </div>
           </div>
         </div>
@@ -132,7 +118,7 @@ defineOptions({
   width: min(92%, 1180px);
   height: 1px;
   margin: 0 auto;
-  background: linear-gradient(90deg, transparent, #ec2525, transparent);
+  background: linear-gradient(90deg, transparent, #ffffff, transparent);
   content: '';
   position: absolute;
   top: 0;
@@ -190,11 +176,11 @@ defineOptions({
 
 .contact-title {
   margin: 0;
-  font-size: clamp(32px, 4vw, 44px);
-  font-weight: 800;
+  font-size: 50px;
+  font-weight: bold;
   color: #ffffff;
   line-height: 1.2;
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
   font-style: italic;
 }
 
@@ -205,7 +191,7 @@ defineOptions({
   font-size: clamp(36px, 4.5vw, 52px);
   font-weight: 800;
   line-height: 1.1;
-  font-family: 'Be Vietnam Pro', sans-serif;
+  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
   font-style: italic;
 }
 
@@ -456,7 +442,7 @@ defineOptions({
 .chat-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 14px 20px;
   background: #f8f9fa;
   border-top: 1px solid #e9ecef;
@@ -497,8 +483,13 @@ defineOptions({
     padding: 48px 0;
   }
 
+  .highlight-text {
+    text-align: center;
+  }
+
   .contact-title {
     font-size: clamp(26px, 6vw, 36px);
+    text-align: center;
   }
 
   .contact-highlight {
@@ -582,7 +573,7 @@ defineOptions({
   }
 
   .contact-title {
-    font-size: clamp(22px, 7vw, 30px);
+    font-size: 36px;
   }
 
   .contact-highlight {

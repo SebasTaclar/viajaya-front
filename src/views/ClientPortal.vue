@@ -49,25 +49,31 @@
           <line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
       </button>
-      <button class="mobile-title" @click="router.push('/')" title="Ir al home">
-        Viaja Ya
+      <img src="/images/Logo.png" alt="Viaja Ya" class="mobile-title" />
+      <button class="mobile-logout-btn" @click="handleLogout">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
       </button>
-      <div class="mobile-header-actions">
-        <button class="mobile-logout-btn" @click="handleLogout">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-        </button>
-      </div>
     </header>
 
     <!-- Mobile overlay -->
     <div v-if="showMobileMenu" class="mobile-overlay" @click="showMobileMenu = false"></div>
     <div class="mobile-sidebar" :class="{ open: showMobileMenu }">
       <div class="mobile-sidebar-header">
-        <img src="/images/Logo.png" alt="Viaja Ya" class="sidebar-logo" />
+        <div class="mobile-sidebar-brand">
+          <button class="mobile-brand-btn" @click="goToHome" aria-label="Ir al banner principal">
+            <img src="/images/Logo.png" alt="Viaja Ya" class="mobile-sidebar-logo" />
+          </button>
+          <button class="mobile-home-btn" @click="goToHome" aria-label="Ir al banner principal">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </button>
+        </div>
         <button class="mobile-close-btn" @click="showMobileMenu = false">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
@@ -93,24 +99,13 @@
     <main class="main-content">
       <!-- Top header bar -->
       <div class="top-header">
-        <div class="top-header-left">
-          <button
-            class="home-back-btn"
-            @click="router.push('/')"
-            title="Ir al home principal"
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
-            Home
-          </button>
-        </div>
+        <div></div>
         <div class="top-header-right">
           <div class="top-user-info">
             <span class="top-hola">Hola, {{ displayName }}</span>
           </div>
           <div class="top-avatar">{{ clientInitials }}</div>
+
         </div>
       </div>
 
@@ -636,14 +631,10 @@
 
           <div class="profile-card">
             <div class="profile-header">
-              <div class="profile-avatar">{{ clientInitials || 'CA' }}</div>
+              <div class="profile-avatar">{{ clientInitials }}</div>
               <div class="profile-header-info">
-                <h3>{{ displayName || mockHome.name }}</h3>
-                <span class="profile-role">{{ currentUser?.role === 'user' ? 'Viajero' : (currentUser?.role || 'Viajero') }}</span>
-              </div>
-              <div class="profile-member">
-                <span class="profile-member-label">Miembro desde</span>
-                <span class="profile-member-value">Mar 2024</span>
+                <h3>{{ displayName }}</h3>
+                <span class="profile-role">{{ currentUser?.role === 'user' ? 'Viajero' : currentUser?.role }}</span>
               </div>
             </div>
           </div>
@@ -676,14 +667,6 @@
                   <span class="profile-label">Correo</span>
                   <span class="profile-value">{{ clientData?.correo || mockHome.email }}</span>
                 </div>
-                <div class="profile-row">
-                  <span class="profile-label">Fecha de nacimiento</span>
-                  <span class="profile-value">12 Jun 1988</span>
-                </div>
-                <div class="profile-row">
-                  <span class="profile-label">Pasaporte</span>
-                  <span class="profile-value">AB123456</span>
-                </div>
               </div>
             </div>
 
@@ -701,18 +684,6 @@
                 <div class="profile-row">
                   <span class="profile-label">Rol</span>
                   <span class="profile-value">Viajero</span>
-                </div>
-                <div class="profile-row">
-                  <span class="profile-label">Usuario</span>
-                  <span class="profile-value">carlos.andres</span>
-                </div>
-                <div class="profile-row">
-                  <span class="profile-label">Ultimo acceso</span>
-                  <span class="profile-value">Hoy, 08:42 a.m.</span>
-                </div>
-                <div class="profile-row">
-                  <span class="profile-label">Verificacion SMS</span>
-                  <span class="profile-value profile-ok">Activa</span>
                 </div>
               </div>
             </div>
@@ -752,20 +723,12 @@ const clientData = ref<Cliente | null>(null)
 const projects = ref<Proyecto[]>([])
 const documents = ref<DocumentoEntity[]>([])
 const cotizaciones = ref<Cotizacion[]>([])
-const visibleCotizaciones = computed(() => cotizaciones.value.filter(q => q.isVisible !== false))
+const visibleCotizaciones = computed(() => {
+  const list = cotizaciones.value.filter((q) => q.isVisible !== false)
+  return list.length > 0 ? list : mockReservas
+})
 const selectedProject = ref<Proyecto | null>(null)
 const clientUsers = ref<User[]>([])
-
-const saldoData = computed(() => {
-  const aprobadas = cotizaciones.value.filter(q => q.status === 'aprobada')
-  const totalAprobadas = aprobadas.reduce((sum, q) => sum + (q.totalAmount || 0), 0)
-  const totalPagado = totalAprobadas * 0.6
-  return {
-    totalAprobadas,
-    totalPagado,
-    saldoPendiente: totalAprobadas - totalPagado,
-  }
-})
 
 const clientInitials = computed(() => {
   const name = clientData.value?.razonSocial || ''
@@ -862,17 +825,114 @@ const mockHome = {
   ],
 }
 
+const CERT_ICON =
+  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>'
+const REPORT_ICON =
+  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
+
+const mockReservas: Cotizacion[] = [
+  {
+    id: 9001,
+    code: 'COT-1042',
+    clientId: 1,
+    clientName: 'Corporacion Viajera S.A.S.',
+    projectId: 2,
+    project: { id: 2, code: 'PRJ-002', description: 'Europa - Italia y Francia' },
+    status: 'aprobada',
+    totalAmount: 15000000,
+    validUntil: '2026-11-30',
+    createdAt: '2026-08-20',
+    updatedAt: '2026-08-22',
+    services: [
+      { name: 'Vuelos Bogota - Roma', quantity: 2, billingType: 'ONETIME', value: 9200000 },
+      { name: 'Hoteles 4 estrellas', quantity: 13, billingType: 'ONETIME', value: 5800000 },
+    ],
+  },
+  {
+    id: 9002,
+    code: 'COT-1058',
+    clientId: 1,
+    clientName: 'Corporacion Viajera S.A.S.',
+    projectId: 1,
+    project: { id: 1, code: 'PRJ-001', description: 'Cancun All Inclusive - 7 noches' },
+    status: 'enviada',
+    totalAmount: 8500000,
+    validUntil: '2026-10-15',
+    createdAt: '2026-09-01',
+    updatedAt: '2026-09-03',
+    services: [
+      { name: 'Paquete aereo directo', quantity: 2, billingType: 'ONETIME', value: 4600000 },
+      { name: 'Traslado aeropuerto - hotel', quantity: 2, billingType: 'ONETIME', value: 900000 },
+      { name: 'Seguro de viaje', quantity: 2, billingType: 'ONETIME', value: 300000 },
+    ],
+  },
+  {
+    id: 9003,
+    code: 'COT-1063',
+    clientId: 1,
+    clientName: 'Corporacion Viajera S.A.S.',
+    projectId: 3,
+    project: { id: 3, code: 'PRJ-003', description: 'Tour Ciudad de Mexico' },
+    status: 'pendiente',
+    totalAmount: 3200000,
+    validUntil: '2026-10-31',
+    createdAt: '2026-09-18',
+    updatedAt: '2026-09-18',
+    services: [
+      { name: 'Tour centro historico', quantity: 4, billingType: 'ONETIME', value: 1600000 },
+      { name: 'Cena tipica', quantity: 4, billingType: 'ONETIME', value: 640000 },
+    ],
+  },
+]
+
+const mockVuelos = [
+  {
+    id: 9101,
+    name: 'BOG - CUN 15 oct 2026',
+    service: 'Cancun All Inclusive - 7 noches',
+    type: 'Certificado',
+    typeClass: 'certificate',
+    date: '15 oct 2026',
+    icon: CERT_ICON,
+  },
+  {
+    id: 9102,
+    name: 'CUN - BOG 22 oct 2026',
+    service: 'Cancun All Inclusive - 7 noches',
+    type: 'Certificado',
+    typeClass: 'certificate',
+    date: '22 oct 2026',
+    icon: CERT_ICON,
+  },
+  {
+    id: 9103,
+    name: 'BOG - MIA - FCO 01 dic 2026',
+    service: 'Europa - Italia y Francia',
+    type: 'Informe',
+    typeClass: 'report',
+    date: '01 dic 2026',
+    icon: REPORT_ICON,
+  },
+  {
+    id: 9104,
+    name: 'CDG - BOG 14 dic 2026',
+    service: 'Europa - Italia y Francia',
+    type: 'Informe',
+    typeClass: 'report',
+    date: '14 dic 2026',
+    icon: REPORT_ICON,
+  },
+]
+
 const navItems = computed(() => {
   const items = [
     { id: 'inicio', label: 'Inicio', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>', count: 0 },
     { id: 'proyectos', label: 'Mis Viajes', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>', count: projects.value.length },
+    { id: 'cotizaciones', label: 'Reservas', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', count: visibleCotizaciones.value.length },
+    { id: 'certificados', label: 'Vuelos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/></svg>', count: mappedCertificates.value.length },
     { id: 'perfil', label: 'Mi Perfil', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', count: 0 },
   ]
   return items
-})
-
-const recentProjects = computed(() => {
-  return projects.value.slice(0, 5)
 })
 
 function getStatusClass(status: string): string {
@@ -928,7 +988,7 @@ function formatDate(dateStr: string): string {
 }
 
 const mappedCertificates = computed(() => {
-  return documents.value
+  const items = documents.value
     .filter((d) => (d.isVisible !== false) && (d.type === 'certificado' || d.type === 'informe'))
     .map((d) => ({
       id: d.id,
@@ -937,10 +997,9 @@ const mappedCertificates = computed(() => {
       type: d.type === 'certificado' ? 'Certificado' : 'Informe',
       typeClass: d.type === 'certificado' ? 'certificate' : 'report',
       date: new Date(d.createdAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }),
-      icon: d.type === 'certificado'
-        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>'
-        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+      icon: d.type === 'certificado' ? CERT_ICON : REPORT_ICON,
     }))
+  return items.length > 0 ? items : mockVuelos
 })
 
 function getProjectName(projectId: number): string {
@@ -1034,6 +1093,11 @@ function handleLogout() {
   }
 }
 
+function goToHome() {
+  showMobileMenu.value = false
+  router.push('/')
+}
+
 function getUserInitials(name: string | undefined): string {
   if (!name) return '?'
   const parts = name.split(' ')
@@ -1071,7 +1135,7 @@ async function reloadData() {
 .portal-app {
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(160deg, #0B1B33 0%, #122845 45%, #0E3570 100%);
+  background: #102857;
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   color: #1A1A1A;
 }
@@ -1281,25 +1345,10 @@ async function reloadData() {
 }
 
 .mobile-title {
-  font-size: 16px;
-  font-weight: 700;
-  background: none;
-  border: none;
-  color: #FFF;
-  cursor: pointer;
-  font-family: inherit;
-  padding: 4px 8px;
-  border-radius: 8px;
-}
-
-.mobile-title:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.mobile-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .mobile-overlay {
@@ -1316,14 +1365,12 @@ async function reloadData() {
   top: 0;
   left: 0;
   bottom: 0;
-  width: min(280px, 85vw);
+  width: 280px;
   background: #0E3570;
   z-index: 300;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
   flex-direction: column;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
 .mobile-sidebar.open {
@@ -1336,6 +1383,37 @@ async function reloadData() {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.mobile-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobile-brand-btn,
+.mobile-home-btn {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: #FFF;
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.mobile-brand-btn:hover,
+.mobile-home-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.mobile-sidebar-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
 }
 
 .mobile-close-btn {
@@ -1389,34 +1467,6 @@ async function reloadData() {
   align-items: center;
   justify-content: space-between;
   padding: 16px 0 20px;
-}
-
-.top-header-left {
-  display: flex;
-  align-items: center;
-}
-
-.home-back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 18px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  color: #FFF;
-  border-radius: 24px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-  backdrop-filter: blur(8px);
-}
-
-.home-back-btn:hover {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-1px);
 }
 
 .top-header-right {
@@ -1584,21 +1634,6 @@ async function reloadData() {
   display: none;
 }
 
-.greeting-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(22, 194, 202, 0.12);
-  border: 1px solid rgba(22, 194, 202, 0.3);
-  color: #16C2CA;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 20px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 /* ===== WELCOME INFO CARD ===== */
 .welcome-info-card {
   background: rgba(255,255,255,0.1);
@@ -1672,20 +1707,14 @@ async function reloadData() {
 }
 
 .stat-card {
-  background: rgba(255,255,255,0.08);
-  border-radius: 16px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 14px;
   padding: 20px;
   display: flex;
   align-items: center;
   gap: 14px;
-  border: 1px solid rgba(255,255,255,0.1);
-  backdrop-filter: blur(12px);
-  transition: transform 0.2s, background 0.2s;
-}
-
-.stat-card:hover {
-  background: rgba(255,255,255,0.12);
-  transform: translateY(-2px);
+  border: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
 }
 
 .stat-icon {
@@ -1718,7 +1747,7 @@ async function reloadData() {
 }
 
 .stat-card.orange { cursor: pointer; transition: all 0.2s; }
-.stat-card.orange:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+.stat-card.orange:hover { background: rgba(255,255,255,0.15); transform: translateY(-1px); }
 
 /* ===== INFO GRID ===== */
 .info-grid {
@@ -1728,11 +1757,10 @@ async function reloadData() {
 }
 
 .info-card {
-  background: #FFF;
-  border-radius: 16px;
+  background: #EFF4FB;
+  border-radius: 14px;
   padding: 24px;
   border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .info-card h3 {
@@ -1785,15 +1813,6 @@ async function reloadData() {
   gap: 12px;
 }
 
-.activity-amount {
-  margin-left: auto;
-  font-size: 12px;
-  font-weight: 700;
-  color: #1A1A1A;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 .activity-dot {
   width: 8px;
   height: 8px;
@@ -1833,7 +1852,7 @@ async function reloadData() {
 }
 
 .project-row {
-  background: #FFF;
+  background: #EFF4FB;
   border-radius: 14px;
   display: flex;
   align-items: stretch;
@@ -1943,7 +1962,34 @@ async function reloadData() {
   color: #CCC;
 }
 
+/* ===== GREETING BADGE ===== */
+
+.greeting-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(22, 194, 202, 0.12);
+  border: 1px solid rgba(22, 194, 202, 0.3);
+  color: #16c2ca;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.activity-amount {
+  margin-left: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a1a1a;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ===== INSTALLMENT TRIPS ===== */
+
 .installment-row {
   cursor: default;
 }
@@ -1958,7 +2004,7 @@ async function reloadData() {
   gap: 12px;
   margin-bottom: 14px;
   padding: 12px 14px;
-  background: #F8FAFC;
+  background: #f8fafc;
   border-radius: 10px;
 }
 
@@ -1971,7 +2017,7 @@ async function reloadData() {
 .installment-stat-label {
   font-size: 11px;
   font-weight: 600;
-  color: #94A3B8;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -1979,15 +2025,15 @@ async function reloadData() {
 .installment-stat-value {
   font-size: 14px;
   font-weight: 700;
-  color: #1A1A1A;
+  color: #1a1a1a;
 }
 
 .installment-stat-value.paid {
-  color: #10B981;
+  color: #10b981;
 }
 
 .installment-stat-value.pending {
-  color: #F59E0B;
+  color: #f59e0b;
 }
 
 .cuotas-row {
@@ -2001,19 +2047,19 @@ async function reloadData() {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #E5E7EB;
-  border: 2px solid #E5E7EB;
+  background: #e5e7eb;
+  border: 2px solid #e5e7eb;
   transition: all 0.2s;
 }
 
 .cuota-dot.paid {
-  background: #16C2CA;
-  border-color: #16C2CA;
+  background: #16c2ca;
+  border-color: #16c2ca;
 }
 
 .cuota-dot.next {
-  background: #FFF;
-  border-color: #16C2CA;
+  background: #fff;
+  border-color: #16c2ca;
   box-shadow: 0 0 0 3px rgba(22, 194, 202, 0.2);
 }
 
@@ -2024,7 +2070,7 @@ async function reloadData() {
   margin-top: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: #16C2CA;
+  color: #16c2ca;
   background: rgba(22, 194, 202, 0.08);
   padding: 6px 12px;
   border-radius: 8px;
@@ -2079,7 +2125,7 @@ async function reloadData() {
 }
 
 .detail-card {
-  background: #FFF;
+  background: #EFF4FB;
   border-radius: 14px;
   padding: 24px;
   border: none;
@@ -2182,7 +2228,7 @@ async function reloadData() {
 }
 
 .quote-row {
-  background: #FFF;
+  background: #EFF4FB;
   border-radius: 14px;
   display: flex;
   align-items: stretch;
@@ -2258,7 +2304,7 @@ async function reloadData() {
 }
 
 .cert-card-new {
-  background: #FFF;
+  background: #EFF4FB;
   border-radius: 14px;
   overflow: hidden;
   border: none;
@@ -2359,7 +2405,7 @@ async function reloadData() {
 }
 
 .doc-card-new {
-  background: #FFF;
+  background: #EFF4FB;
   border-radius: 12px;
   padding: 16px 20px;
   display: flex;
@@ -2460,7 +2506,6 @@ async function reloadData() {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .info-grid { grid-template-columns: 1fr; }
   .detail-grid { grid-template-columns: 1fr; }
-  .main-content { padding-left: 20px; padding-right: 20px; }
 }
 
 .recursos-grid {
@@ -2470,7 +2515,7 @@ async function reloadData() {
 }
 
 .recurso-card {
-  background: #FFF;
+  background: #EFF4FB;
   border-radius: 12px;
   padding: 16px 20px;
   display: flex;
@@ -2532,193 +2577,27 @@ async function reloadData() {
   .mobile-header { display: flex; }
   .mobile-overlay { display: block; }
   .mobile-sidebar { display: flex; }
-  .main-content { margin-left: 0; padding: 72px 14px 32px; }
-  .top-header { padding: 12px 0 16px; }
-  .top-hola { font-size: 13px; }
-  .top-avatar { width: 36px; height: 36px; font-size: 13px; }
-  .greeting-card { flex-direction: column; text-align: left; padding: 0 0 16px; gap: 12px; align-items: flex-start; }
-  .greeting-text h1 { font-size: 20px; }
-  .greeting-text p { font-size: 13px; }
-  .greeting-badge { font-size: 11px; padding: 6px 12px; white-space: normal; }
+  .main-content { margin-left: 0; padding: 72px 16px 24px; }
+  .greeting-card { flex-direction: column; text-align: center; padding: 0 0 20px; }
   .greeting-decoration { display: none; }
   .welcome-info-card { padding: 32px 20px; margin: 24px auto; }
-  .section-head h2 { font-size: 18px; }
-  .section-head p { font-size: 12px; }
-  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-card { padding: 14px; gap: 10px; border-radius: 14px; }
-  .stat-icon { width: 40px; height: 40px; border-radius: 10px; }
-  .stat-icon svg { width: 20px; height: 20px; }
-  .stat-number { font-size: 20px; }
-  .stat-text { font-size: 11px; }
-  .saldo-banner { flex-direction: column; align-items: stretch; padding: 18px 16px; gap: 14px; }
-  .saldo-amount { font-size: 24px; }
-  .saldo-right { justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .saldo-detail { align-items: flex-start; }
-  .saldo-btn { flex: 1; min-width: 120px; text-align: center; }
-  .info-grid { grid-template-columns: 1fr; gap: 12px; }
-  .info-card { padding: 18px 16px; }
-  .info-row { flex-direction: column; align-items: flex-start; gap: 2px; }
-  .info-value { text-align: left; max-width: 100%; white-space: normal; }
-  .activity-item { gap: 10px; }
-  .activity-amount { font-size: 11px; }
-  .project-body { padding: 16px 14px; }
-  .project-top { flex-direction: column; align-items: flex-start; gap: 8px; }
   .project-details { flex-direction: column; gap: 6px; }
-  .project-arrow { display: none; }
-  .installment-summary { grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px 12px; }
-  .installment-stat-value { font-size: 13px; }
-  .cuotas-row { gap: 5px; }
-  .cuota-dot { width: 20px; height: 20px; }
-  .next-payment { font-size: 11px; }
-  .detail-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  .detail-header h2 { font-size: 18px; }
-  .detail-card { padding: 18px 16px; }
-  .detail-row { flex-direction: column; align-items: flex-start; gap: 2px; }
-  .detail-row strong { text-align: left; }
   .cert-grid { grid-template-columns: 1fr; }
-  .quotes-list { gap: 10px; }
-  .quote-body { padding: 16px 14px; }
-  .quote-top { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .quote-details { flex-direction: column; gap: 6px; }
-  .docs-grid { grid-template-columns: 1fr; }
-  .doc-card-new { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
-  .doc-card-badge { margin-left: auto; }
-  .recurso-card { flex-wrap: wrap; gap: 10px; padding: 14px 16px; }
-  .users-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .users-table { min-width: 480px; }
-  .profile-card { padding: 22px 16px; margin-bottom: 12px; }
-  .profile-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-  }
-  .profile-avatar {
-    width: 72px;
-    height: 72px;
-    font-size: 26px;
-    box-shadow: 0 4px 16px rgba(14, 53, 112, 0.25);
-  }
-  .profile-header-info { width: 100%; }
-  .profile-header-info h3 {
-    font-size: 17px;
-    margin-bottom: 2px;
-    word-break: break-word;
-  }
-  .profile-role {
-    display: inline-block;
-    background: rgba(22, 194, 202, 0.1);
-    color: #0E9BA1;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 3px 12px;
-    border-radius: 12px;
-  }
-  .profile-member {
-    margin-left: 0;
-    align-items: center;
-    width: 100%;
-    padding-top: 12px;
-    margin-top: 4px;
-    border-top: 1px solid #F0F0F0;
-    flex-direction: row;
-    justify-content: center;
-    gap: 8px;
-  }
-  .profile-member-label { font-size: 10px; }
-  .profile-member-value { font-size: 13px; }
-  .profile-grid { grid-template-columns: 1fr; gap: 12px; }
-  .profile-section { padding: 18px 16px; border-radius: 14px; }
-  .profile-section h4 {
-    font-size: 12px;
-    margin-bottom: 14px;
-    padding-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .profile-section h4::before {
-    content: '';
-    width: 3px;
-    height: 14px;
-    background: #16C2CA;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-  .profile-rows { gap: 0; }
-  .profile-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
-    padding: 11px 0;
-    border-bottom: 1px solid #F5F5F5;
-  }
-  .profile-row:last-child { border-bottom: none; padding-bottom: 0; }
-  .profile-row:first-child { padding-top: 0; }
-  .profile-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #AAA;
-  }
-  .profile-value {
-    font-size: 14px;
-    text-align: left;
-    max-width: 100%;
-    white-space: normal;
-    word-break: break-word;
-    line-height: 1.4;
-  }
-  .profile-actions { flex-direction: column; margin-top: 14px; }
-  .profile-actions .btn-logout { width: 100%; justify-content: center; min-height: 48px; }
-  .back-btn { margin-bottom: 16px; }
-  .filter-pills { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
-  .filter-pills .pill { white-space: nowrap; flex-shrink: 0; }
-}
-
-@media (max-width: 480px) {
-  .main-content { padding: 68px 12px 28px; }
-  .mobile-header { height: 52px; padding: 0 12px; }
-  .mobile-title { font-size: 15px; }
-  .top-header { padding: 10px 0 14px; }
-  .greeting-text h1 { font-size: 18px; }
-  .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
-  .stat-card { flex-direction: column; align-items: flex-start; text-align: left; gap: 8px; padding: 12px; }
-  .saldo-banner { padding: 16px 14px; }
-  .saldo-amount { font-size: 22px; }
-  .saldo-right { flex-direction: column; align-items: stretch; }
-  .saldo-detail { flex-direction: row; justify-content: space-between; width: 100%; }
-  .saldo-btn { width: 100%; }
-  .installment-summary { grid-template-columns: 1fr 1fr; }
-  .cuota-dot { width: 18px; height: 18px; }
-  .project-body { padding: 14px 12px; }
-  .profile-card { padding: 20px 14px; }
-  .profile-avatar { width: 64px; height: 64px; font-size: 22px; }
-  .profile-header-info h3 { font-size: 16px; }
-  .profile-section { padding: 16px 14px; }
-  .profile-actions { flex-direction: column; }
-  .btn-logout { width: 100%; justify-content: center; min-height: 48px; }
-  .state-container { padding: 40px 12px; }
-  .empty-state svg { width: 40px; height: 40px; }
-  .section-head h2 { font-size: 17px; }
-  .greeting-badge { width: 100%; justify-content: center; }
+  .users-table-wrapper { overflow-x: auto; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: 1fr; }
 }
 
 /* ===== SALDO BANNER ===== */
 .saldo-banner {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F4F9FF 100%);
-  border-radius: 16px;
+  background: #EFF4FB;
+  border-radius: 14px;
   padding: 24px 28px;
   color: #1A1A1A;
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  gap: 20px;
-  flex-wrap: wrap;
 }
 
 .saldo-left {
@@ -2791,7 +2670,7 @@ async function reloadData() {
 
 /* ===== USERS TABLE ===== */
 .users-table-wrapper {
-  background: #FFF;
+  background: #EFF4FB;
   border-radius: 14px;
   border: none;
   overflow: hidden;
@@ -2855,12 +2734,11 @@ async function reloadData() {
 
 /* ===== PROFILE ===== */
 .profile-card {
-  background: #FFF;
-  border-radius: 16px;
+  background: #EFF4FB;
+  border-radius: 14px;
   padding: 24px;
   border: none;
   margin-bottom: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .profile-header {
@@ -2896,36 +2774,6 @@ async function reloadData() {
   font-weight: 500;
 }
 
-.profile-member {
-  margin-left: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-}
-
-.profile-member-label {
-  font-size: 11px;
-  color: #AAA;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
-}
-
-.profile-member-value {
-  font-size: 13px;
-  font-weight: 700;
-  color: #0E3570;
-}
-
-.profile-ok {
-  color: #10B981 !important;
-}
-
-.profile-gold {
-  color: #C89B2D !important;
-}
-
 .profile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2933,11 +2781,10 @@ async function reloadData() {
 }
 
 .profile-section {
-  background: #FFF;
-  border-radius: 16px;
+  background: #EFF4FB;
+  border-radius: 14px;
   padding: 24px;
   border: none;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .profile-section h4 {
@@ -2983,27 +2830,6 @@ async function reloadData() {
   margin-top: 16px;
   display: flex;
   justify-content: flex-start;
-  gap: 12px;
-}
-
-.btn-edit-profile {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: #0E3570;
-  color: #FFF;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.2s;
-}
-
-.btn-edit-profile:hover {
-  background: #16C2CA;
 }
 
 .btn-logout {
@@ -3027,173 +2853,267 @@ async function reloadData() {
   border-color: rgba(232, 72, 63, 0.5);
 }
 
-/* Profile overrides AFTER base styles so they win on mobile */
-@media (max-width: 768px) {
-  .profile-card {
-    padding: 22px 16px;
-    margin-bottom: 12px;
-    overflow: hidden;
-  }
-
-  .profile-header {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: 10px;
-    width: 100%;
-    min-width: 0;
-  }
-
-  .profile-avatar {
-    width: 72px;
-    height: 72px;
-    font-size: 26px;
-    box-shadow: 0 4px 16px rgba(14, 53, 112, 0.25);
-  }
-
-  .profile-header-info {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .profile-header-info h3 {
-    font-size: 17px;
-    margin-bottom: 4px;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-
-  .profile-role {
-    display: inline-block;
-    background: rgba(22, 194, 202, 0.1);
-    color: #0E9BA1;
-    font-size: 12px;
-    font-weight: 600;
-    padding: 3px 12px;
-    border-radius: 12px;
-  }
-
-  .profile-member {
-    margin-left: 0;
-    width: 100%;
-    min-width: 0;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 6px 8px;
-    padding-top: 12px;
-    margin-top: 4px;
-    border-top: 1px solid #F0F0F0;
-    text-align: center;
-  }
-
-  .profile-member-label {
-    font-size: 10px;
-    white-space: nowrap;
-  }
-
-  .profile-member-value {
-    font-size: 13px;
-    white-space: nowrap;
-  }
-
-  .profile-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    min-width: 0;
-  }
-
-  .profile-section {
-    padding: 18px 16px;
-    border-radius: 14px;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  .profile-section h4 {
-    font-size: 12px;
-    margin-bottom: 14px;
-    padding-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    word-break: break-word;
-  }
-
-  .profile-section h4::before {
-    content: '';
-    width: 3px;
-    height: 14px;
-    background: #16C2CA;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  .profile-rows {
-    gap: 0;
-    min-width: 0;
-  }
-
-  .profile-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
-    padding: 11px 0;
-    border-bottom: 1px solid #F5F5F5;
-    min-width: 0;
-    width: 100%;
-  }
-
-  .profile-row:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
-
-  .profile-row:first-child {
-    padding-top: 0;
-  }
-
-  .profile-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #AAA;
-  }
-
-  .profile-value {
-    font-size: 14px;
-    font-weight: 600;
-    text-align: left;
-    max-width: 100%;
-    width: 100%;
-    white-space: normal;
-    word-break: break-word;
-    overflow-wrap: anywhere;
-    line-height: 1.4;
-    color: #1A1A1A;
-    overflow: visible;
-    text-overflow: clip;
-  }
-
-  .profile-actions {
-    flex-direction: column;
-    margin-top: 14px;
-  }
-
-  .profile-actions .btn-logout {
-    width: 100%;
-    justify-content: center;
-    min-height: 48px;
-  }
+/* ===== TARJETAS OSCURAS ===== */
+.portal-app {
+  color: #E7ECF6;
 }
 
-@media (max-width: 480px) {
-  .profile-card { padding: 20px 14px; }
-  .profile-avatar { width: 64px; height: 64px; font-size: 22px; }
+.info-card,
+.project-row,
+.detail-card,
+.quote-row,
+.cert-card-new,
+.doc-card-new,
+.recurso-card,
+.saldo-banner,
+.users-table-wrapper,
+.profile-card,
+.profile-section {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.info-card h3,
+.info-value,
+.activity-title,
+.activity-amount,
+.project-top h3,
+.installment-stat-value,
+.installment-stat-value.paid,
+.installment-stat-value.pending,
+.detail-row strong,
+.quote-top h3,
+.cert-card-body h4,
+.doc-card-info h4,
+.recurso-info h4,
+.saldo-banner,
+.saldo-detail-value,
+.saldo-detail-value.paid,
+.profile-header-info h3,
+.profile-value {
+  color: #E7ECF6;
+}
+
+.info-label,
+.activity-meta,
+.detail-tag,
+.progress-label,
+.detail-card h4,
+.detail-row span,
+.big-progress-label,
+.service-qty,
+.cert-card-body p,
+.profile-role,
+.profile-section h4,
+.profile-label,
+.saldo-label {
+  color: #98A4BF;
+}
+
+.description-text,
+.service-name {
+  color: #C7D0E0;
+}
+
+.empty-mini,
+.cert-date-new,
+.doc-card-meta,
+.saldo-sub,
+.saldo-detail-label,
+.project-arrow {
+  color: #8496B5;
+}
+
+.recurso-info p {
+  color: #98A4BF;
+}
+
+.saldo-amount {
+  color: #FFFFFF;
+}
+
+.info-card h3,
+.quote-services,
+.users-table thead,
+.profile-section h4 {
+  border-color: #26334F;
+}
+
+.users-table td {
+  border-bottom: 1px solid #1E2A45;
+  color: #E7ECF6;
+}
+
+.users-table th {
+  color: #98A4BF;
+}
+
+.users-table thead {
+  background: #0E162C;
+}
+
+.users-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.progress-track {
+  background: #26334F;
+}
+
+.cuota-dot {
+  background: #26334F;
+  border-color: #26334F;
+}
+
+.cuota-dot.next {
+  background: #FFFFFF;
+}
+
+.installment-summary {
+  background: #0E162C;
+}
+
+.cert-card-top.certificate {
+  background: linear-gradient(135deg, rgba(245, 74, 22, 0.22) 0%, rgba(245, 74, 22, 0.08) 100%);
+}
+
+.cert-card-top.report {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.22) 0%, rgba(16, 185, 129, 0.08) 100%);
+}
+
+.cert-card-top.certificate .cert-type-icon,
+.cert-card-top.certificate .cert-type-label {
+  color: #FB923C;
+}
+
+.cert-card-top.report .cert-type-icon,
+.cert-card-top.report .cert-type-label {
+  color: #6EE7B7;
+}
+
+.doc-card-icon.manual,
+.doc-card-badge.manual { background: rgba(139, 92, 246, 0.18); color: #C4B5FD; }
+.doc-card-icon.procedure,
+.doc-card-badge.procedure { background: rgba(59, 130, 246, 0.18); color: #93C5FD; }
+.doc-card-icon.report,
+.doc-card-badge.report { background: rgba(16, 185, 129, 0.16); color: #6EE7B7; }
+.doc-card-icon.acta,
+.doc-card-badge.acta { background: rgba(245, 74, 22, 0.18); color: #FB923C; }
+.doc-card-icon.plan,
+.doc-card-badge.plan { background: rgba(239, 68, 68, 0.16); color: #FCA5A5; }
+.doc-card-icon.presentation,
+.doc-card-badge.presentation,
+.doc-card-icon.certificate,
+.doc-card-badge.certificate { background: rgba(234, 179, 8, 0.16); color: #FDE047; }
+
+.recurso-status.active { background: rgba(16, 185, 129, 0.16); color: #6EE7B7; }
+.recurso-status.completed { background: rgba(59, 130, 246, 0.16); color: #93C5FD; }
+.recurso-status.scheduled { background: rgba(245, 74, 22, 0.16); color: #FB923C; }
+
+.status-pill.completed { background: rgba(16, 185, 129, 0.16); color: #6EE7B7; }
+.status-pill.scheduled { background: rgba(245, 74, 22, 0.16); color: #FB923C; }
+.status-pill.active { background: rgba(22, 194, 202, 0.16); color: #2DD4DE; }
+
+/* ===== MOBILE (celular) ===== */
+@media (max-width: 768px) {
+  /* --- Inicio --- */
+  .greeting-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding-bottom: 18px;
+  }
+  .greeting-text h1 { font-size: 20px; }
+  .greeting-text p { font-size: 13px; }
+  .greeting-badge {
+    white-space: normal;
+    text-align: left;
+    max-width: 100%;
+    font-size: 11.5px;
+    padding: 7px 14px;
+  }
+
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stats-row > * { min-width: 0; }
+  .stat-card { padding: 14px; gap: 10px; min-width: 0; }
+  .stat-icon { width: 36px; height: 36px; border-radius: 10px; }
+  .stat-icon svg { width: 18px; height: 18px; }
+  .stat-number { font-size: 22px; }
+  .stat-text { font-size: 11px; }
+
+  .saldo-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 14px;
+    padding: 18px 16px;
+  }
+  .saldo-amount { font-size: 26px; }
+  .saldo-right { justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .saldo-detail { align-items: flex-start; }
+  .saldo-btn { padding: 10px 20px; flex-shrink: 0; }
+
+  .info-grid { grid-template-columns: 1fr; gap: 12px; }
+  .info-card { padding: 18px 16px; }
+  .info-card h3 { font-size: 14px; margin-bottom: 12px; padding-bottom: 10px; }
+  .info-row { align-items: flex-start; gap: 10px; }
+  .info-label { flex-shrink: 0; }
+  .info-value {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: 100%;
+    min-width: 0;
+    word-break: break-word;
+    text-align: right;
+  }
+
+  .activity-list { gap: 10px; }
+  .activity-item { gap: 10px; }
+  .activity-title { font-size: 12.5px; }
+  .activity-meta { font-size: 11.5px; }
+  .activity-amount { font-size: 11.5px; }
+
+  /* --- Mi perfil --- */
+  .profile-card { padding: 18px 16px; }
+  .profile-header { gap: 12px; }
+  .profile-avatar { width: 48px; height: 48px; font-size: 17px; }
   .profile-header-info h3 { font-size: 16px; }
+  .profile-role { font-size: 12px; }
+  .profile-grid { grid-template-columns: 1fr; gap: 12px; }
+  .profile-section { padding: 18px 16px; }
+  .profile-section h4 { margin-bottom: 14px; }
+  .profile-rows { gap: 12px; }
+  .profile-row { align-items: flex-start; gap: 10px; }
+  .profile-label { flex-shrink: 0; }
+  .profile-value {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    max-width: 100%;
+    min-width: 0;
+    word-break: break-word;
+    text-align: right;
+  }
+  .profile-actions { justify-content: stretch; }
+  .btn-logout { width: 100%; justify-content: center; padding: 13px 24px; }
+
+  /* --- Encabezados de sección --- */
+  .section-head { margin-bottom: 16px; }
+  .section-head h2 { font-size: 19px; }
+}
+
+@media (max-width: 400px) {
+  .greeting-text h1 { font-size: 18px; }
+  .stat-card { padding: 12px; gap: 8px; }
+  .stat-icon { width: 32px; height: 32px; }
+  .stat-number { font-size: 19px; }
+  .stat-text { font-size: 10.5px; }
+  .saldo-amount { font-size: 23px; }
+  .info-card,
+  .profile-card,
   .profile-section { padding: 16px 14px; }
-  .profile-member { flex-direction: column; gap: 2px; }
+  .info-value,
+  .profile-value { font-size: 12.5px; }
 }
 </style>

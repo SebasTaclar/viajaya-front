@@ -397,7 +397,7 @@ const filteredRecursos = computed(() => {
 <style scoped>
 .clientes-page {
   background: #FAFAF8;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ===========================
@@ -495,7 +495,7 @@ const filteredRecursos = computed(() => {
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .btn-primary:hover {
@@ -714,7 +714,7 @@ const filteredRecursos = computed(() => {
   color: #6B6B6B;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .tab-btn:hover {
@@ -916,7 +916,7 @@ const filteredRecursos = computed(() => {
   color: #6B6B6B;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .recurso-tab:hover {

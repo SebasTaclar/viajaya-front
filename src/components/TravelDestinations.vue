@@ -2,12 +2,12 @@
   <div class="destinations" id="destinos">
     <div class="destinations__intro">
       <div>
-        <p class="destinations__eyebrow">UNA COLECCIÓN DE POSIBILIDADES</p>
-        <h2>Descubre <em><br />el mundo</em></h2>
+        <p class="destinations__eyebrow">Posibilidades ilimitadas</p>
+        <h2>Descubre <em>El mundo</em></h2>
       </div>
-      <p>
+      <!-- <p>
         Encuentra el plan perfecto para tus próximas vacaciones y táchalo de tu lista.
-      </p>
+      </p> -->
     </div>
 
     <div class="destinations__grid">
@@ -106,13 +106,14 @@ const packages = [
 }
 
 .destinations__eyebrow {
+  font-family: 'Be Vietnam Pro', 'Arial Narrow', sans-serif;
   display: flex;
   align-items: center;
   gap: 12px;
   margin: 0 0 14px;
-  color: #16c2ca;
-  font-size: 11px;
-  font-weight: 800;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 2px;
   white-space: nowrap;
 }
@@ -121,26 +122,27 @@ const packages = [
   width: 28px;
   height: 2px;
   flex: 0 0 28px;
-  background: #16c2ca;
+  background: #f8f8f8;
   content: '';
 }
 
 .destinations h2 {
   margin: 0;
-  color: #fff;
-  font-family: 'VolkSans', sans-serif;
-  font-size: clamp(52px, 7vw, 92px);
-  font-weight: 400;
+  color: rgb(240, 192, 9);
+  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
+  font-size: 94px;
+  font-weight: bold;
   line-height: 0.92;
   letter-spacing: 2px;
-  text-transform: uppercase;
   white-space: nowrap;
   letter-spacing: -0.01em;
 }
 
 .destinations h2 em {
-  color: #F51668;
+  display: block;
+  color: rgb(240, 192, 9);
   font-style: normal;
+  font-weight: bold;
 }
 
 .destinations__intro > p:last-child {
@@ -174,12 +176,19 @@ const packages = [
   }
 
   .destinations h2 {
-    white-space: normal;
-    font-size: clamp(36px, 9vw, 60px);
+    white-space: nowrap;
+    font-size: clamp(26px, 7vw, 56px);
+    text-align: center;
+  }
+
+  .destinations h2 em {
+    display: inline;
   }
 
   .destinations__eyebrow {
     white-space: normal;
+    justify-content: center;
+    font-size: 10px;
   }
 
   .destinations__intro > p:last-child {
@@ -201,7 +210,8 @@ const packages = [
   }
 
   .destinations h2 {
-    font-size: clamp(32px, 10vw, 48px);
+    font-size: 38px;
+    line-height: 1.0;
   }
 
   .destinations__intro > p:last-child {

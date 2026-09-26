@@ -218,7 +218,7 @@ defineOptions({
 <style scoped>
 .nosotros-page {
   background: #FAFAF8;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Hero */
@@ -708,7 +708,7 @@ defineOptions({
   text-decoration: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Be Vietnam Pro', sans-serif;
 }
 
 .btn-cotiza:hover {

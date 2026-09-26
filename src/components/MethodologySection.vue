@@ -111,7 +111,7 @@ const steps = [
   padding: 50px 0;
   background: #1E1E1E;
   overflow: hidden;
-  font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* ---- Background ---- */
