@@ -67,33 +67,14 @@
           <p>Bienvenido al panel de gestión Viaja Ya</p>
         </div>
 
-        <div class="topbar-search">
-          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input type="text" placeholder="Buscar..." class="search-input" />
-        </div>
+
 
         <div class="topbar-actions">
           <button class="action-btn" title="Notificaciones">
 
 
           </button>
-          <button class="export-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Exportar reporte
-          </button>
-          <div class="topbar-user">
-            <div class="user-avatar-sm">
-              <img v-if="userAvatar" :src="userAvatar" alt="Avatar" />
-              <span v-else>{{ getUserInitials(currentUser?.name || currentUser?.email || 'U') }}</span>
-            </div>
-          </div>
+
         </div>
       </header>
 
@@ -104,17 +85,7 @@
           <!-- Dashboard Title -->
           <div class="dashboard-title-row">
             <h2 class="dashboard-title">Panel de control</h2>
-            <div class="live-indicator" title="Actualización automática de la información de usuarios">
-              <span class="live-dot"></span>
-              <span class="live-label">Tiempo real</span>
-              <span class="live-updated">Actualizado {{ lastUpdatedLabel }}</span>
-              <button class="refresh-btn" title="Actualizar ahora" @click="refreshDashboard">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
-                  <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                </svg>
-              </button>
-            </div>
+
           </div>
 
           <!-- Stats Cards -->
@@ -131,12 +102,7 @@
               <div class="stat-content">
                 <span class="stat-label">Usuarios registrados</span>
                 <span class="stat-value">{{ usuariosRegistrados }}</span>
-                <span class="stat-change" :class="usuariosActivos > 0 ? 'up' : ''">
-                  <svg v-if="usuariosActivos > 0" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <polyline points="18 15 12 9 6 15"/>
-                  </svg>
-                  {{ usuariosActivos }} activos
-                </span>
+
               </div>
               <div class="stat-sparkline">
                 <svg viewBox="0 0 80 30" class="sparkline-svg">
@@ -156,50 +122,11 @@
               <div class="stat-content">
                 <span class="stat-label">Dinero en Fondo Viajero</span>
                 <span class="stat-value">{{ formatCurrency(fondoViajeroTotal) }}</span>
-                <span class="stat-change up">
-                  {{ fondoViajeroAportantes }} aportantes activos
-                </span>
+
               </div>
               <div class="stat-sparkline">
                 <svg viewBox="0 0 80 30" class="sparkline-svg">
                   <polyline points="0,24 15,21 30,17 45,14 60,10 80,4" fill="none" stroke="#10B981" stroke-width="2"/>
-                </svg>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon amber">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
-                </svg>
-              </div>
-              <div class="stat-content">
-                <span class="stat-label">Viajes en progreso</span>
-                <span class="stat-value">{{ viajesEnProgreso }}</span>
-                <span class="stat-sub">de {{ totalProyectos }} proyectos</span>
-              </div>
-              <div class="stat-sparkline">
-                <svg viewBox="0 0 80 30" class="sparkline-svg">
-                  <polyline points="0,20 15,15 30,18 45,10 60,12 80,5" fill="none" stroke="#F59E0B" stroke-width="2"/>
-                </svg>
-              </div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon purple">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 1v22"/>
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-              </div>
-              <div class="stat-content">
-                <span class="stat-label">Próximas cuotas a cobrar</span>
-                <span class="stat-value">{{ proximasCuotas.length }}</span>
-                <span class="stat-sub">{{ formatCurrency(proximasCuotasTotal) }} · {{ proximaCuotaFecha }}</span>
-              </div>
-              <div class="stat-sparkline">
-                <svg viewBox="0 0 80 30" class="sparkline-svg">
-                  <polyline points="0,15 15,20 30,10 45,18 60,8 80,12" fill="none" stroke="#8B5CF6" stroke-width="2"/>
                 </svg>
               </div>
             </div>
@@ -261,7 +188,7 @@
 
 
           <!-- Cierre presupuestal automatizado -->
-          <div class="card cierre-card">
+          <!-- <div class="card cierre-card">
             <div class="card-header">
               <div class="cierre-title">
                 <h3>Cierre presupuestal del mes</h3>
@@ -320,7 +247,7 @@
                 </table>
               </div>
             </div>
-          </div>
+          </div> -->
 
         </div>
 
@@ -604,6 +531,350 @@
 
         <!-- ========== USUARIOS ========== -->
         <UsuariosList v-if="currentSection === 'usuarios'" />
+
+        <!-- ========== RECAUDOS ========== -->
+        <div v-if="currentSection === 'recaudos'">
+          <div class="section-top">
+            <div>
+              <h2 class="page-title">Recaudos</h2>
+              <p class="page-subtitle">{{ recaudosFiltrados.length }} de {{ recaudosList.length }} recaudos{{ recaudosSeleccionados.length > 0 ? ` — ${recaudosSeleccionados.length} seleccionados` : '' }}</p>
+            </div>
+            <button class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openCreateRecaudo()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Crear Recaudo
+            </button>
+          </div>
+
+          <!-- Filtros -->
+          <div v-if="recaudosList.length > 0" class="coti-filters">
+            <div class="coti-filter-group coti-filter-search">
+              <label>Buscar</label>
+              <input v-model="recaudoSearch" type="text" class="coti-select" placeholder="Buscar por nombre o cédula..." />
+            </div>
+            <div class="coti-filter-group">
+              <label>Mes</label>
+              <input v-model="recaudoMes" type="month" class="coti-select" />
+            </div>
+            <div class="coti-filter-group">
+              <label>Fecha desde</label>
+              <input v-model="recaudoDesde" type="date" class="coti-select" />
+            </div>
+            <div class="coti-filter-group">
+              <label>Fecha hasta</label>
+              <input v-model="recaudoHasta" type="date" class="coti-select" />
+            </div>
+            <div class="coti-filter-group">
+              <label aria-hidden="true">&nbsp;</label>
+              <button class="btn-outline" @click="clearRecaudoFilters">Limpiar</button>
+            </div>
+          </div>
+
+          <div v-if="recaudosList.length === 0" class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--c-gray-light); margin-bottom: 16px;">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <line x1="2" y1="10" x2="22" y2="10"/>
+              <line x1="6" y1="15" x2="10" y2="15"/>
+            </svg>
+            <h3>Aún no hay recaudos registrados</h3>
+            <p>Aquí aparecerán los recaudos cuando se registren.</p>
+          </div>
+
+          <div v-else-if="recaudosFiltrados.length === 0" class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--c-gray-light); margin-bottom: 16px;">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <h3>No se encontraron recaudos</h3>
+            <p>Prueba con otros filtros o limpia la búsqueda.</p>
+          </div>
+
+          <div v-else class="table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 44px;">
+                      <input type="checkbox" class="row-check" :checked="todosRecaudosSeleccionados" title="Seleccionar todos" @change="toggleAllRecaudos" />
+                    </th>
+                    <th style="width: 26%;">Nombre</th>
+                    <th style="width: 17%;">Cédula</th>
+                    <th style="width: 17%;">Fecha</th>
+                    <th style="width: 17%;">Valor</th>
+                    <th style="width: 17%;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="r in recaudosFiltrados" :key="r.id">
+                    <td class="col-check">
+                      <input type="checkbox" class="row-check" :checked="recaudosSeleccionados.includes(r.id)" @change="toggleRecaudo(r.id)" />
+                    </td>
+                    <td>{{ r.nombre }}</td>
+                    <td>{{ r.cedula }}</td>
+                    <td>{{ formatFecha(r.fecha) }}</td>
+                    <td>{{ formatCurrency(r.valor) }}</td>
+                    <td>
+                      <div class="actions-cell">
+                        <button class="action-btn" title="Editar" @click="openEditRecaudo(r)">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <button class="action-btn" title="Ver detalle" @click="recaudoSelected = r">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                          </svg>
+                        </button>
+                        <button class="action-btn msg-btn-action" title="Enviar mensaje" @click="openMsgRecaudo(r)">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                          </svg>
+                        </button>
+                        <button class="action-btn delete-btn" title="Eliminar" @click="removeRecaudo(r.id)">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Detalle del recaudo -->
+          <div v-if="recaudoSelected" class="modal-overlay" @click.self="recaudoSelected = null">
+            <div class="modal-content modal-wide" @click.stop>
+              <div class="modal-header">
+                <h3>Detalle del recaudo</h3>
+                <button class="modal-close" @click="recaudoSelected = null">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="recaudo-detail">
+                  <div class="recaudo-detail-row"><span>Nombre</span><strong>{{ recaudoSelected.nombre }}</strong></div>
+                  <div class="recaudo-detail-row"><span>Cédula</span><strong>{{ recaudoSelected.cedula }}</strong></div>
+                  <div class="recaudo-detail-row"><span>Fecha</span><strong>{{ formatFecha(recaudoSelected.fecha) }}</strong></div>
+                  <div class="recaudo-detail-row"><span>Valor</span><strong>{{ formatCurrency(recaudoSelected.valor) }}</strong></div>
+                  <div class="recaudo-detail-row"><span>Periodicidad</span><strong>{{ recaudoSelected.periodicidad }}</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Crear recaudo -->
+          <div v-if="showCreateRecaudo" class="modal-overlay" @click.self="showCreateRecaudo = false">
+            <div class="modal-content modal-wide" @click.stop>
+              <div class="modal-header">
+                <h3>Crear recaudo</h3>
+                <button class="modal-close" @click="showCreateRecaudo = false">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="form-group full-width">
+                    <label>Nombre</label>
+                    <div class="combo">
+                      <input
+                        v-model="recaudoForm.nombre"
+                        type="text"
+                        class="form-input"
+                        placeholder="Busca o selecciona un usuario"
+                        autocomplete="off"
+                        @focus="showRecaudoOptions = true"
+                        @input="showRecaudoOptions = true"
+                        @blur="showRecaudoOptions = false"
+                      />
+                      <div v-if="showRecaudoOptions" class="combo-list">
+                        <button
+                          v-for="u in recaudoUsuariosFiltrados"
+                          :key="u.id"
+                          type="button"
+                          class="combo-option"
+                          @mousedown.prevent="selectRecaudoUsuario(u)"
+                        >
+                          <span class="combo-option-name">{{ u.name }}</span>
+                          <span class="combo-option-meta">C.I. {{ u.cedula }}</span>
+                        </button>
+                        <div v-if="recaudoUsuariosFiltrados.length === 0" class="combo-empty">Sin usuarios encontrados</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Cédula</label>
+                    <input v-model="recaudoForm.cedula" type="text" class="form-input" readonly placeholder="Se completa al elegir el usuario" />
+                  </div>
+                  <div class="form-group">
+                    <label>Periodicidad</label>
+                    <select v-model="recaudoForm.periodicidad" class="form-input" disabled>
+                      <option value="" disabled>Se completa al elegir el usuario</option>
+                      <option value="Diaria">Diaria</option>
+                      <option value="Semanal">Semanal</option>
+                      <option value="Quincenal">Quincenal</option>
+                      <option value="Mensual">Mensual</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Fecha y hora</label>
+                    <input v-model="recaudoForm.fecha" type="datetime-local" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>Valor</label>
+                    <input
+                      :value="recaudoForm.valor ? formatCurrency(recaudoForm.valor) : ''"
+                      type="text"
+                      inputmode="numeric"
+                      class="form-input"
+                      placeholder="$ 0"
+                      @input="onValorInput($event, 'create')"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-outline" @click="showCreateRecaudo = false">Cancelar</button>
+                <button class="btn-outline" :disabled="!recaudoFormValid" @click="createRecaudoAndMsg">
+                  Crear y enviar mensaje
+                </button>
+                <button class="btn-primary" :disabled="!recaudoFormValid" @click="createRecaudo">
+                  Crear Recaudo
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Editar recaudo -->
+          <div v-if="recaudoEdit" class="modal-overlay" @click.self="recaudoEdit = null">
+            <div class="modal-content modal-wide" @click.stop>
+              <div class="modal-header">
+                <h3>Editar recaudo</h3>
+                <button class="modal-close" @click="recaudoEdit = null">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="form-group full-width">
+                    <label>Nombre</label>
+                    <input v-model="recaudoEdit.nombre" type="text" class="form-input" readonly />
+                  </div>
+                  <div class="form-group">
+                    <label>Cédula</label>
+                    <input v-model="recaudoEdit.cedula" type="text" class="form-input" readonly />
+                  </div>
+                  <div class="form-group">
+                    <label>Periodicidad</label>
+                    <select v-model="recaudoEdit.periodicidad" class="form-input" disabled>
+                      <option value="Diaria">Diaria</option>
+                      <option value="Semanal">Semanal</option>
+                      <option value="Quincenal">Quincenal</option>
+                      <option value="Mensual">Mensual</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Fecha y hora</label>
+                    <input v-model="recaudoEdit.fecha" type="datetime-local" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>Valor</label>
+                    <input
+                      :value="recaudoEdit.valor ? formatCurrency(recaudoEdit.valor) : ''"
+                      type="text"
+                      inputmode="numeric"
+                      class="form-input"
+                      placeholder="$ 0"
+                      @input="onValorInput($event, 'edit')"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-outline" @click="recaudoEdit = null">Cancelar</button>
+                <button class="btn-outline" @click="saveRecaudoAndMsg">Guardar y enviar mensaje</button>
+                <button class="btn-primary" @click="saveRecaudo">Guardar cambios</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enviar mensaje del recaudo -->
+          <div v-if="showMsgRecaudo" class="modal-overlay" @click.self="closeMsgRecaudo()">
+            <div class="modal-content modal-wide" @click.stop>
+              <div class="modal-header">
+                <h3>Enviar mensaje</h3>
+                <button class="modal-close" @click="closeMsgRecaudo()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="msg-recipient" v-if="msgTarget">
+                  <strong>{{ msgTarget.nombre }}</strong>
+                  <span>C.I. {{ msgTarget.cedula }} · {{ formatFecha(msgTarget.fecha) }} · {{ formatCurrency(msgTarget.valor) }}</span>
+                </div>
+
+                <div class="form-group">
+                  <label>Mensaje</label>
+                  <textarea v-model="msgText" rows="5" class="form-input" placeholder="Escribe el mensaje..."></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-outline" @click="closeMsgRecaudo()">Cancelar</button>
+                <button class="btn-primary" :disabled="!msgText.trim() || msgSending" @click="askSendRecaudoMsg">
+                  {{ msgSending ? 'Enviando...' : 'Enviar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confirmar envío del mensaje -->
+          <div v-if="msgConfirm && showMsgRecaudo" class="modal-overlay modal-overlay-confirm" @click.self="msgConfirm = false">
+            <div class="modal-content modal-confirm" @click.stop>
+              <div class="confirm-icon">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+              </div>
+              <h3>¿Estás seguro?</h3>
+              <p v-if="msgTarget">Vas a enviar este mensaje a <strong>{{ msgTarget.nombre }}</strong> (C.I. {{ msgTarget.cedula }}).</p>
+              <div class="confirm-preview">{{ msgText }}</div>
+              <div class="confirm-actions">
+                <button class="btn-outline" @click="msgConfirm = false">Cancelar</button>
+                <button class="btn-primary" :disabled="msgSending" @click="sendRecaudoMsg">
+                  {{ msgSending ? 'Enviando...' : 'Sí, enviar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confirmación de mensaje enviado -->
+          <transition name="msg-toast-fade">
+            <div v-if="msgSent" class="msg-sent-toast">
+              <span class="msg-toast-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </span>
+              Mensaje enviado
+              <button class="msg-toast-close" @click="msgSent = false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </transition>
+        </div>
 
         <!-- ========== ADM EVENTOS ========== -->
         <div v-if="currentSection === 'adm-eventos'">
@@ -1140,6 +1411,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '@/services/api/authService'
 import { useCRM } from '@/composables/useCRM'
+import { usuarios as usuariosCreados } from '@/composables/useUsuariosStore'
 import { quoteService } from '@/services/api/quoteService'
 import { collaboratorService } from '@/services/api/collaboratorService'
 
@@ -1159,7 +1431,6 @@ import {
   createMockColaboradores,
   createMockLicitaciones,
   createMockUsuarios,
-  createMockCuotasCobrar,
   createMockUsuariosFondo,
   createMockEntityNames,
 } from '@/mock/adminDashboard'
@@ -1684,10 +1955,219 @@ async function handleDeleteEvento() {
   }
 }
 
+// ========== RECAUDOS ==========
+interface Recaudo {
+  id: number
+  nombre: string
+  cedula: string
+  fecha: string
+  valor: number
+  periodicidad: string
+}
+
+const recaudosList = ref<Recaudo[]>([
+  { id: 1, nombre: 'María Fernanda López', cedula: '1032456789', fecha: '2026-09-28T10:15', valor: 180000, periodicidad: 'Mensual' },
+  { id: 2, nombre: 'Carlos Andrés Gómez', cedula: '80123456', fecha: '2026-09-25T08:40', valor: 95000, periodicidad: 'Quincenal' },
+  { id: 3, nombre: 'Laura Valentina Ruiz', cedula: '1098765432', fecha: '2026-09-22T16:05', valor: 60000, periodicidad: 'Semanal' },
+  { id: 4, nombre: 'Jorge Eduardo Martínez', cedula: '79876543', fecha: '2026-09-20T11:30', valor: 150000, periodicidad: 'Mensual' },
+  { id: 5, nombre: 'Ana Sofía Hernández', cedula: '1122334455', fecha: '2026-09-18T09:55', valor: 85000, periodicidad: 'Quincenal' },
+  { id: 6, nombre: 'Pedro Pablo Díaz', cedula: '98765432', fecha: '2026-09-15T14:20', valor: 200000, periodicidad: 'Mensual' },
+])
+
+function formatFecha(value: string): string {
+  if (!value) return ''
+  if (!value.includes('T')) return value
+  const [datePart, timePart = '00:00'] = value.split('T')
+  const [y, m, d] = datePart.split('-')
+  if (!y || !m || !d) return value
+  return `${d}/${m}/${y} ${timePart.slice(0, 5)}`
+}
+
+// ========== FILTROS DE RECAUDOS ==========
+const recaudoSearch = ref('')
+const recaudoMes = ref('')
+const recaudoDesde = ref('')
+const recaudoHasta = ref('')
+
+const recaudosFiltrados = computed(() => {
+  const q = recaudoSearch.value.trim().toLowerCase()
+  const mes = recaudoMes.value
+  const desde = recaudoDesde.value
+  const hasta = recaudoHasta.value
+  if (!q && !mes && !desde && !hasta) return recaudosList.value
+  return recaudosList.value.filter((r) => {
+    if (q && !`${r.nombre} ${r.cedula}`.toLowerCase().includes(q)) return false
+    if (mes && !r.fecha.startsWith(mes)) return false
+    const fecha = r.fecha.slice(0, 10)
+    if (desde && fecha < desde) return false
+    if (hasta && fecha > hasta) return false
+    return true
+  })
+})
+
+function clearRecaudoFilters() {
+  recaudoSearch.value = ''
+  recaudoMes.value = ''
+  recaudoDesde.value = ''
+  recaudoHasta.value = ''
+}
+
+// ========== SELECCIÓN DE RECAUDOS ==========
+const recaudosSeleccionados = ref<number[]>([])
+
+const todosRecaudosSeleccionados = computed(() =>
+  recaudosFiltrados.value.length > 0 && recaudosFiltrados.value.every((r) => recaudosSeleccionados.value.includes(r.id)),
+)
+
+function toggleRecaudo(id: number) {
+  const idx = recaudosSeleccionados.value.indexOf(id)
+  if (idx === -1) recaudosSeleccionados.value.push(id)
+  else recaudosSeleccionados.value.splice(idx, 1)
+}
+
+function toggleAllRecaudos() {
+  const ids = recaudosFiltrados.value.map((r) => r.id)
+  if (todosRecaudosSeleccionados.value) {
+    recaudosSeleccionados.value = recaudosSeleccionados.value.filter((id) => !ids.includes(id))
+  } else {
+    recaudosSeleccionados.value = Array.from(new Set([...recaudosSeleccionados.value, ...ids]))
+  }
+}
+
+const recaudoSelected = ref<Recaudo | null>(null)
+const recaudoEdit = ref<Recaudo | null>(null)
+const showCreateRecaudo = ref(false)
+const recaudoForm = ref<Recaudo>({ id: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: 'Mensual' })
+
+const recaudoFormValid = computed(() => {
+  const f = recaudoForm.value
+  return !!f.nombre.trim() && !!f.cedula.trim() && !!f.fecha.trim() && !!f.valor
+})
+
+function openCreateRecaudo() {
+  const nextId = recaudosList.value.reduce((max, r) => Math.max(max, r.id), 0) + 1
+  recaudoForm.value = { id: nextId, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' }
+  showCreateRecaudo.value = true
+}
+
+const showRecaudoOptions = ref(false)
+
+const recaudoUsuariosFiltrados = computed(() => {
+  const query = normalizeStr(recaudoForm.value.nombre)
+  if (!query) return usuariosCreados.value
+  return usuariosCreados.value.filter((u) => normalizeStr(u.name).includes(query) || u.cedula.includes(query))
+})
+
+watch(
+  () => recaudoForm.value.nombre,
+  (name) => {
+    const user = usuariosCreados.value.find((u) => u.name === name)
+    const periodMap: Record<string, string> = { diario: 'Diaria', diaria: 'Diaria', mensual: 'Mensual', quincenal: 'Quincenal', semanal: 'Semanal' }
+    recaudoForm.value.cedula = user ? user.cedula : ''
+    recaudoForm.value.periodicidad = user ? (periodMap[user.periodicidad] || 'Mensual') : ''
+  },
+)
+
+function selectRecaudoUsuario(user: (typeof usuariosCreados.value)[number]) {
+  recaudoForm.value.nombre = user.name
+  showRecaudoOptions.value = false
+}
+
+function onValorInput(event: Event, target: 'create' | 'edit') {
+  const digits = (event.target as HTMLInputElement).value.replace(/[^\d]/g, '')
+  const value = digits ? Number.parseInt(digits, 10) : 0
+  if (target === 'create') {
+    recaudoForm.value.valor = value
+  } else if (recaudoEdit.value) {
+    recaudoEdit.value.valor = value
+  }
+}
+
+function createRecaudo(): Recaudo | null {
+  const f = recaudoForm.value
+  if (!recaudoFormValid.value) return null
+  const created = { ...f }
+  recaudosList.value.unshift(created)
+  showCreateRecaudo.value = false
+  return created
+}
+
+function removeRecaudo(id: number) {
+  recaudosList.value = recaudosList.value.filter((r) => r.id !== id)
+  recaudosSeleccionados.value = recaudosSeleccionados.value.filter((selected) => selected !== id)
+}
+
+function openEditRecaudo(r: Recaudo) {
+  recaudoEdit.value = { ...r }
+}
+
+function saveRecaudo(): Recaudo | null {
+  const edit = recaudoEdit.value
+  if (!edit) return null
+  const saved = { ...edit }
+  const idx = recaudosList.value.findIndex((r) => r.id === saved.id)
+  if (idx !== -1) recaudosList.value[idx] = saved
+  recaudoEdit.value = null
+  return saved
+}
+
+// ========== MENSAJE DEL RECAUDO ==========
+const showMsgRecaudo = ref(false)
+const msgTarget = ref<Recaudo | null>(null)
+const msgText = ref('')
+const msgSending = ref(false)
+const msgSent = ref(false)
+const msgConfirm = ref(false)
+let msgSentTimer = 0
+
+function openMsgRecaudo(r: Recaudo) {
+  msgTarget.value = r
+  msgText.value = `Hola ${r.nombre}, te recordamos tu recaudo de ${formatCurrency(r.valor)} con fecha ${formatFecha(r.fecha)} (${r.periodicidad}). ¡Gracias por mantener tus pagos al día!`
+  msgSending.value = false
+  msgConfirm.value = false
+  showMsgRecaudo.value = true
+}
+
+function createRecaudoAndMsg() {
+  const created = createRecaudo()
+  if (created) openMsgRecaudo(created)
+}
+
+function saveRecaudoAndMsg() {
+  const saved = saveRecaudo()
+  if (saved) openMsgRecaudo(saved)
+}
+
+function closeMsgRecaudo() {
+  showMsgRecaudo.value = false
+  msgConfirm.value = false
+}
+
+function askSendRecaudoMsg() {
+  if (msgSending.value || !msgText.value.trim()) return
+  msgConfirm.value = true
+}
+
+function sendRecaudoMsg() {
+  if (msgSending.value || !msgText.value.trim()) return
+  msgConfirm.value = false
+  msgSending.value = true
+  setTimeout(() => {
+    msgSending.value = false
+    showMsgRecaudo.value = false
+    msgSent.value = true
+    clearTimeout(msgSentTimer)
+    msgSentTimer = window.setTimeout(() => {
+      msgSent.value = false
+    }, 4000)
+  }, 900)
+}
+
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
   { id: 'usuarios', label: 'Usuarios', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
-].filter((item) => isSuperAdmin.value || item.id === 'usuarios')
+  { id: 'recaudos', label: 'Recaudos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>' },
+].filter((item) => isSuperAdmin.value || item.id === 'usuarios' || item.id === 'recaudos')
 
 // ========== CALENDARIO ==========
 interface CalEvent {
@@ -2004,7 +2484,7 @@ async function fetchCotizacionesData() {
 }
 
 const setSection = (section: string) => {
-  if (!isSuperAdmin.value && section !== 'usuarios') return
+  if (!isSuperAdmin.value && section !== 'usuarios' && section !== 'recaudos') return
   const item = navItems.find((n) => n.id === section)
   if (item && 'route' in item && item.route) {
     router.push(item.route)
@@ -2023,8 +2503,6 @@ const handleLogout = () => {
 
 const totalClientes = computed(() => clientes.value.length)
 
-const totalProyectos = computed(() => proyectos.value.length)
-
 function normalizeStr(s: string): string {
   return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 }
@@ -2037,22 +2515,6 @@ const proyectosEnEjecucion = computed(() => proyectos.value.filter(p => matchSta
 
 const usuariosRegistrados = ref(0)
 const usuariosActivos = ref(0)
-const proximasCuotas = ref(createMockCuotasCobrar())
-
-const proximasCuotasTotal = computed(() => proximasCuotas.value.reduce((sum, c) => sum + c.amount, 0))
-
-const proximaCuotaFecha = computed(() => {
-  const next = [...proximasCuotas.value].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())[0]
-  return next ? formatDate(next.dueDate) : '-'
-})
-
-const viajesEnProgreso = computed(() =>
-  proyectos.value.filter(
-    (p) =>
-      (matchStatus(p.status, 'ejecucion') || matchStatus(p.status, 'curso') || matchStatus(p.status, 'activo')) &&
-      !matchStatus(p.status, 'inactivo'),
-  ).length,
-)
 
 async function fetchUsuarios() {
   try {
@@ -2235,11 +2697,6 @@ function formatCurrency(value: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value)
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '-'
-  return new Date(dateStr).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 function getStatusLabel(status: EstadoCotizacion): string {
@@ -2686,7 +3143,6 @@ onUnmounted(() => {
       70% { box-shadow: 0 0 0 7px rgba(16, 185, 129, 0); }
       100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
-    .live-label { font-weight: 700; color: var(--c-success); text-transform: uppercase; letter-spacing: 0.04em; }
     .live-updated { color: var(--c-gray-light); }
     .refresh-btn {
       display: flex;
@@ -2735,7 +3191,7 @@ onUnmounted(() => {
 /* ===== STATS ROW ===== */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -3660,6 +4116,37 @@ onUnmounted(() => {
 .action-btn:hover { background: #F3F4F6; color: #111827; }
 .action-btn.delete-btn:hover { background: #FEE2E2; color: #DC2626; }
 
+.recaudo-detail { display: flex; flex-direction: column; gap: 10px; }
+.recaudo-detail-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 14px; background: var(--c-light); border: 1px solid var(--c-border); border-radius: 10px; }
+.recaudo-detail-row span { font-size: 0.72rem; font-weight: 600; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.04em; }
+.recaudo-detail-row strong { font-size: 0.88rem; color: var(--c-black); text-align: right; word-break: break-word; }
+
+.action-btn.msg-btn-action { background: var(--c-primary); color: #102857; box-shadow: 0 2px 8px rgba(240, 192, 9, 0.35); }
+.action-btn.msg-btn-action:hover { background: var(--c-primary-hover); color: #102857; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(240, 192, 9, 0.45); }
+
+.data-table .col-check { width: 44px; text-align: center; }
+.data-table .col-check input { vertical-align: middle; }
+.row-check { width: 16px; height: 16px; accent-color: var(--c-primary); cursor: pointer; }
+
+.msg-recipient { display: flex; flex-direction: column; gap: 3px; padding: 12px 14px; background: var(--c-light); border: 1px solid var(--c-border); border-radius: 10px; margin-bottom: 14px; }
+.msg-recipient strong { font-size: 0.92rem; color: var(--c-black); }
+.msg-recipient span { font-size: 0.78rem; color: var(--c-gray); }
+
+.msg-sent-toast { position: fixed; bottom: 24px; right: 24px; z-index: 45000; display: flex; align-items: center; gap: 10px; background: #0E3570; color: #fff; padding: 12px 16px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); font-size: 0.85rem; font-weight: 600; }
+.msg-toast-icon { display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #16A34A; color: #fff; flex-shrink: 0; }
+.msg-toast-close { display: flex; align-items: center; justify-content: center; background: none; border: none; color: rgba(255, 255, 255, 0.7); cursor: pointer; padding: 2px; }
+.msg-toast-close:hover { color: #fff; }
+.msg-toast-fade-enter-active, .msg-toast-fade-leave-active { transition: all 0.3s ease; }
+.msg-toast-fade-enter-from, .msg-toast-fade-leave-to { opacity: 0; transform: translateY(12px); }
+
+.modal-overlay-confirm { z-index: 44500; }
+.modal-content.modal-confirm { max-width: 460px; padding: 28px 24px 24px; text-align: center; }
+.confirm-icon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; background: rgba(240, 192, 9, 0.16); color: var(--c-primary); }
+.modal-confirm h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; color: var(--c-black); }
+.modal-confirm p { margin: 0 0 14px; font-size: 0.85rem; color: var(--c-gray); line-height: 1.5; }
+.confirm-preview { background: var(--c-light); border: 1px solid var(--c-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: 0.82rem; color: var(--c-black); text-align: left; line-height: 1.5; word-break: break-word; }
+.confirm-actions { display: flex; justify-content: center; gap: 10px; }
+
 .user-cell {
   display: flex;
   align-items: center;
@@ -4355,6 +4842,7 @@ onUnmounted(() => {
   max-height: 90vh;
   overflow-y: auto;
 }
+.modal-content.modal-wide { max-width: 860px; }
 .modal-card {
   background: var(--c-white);
   border-radius: 14px;
@@ -4403,10 +4891,17 @@ onUnmounted(() => {
 }
 .modal-footer {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: flex-end;
-  padding: 16px 24px;
+  padding: 16px 20px;
   border-top: 1px solid var(--c-border);
+}
+.modal-footer .btn-outline,
+.modal-footer .btn-primary {
+  padding: 9px 14px;
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
 .modal-icon {
   color: #dc2626;
@@ -4464,6 +4959,53 @@ onUnmounted(() => {
 .form-input:focus {
   border-color: var(--c-primary);
 }
+.form-input[readonly] {
+  background: var(--c-light);
+  color: var(--c-gray);
+  cursor: not-allowed;
+}
+.form-input:disabled {
+  background: var(--c-light);
+  color: var(--c-gray);
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.combo { position: relative; width: 100%; }
+.combo .form-input { width: 100%; }
+.combo-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 46000;
+  background: var(--c-white);
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+  max-height: 230px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.combo-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.combo-option:hover { background: rgba(240, 192, 9, 0.14); }
+.combo-option-name { font-size: 0.85rem; font-weight: 600; color: var(--c-black); }
+.combo-option-meta { font-size: 0.75rem; color: var(--c-gray); white-space: nowrap; }
+.combo-empty { padding: 12px 10px; font-size: 0.8rem; color: var(--c-gray); text-align: center; }
 
 /* ===== SECTION CARDS ===== */
 .section-grid {
@@ -4682,6 +5224,8 @@ onUnmounted(() => {
 /* ===== FILTROS ===== */
 .coti-filters {
   display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
   gap: 16px;
   margin-bottom: 20px;
 }
@@ -4715,6 +5259,7 @@ onUnmounted(() => {
   color: var(--c-gray-light);
   opacity: 1;
 }
+.coti-filter-group .btn-outline { padding: 8px 16px; }
 
 .view-mode input,
 .view-mode select,

@@ -4,7 +4,6 @@ export * from './apiConfig'
 // Exportar servicios activos
 export * from './authService'
 export { clientAuthService } from './clientAuthService'
-export type { SmsCodeResponse } from './clientAuthService'
 export { userService } from './userService'
 export * from './categoryService'
 export * from './productService'

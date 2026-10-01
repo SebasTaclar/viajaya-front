@@ -3,46 +3,10 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Usuarios</h1>
-        <p class="page-subtitle">{{ filteredUsuarios.length }} usuarios registrados{{ totalPages > 1 ? ` — Página ${currentPage} de ${totalPages}` : '' }}</p>
+        <p class="page-subtitle">{{ filteredUsuarios.length }} usuarios registrados{{ totalPages > 1 ? ` — Página ${currentPage} de ${totalPages}` : '' }}{{ seleccionados.length > 0 ? ` — ${seleccionados.length} seleccionados` : '' }}</p>
       </div>
       <div class="header-actions">
-        <div class="summary-cards">
-          <div class="summary-card">
-            <div class="summary-icon activos">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-            </div>
-            <div class="summary-info">
-              <span class="summary-count">{{ usuarios.length }}</span>
-              <span class="summary-label">Usuarios</span>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-icon admins">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-            </div>
-            <div class="summary-info">
-              <span class="summary-count">{{ usuarios.filter(u => u.role === 'admin' || u.role === 'superadmin').length }}</span>
-              <span class="summary-label">Admins</span>
-            </div>
-          </div>
-          <div class="summary-card">
-            <div class="summary-icon clientes">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-              </svg>
-            </div>
-            <div class="summary-info">
-              <span class="summary-count">{{ usuarios.filter(u => u.role === 'user').length }}</span>
-              <span class="summary-label">Clientes</span>
-            </div>
-          </div>
-        </div>
+
         <button class="btn-primary" @click="openCreateModal">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -52,30 +16,7 @@
       </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="view-tabs">
-      <button class="view-tab" :class="{ active: activeTab === 'listado' }" @click="activeTab = 'listado'">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        Listado
-      </button>
-      <button class="view-tab" :class="{ active: activeTab === 'mensajes' }" @click="activeTab = 'mensajes'">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        Mensajes SMS
-        <span v-if="!canSendSms" class="tab-lock" title="Privilegio revocado">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-        </span>
-      </button>
-    </div>
-
     <!-- LISTADO -->
-    <template v-if="activeTab === 'listado'">
       <div class="filters-bar">
         <div class="search-box">
           <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -90,17 +31,10 @@
         </div>
         <div class="filter-group">
           <div class="filter-field">
-            <label class="filter-label">Rol</label>
-            <select v-model="roleFilter" class="form-select">
-              <option value="">Todos</option>
-              <option value="admin">Admin</option>
-              <option value="user">Cliente</option>
-            </select>
-          </div>
-          <div class="filter-field">
             <label class="filter-label">Recaudo</label>
             <select v-model="periodFilter" class="form-select">
               <option value="">Todas</option>
+              <option value="diario">Diario</option>
               <option value="mensual">Mensual</option>
               <option value="quincenal">Quincenal</option>
               <option value="semanal">Semanal</option>
@@ -125,17 +59,22 @@
           <table class="data-table users-table">
             <thead>
               <tr>
+                <th class="col-check">
+                  <input type="checkbox" class="row-check" :checked="todosSeleccionados" title="Seleccionar todos" @change="toggleTodos" />
+                </th>
                 <th>Nombre completo</th>
                 <th>Cédula</th>
                 <th>Celular</th>
                 <th>Ubicación</th>
                 <th>Periodicidad</th>
-                <th>Consentimiento</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="u in paginatedUsuarios" :key="u.id">
+                <td class="col-check">
+                  <input type="checkbox" class="row-check" :checked="seleccionados.includes(u.id)" @change="toggleSeleccion(u.id)" />
+                </td>
                 <td>
                   <div class="user-cell">
                     <div class="user-avatar" :style="{ background: getUserColor(u.id) }">
@@ -149,17 +88,8 @@
                 </td>
                 <td>{{ u.cedula }}</td>
                 <td>{{ u.celular }}</td>
-                <td>{{ u.ubicacion }}</td>
-                <td><span class="period-badge">{{ u.periodicidad }}</span></td>
-                <td>
-                  <span v-if="u.consentLey1581" class="consent-ok" title="Ley 1581 — consentimiento registrado">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    Registrado
-                  </span>
-                  <span v-else class="consent-pending">Pendiente</span>
-                </td>
+                <td>{{ u.ubicacion || '—' }}</td>
+                <td><span class="period-badge">{{ u.periodicidad || '—' }}</span></td>
                 <td>
                   <div class="actions-cell">
                     <button class="action-btn" title="Editar datos" @click="openEditModal(u)">
@@ -168,10 +98,11 @@
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                       </svg>
                     </button>
-                    <button class="action-btn" title="Enviar SMS" @click="openSmsForUser(u)">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <button class="msg-btn" title="Enviar mensaje" @click="openMsgOptions(u)">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                       </svg>
+                      <span>Enviar mensaje</span>
                     </button>
                     <button class="action-btn delete-btn" title="Eliminar" @click="deleteUsuario(u.id, u.name)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -197,161 +128,6 @@
           </button>
         </div>
       </div>
-    </template>
-
-    <!-- MENSAJES SMS -->
-    <template v-else>
-      <div v-if="!canSendSms" class="sms-privilege-banner">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <div>
-          <strong>Privilegio de envío revocado</strong>
-          <p>El rol Admin no tiene permiso para enviar SMS. Un Super Admin puede restaurarlo desde la lista de usuarios.</p>
-        </div>
-        <button v-if="currentRole === 'superadmin'" class="btn-restore" @click="canSendSms = true">Restaurar privilegio</button>
-      </div>
-
-      <div class="sms-layout">
-        <!-- Compose -->
-        <div class="sms-compose card-panel">
-          <div class="panel-title">
-            <h3>Enviar mensaje SMS</h3>
-            <span class="panel-sub">Según periodicidad requerida</span>
-          </div>
-
-          <div class="form-group">
-            <label>Destinatario</label>
-            <div class="sms-target-tabs">
-              <button class="target-tab" :class="{ active: smsForm.targetType === 'persona' }" @click="smsForm.targetType = 'persona'; smsForm.userId = null">
-                Persona
-              </button>
-              <button class="target-tab" :class="{ active: smsForm.targetType === 'grupo' }" @click="smsForm.targetType = 'grupo'">
-                Grupo
-              </button>
-              <button class="target-tab" :class="{ active: smsForm.targetType === 'todos' }" @click="smsForm.targetType = 'todos'">
-                Todos
-              </button>
-            </div>
-          </div>
-
-          <div v-if="smsForm.targetType === 'persona'" class="form-group">
-            <label>Usuario *</label>
-            <select v-model="smsForm.userId" class="form-input">
-              <option :value="null" disabled>Seleccionar usuario</option>
-              <option v-for="u in usuarios" :key="u.id" :value="u.id">{{ u.name }} — {{ u.celular }}</option>
-            </select>
-          </div>
-
-          <div v-if="smsForm.targetType === 'grupo'" class="form-group">
-            <label>Grupo *</label>
-            <select v-model="smsForm.groupId" class="form-input">
-              <option :value="null" disabled>Seleccionar grupo</option>
-              <option v-for="g in mockGroups" :key="g.id" :value="g.id">{{ g.name }} ({{ g.count }} usuarios)</option>
-            </select>
-          </div>
-
-          <div v-if="smsForm.targetType !== 'persona'" class="form-group">
-            <label>Periodicidad</label>
-            <select v-model="smsForm.periodicidad" class="form-input">
-              <option value="unica">Única vez</option>
-              <option value="diaria">Diaria</option>
-              <option value="semanal">Semanal</option>
-              <option value="quincenal">Quincenal</option>
-              <option value="mensual">Mensual</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Mensaje *</label>
-            <textarea v-model="smsForm.message" class="form-input sms-textarea" rows="4" maxlength="160" placeholder="Escriba el mensaje (máx. 160 caracteres)..."></textarea>
-            <span class="char-count">{{ smsForm.message.length }}/160</span>
-          </div>
-
-          <div v-if="smsError" class="modal-error sms-error">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
-            </svg>
-            {{ smsError }}
-          </div>
-
-          <div class="sms-summary" v-if="smsRecipientCount > 0">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-            </svg>
-            Se enviará a <strong>{{ smsRecipientCount }}</strong> destinatario{{ smsRecipientCount !== 1 ? 's' : '' }}
-          </div>
-
-          <button class="btn-primary btn-send" :disabled="smsSending || !canSendSms" @click="handleSendSms">
-            <span v-if="smsSending" class="btn-spinner"></span>
-            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-            </svg>
-            {{ smsSending ? 'Enviando...' : 'Enviar SMS' }}
-          </button>
-        </div>
-
-        <!-- Historial -->
-        <div class="sms-history card-panel">
-          <div class="panel-title history-header">
-            <div>
-              <h3>Historial de envíos</h3>
-              <span class="panel-sub">{{ filteredHistory.length }} registros</span>
-            </div>
-            <div class="history-controls">
-              <select v-model="historyFilter" class="form-select history-select">
-                <option value="">Todos</option>
-                <option value="persona">Persona</option>
-                <option value="grupo">Grupo</option>
-                <option value="todos">Todos</option>
-              </select>
-              <label v-if="currentRole === 'superadmin'" class="privilege-toggle" title="Suprimir/restore privilegio de envío al rol Admin">
-                <input type="checkbox" :checked="!adminSmsPrivilege" @change="toggleAdminSmsPrivilege" />
-                <span>Revocar SMS a Admin</span>
-              </label>
-            </div>
-          </div>
-
-          <div v-if="filteredHistory.length === 0" class="empty-state history-empty">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            <p>No hay envíos registrados</p>
-          </div>
-
-          <div v-else class="history-list">
-            <div v-for="h in filteredHistory" :key="h.id" class="history-item">
-              <div class="history-icon" :class="h.targetType">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                </svg>
-              </div>
-              <div class="history-body">
-                <div class="history-top">
-                  <span class="history-target">{{ h.targetLabel }}</span>
-                  <span class="history-type-badge" :class="h.targetType">{{ typeLabel(h.targetType) }}</span>
-                </div>
-                <p class="history-message">{{ h.message }}</p>
-                <div class="history-meta">
-                  <span>{{ h.date }}</span>
-                  <span>·</span>
-                  <span>{{ h.recipients }} destinatario{{ h.recipients !== 1 ? 's' : '' }}</span>
-                  <span v-if="h.periodicidad && h.periodicidad !== 'unica'">·</span>
-                  <span v-if="h.periodicidad && h.periodicidad !== 'unica'" class="history-period">Recurrencia: {{ h.periodicidad }}</span>
-                  <span>·</span>
-                  <span>Por: {{ h.sentBy }}</span>
-                </div>
-              </div>
-              <button class="action-btn delete-btn" title="Suprimir del historial" @click="deleteHistory(h.id)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </template>
 
     <!-- Create User Modal -->
     <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
@@ -375,14 +151,6 @@
         <div class="modal-body">
           <div class="required-note">Campos con * son obligatorios. No se solicita dinero invertido o recaudado.</div>
           <div class="form-grid-modal">
-            <div class="form-group form-group-full">
-              <label>Rol *</label>
-              <select v-model="createForm.role" class="form-input">
-                <option value="user">Cliente</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
             <div class="form-group">
               <label>Nombre completo *</label>
               <input v-model="createForm.name" type="text" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.name }" placeholder="Ej. María Pérez López" />
@@ -399,14 +167,15 @@
             </div>
 
             <div class="form-group">
-              <label>Ubicación *</label>
-              <input v-model="createForm.ubicacion" type="text" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.ubicacion }" placeholder="Ciudad / Departamento" />
+              <label>Ubicación</label>
+              <input v-model="createForm.ubicacion" type="text" class="form-input" placeholder="Ciudad / Departamento" />
             </div>
 
             <div class="form-group">
-              <label>Periodicidad de recaudo *</label>
-              <select v-model="createForm.periodicidad" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.periodicidad }">
+              <label>Periodicidad de recaudo</label>
+              <select v-model="createForm.periodicidad" class="form-input">
                 <option value="" disabled>Seleccionar</option>
+                <option value="diario">Diario</option>
                 <option value="mensual">Mensual</option>
                 <option value="quincenal">Quincenal</option>
                 <option value="semanal">Semanal</option>
@@ -419,9 +188,9 @@
             </div>
 
             <div class="form-group form-group-full">
-              <label>Contraseña *</label>
+              <label>Contraseña</label>
               <div class="password-input-wrap">
-                <input v-model="createForm.password" :type="showPassword ? 'text' : 'password'" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.password }" placeholder="Mínimo 6 caracteres" />
+                <input v-model="createForm.password" :type="showPassword ? 'text' : 'password'" class="form-input" placeholder="Opcional (mínimo 6 caracteres)" />
                 <button type="button" class="btn-toggle-password" @click="showPassword = !showPassword">
                   <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -434,7 +203,7 @@
               </div>
             </div>
 
-            <div class="form-group form-group-full">
+            <div v-if="mostrarPolitica" class="form-group form-group-full">
               <label class="policy-box" :class="{ 'field-error': createSubmitted && !createForm.acceptPolicy }">
                 <input type="checkbox" v-model="createForm.acceptPolicy" />
                 <div class="policy-text">
@@ -505,13 +274,14 @@
             </div>
 
             <div class="form-group">
-              <label>Ubicación *</label>
+              <label>Ubicación</label>
               <input v-model="editForm.ubicacion" type="text" class="form-input" placeholder="Ciudad / Departamento" />
             </div>
 
             <div class="form-group">
-              <label>Periodicidad de recaudo *</label>
+              <label>Periodicidad de recaudo</label>
               <select v-model="editForm.periodicidad" class="form-input">
+                <option value="diario">Diario</option>
                 <option value="mensual">Mensual</option>
                 <option value="quincenal">Quincenal</option>
                 <option value="semanal">Semanal</option>
@@ -523,7 +293,7 @@
               <input v-model="editForm.email" type="email" class="form-input" placeholder="correo@ejemplo.com" />
             </div>
 
-            <div class="form-group form-group-full">
+            <div v-if="mostrarPolitica" class="form-group form-group-full">
               <label>Consentimiento Ley 1581</label>
               <label class="policy-box policy-box-compact">
                 <input type="checkbox" v-model="editForm.consentLey1581" />
@@ -565,73 +335,106 @@
         </div>
       </div>
     </div>
+
+    <!-- Message Options Modal -->
+    <div v-if="showMsgOptions && msgTargetUser" class="modal-overlay" @click.self="showMsgOptions = false">
+      <div class="modal-content modal-sm" @click.stop>
+        <div class="modal-header">
+          <h3>Enviar mensaje</h3>
+          <button class="modal-close" @click="showMsgOptions = false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="msg-options-sub">Selecciona el tipo de recaudo que quieres informar a <strong>{{ msgTargetUser.name }}</strong></p>
+          <div class="msg-options">
+            <button class="msg-option" @click="chooseMsgOption('ultimo')">
+              <span class="msg-option-icon ultimo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </span>
+              <span class="msg-option-text">
+                <strong>Último Recaudo</strong>
+                <small>Informar sobre el último recaudo registrado</small>
+              </span>
+              <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+            <button class="msg-option" @click="chooseMsgOption('total')">
+              <span class="msg-option-icon total">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </span>
+              <span class="msg-option-text">
+                <strong>Total Recaudo</strong>
+                <small>Informar sobre el total recaudado acumulado</small>
+              </span>
+              <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmar envío de mensaje -->
+    <div v-if="msgConfirm && msgTargetUser" class="modal-overlay modal-overlay-confirm" @click.self="msgConfirm = false">
+      <div class="modal-content modal-sm modal-confirm" @click.stop>
+        <div class="modal-body confirm-body">
+          <div class="confirm-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <h3>¿Estás seguro?</h3>
+          <p>
+            Vas a enviar un mensaje de <strong>{{ msgKind === 'ultimo' ? 'Último Recaudo' : 'Total Recaudo' }}</strong>
+            a <strong>{{ msgTargetUser.name }}</strong> (C.I. {{ msgTargetUser.cedula }}).
+          </p>
+          <div class="confirm-actions">
+            <button class="btn-cancel" @click="msgConfirm = false">Cancelar</button>
+            <button class="btn-save" @click="confirmSendMsg">Sí, enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Simulación de envío de mensaje -->
+    <transition name="msg-toast-fade">
+      <div v-if="msgStatus" class="msg-sent-toast" :class="msgStatus" role="status">
+        <span class="msg-sent-icon">
+          <span v-if="msgStatus === 'sending'" class="msg-sent-spinner"></span>
+          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </span>
+        <div class="msg-sent-text">
+          <strong>{{ msgStatus === 'sending' ? 'Enviando mensaje...' : 'Mensaje enviado' }}</strong>
+          <span>{{ msgSentTipo }} · {{ msgSentTo }}</span>
+        </div>
+        <button class="msg-sent-close" title="Cerrar" @click="msgStatus = null">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import { authService } from '@/services/api/authService'
-
-interface MockUser {
-  id: number
-  name: string
-  email: string
-  cedula: string
-  celular: string
-  ubicacion: string
-  periodicidad: 'mensual' | 'quincenal' | 'semanal'
-  role: 'user' | 'admin' | 'superadmin'
-  consentLey1581: boolean
-  consentDate?: string
-}
-
-interface SmsHistoryItem {
-  id: number
-  targetType: 'persona' | 'grupo' | 'todos'
-  targetLabel: string
-  message: string
-  recipients: number
-  periodicidad: string
-  date: string
-  sentBy: string
-}
-
-const currentRole = ref(authService.getUserRole() || 'admin')
-const currentUser = authService.getCurrentUser()
-const canSendSms = ref(true)
-const adminSmsPrivilege = ref(true)
-const activeTab = ref<'listado' | 'mensajes'>('listado')
-
-const usuarios = ref<MockUser[]>([
-  { id: 1, name: 'María Fernanda López', email: 'maria.lopez@correo.com', cedula: '1032456789', celular: '300 123 4567', ubicacion: 'Bogotá, Cundinamarca', periodicidad: 'mensual', role: 'user', consentLey1581: true, consentDate: '15/03/2026' },
-  { id: 2, name: 'Carlos Andrés Gómez', email: 'carlos.gomez@correo.com', cedula: '80123456', celular: '310 987 6543', ubicacion: 'Medellín, Antioquia', periodicidad: 'quincenal', role: 'user', consentLey1581: true, consentDate: '02/04/2026' },
-  { id: 3, name: 'Laura Valentina Ruiz', email: 'laura.ruiz@correo.com', cedula: '1098765432', celular: '320 456 7890', ubicacion: 'Cali, Valle del Cauca', periodicidad: 'semanal', role: 'user', consentLey1581: true, consentDate: '20/04/2026' },
-  { id: 4, name: 'Jorge Eduardo Martínez', email: 'jorge.martinez@correo.com', cedula: '79876543', celular: '315 222 3344', ubicacion: 'Barranquilla, Atlántico', periodicidad: 'mensual', role: 'user', consentLey1581: false },
-  { id: 5, name: 'Ana Sofía Hernández', email: 'ana.hernandez@correo.com', cedula: '1122334455', celular: '301 555 6677', ubicacion: 'Bucaramanga, Santander', periodicidad: 'quincenal', role: 'user', consentLey1581: true, consentDate: '10/05/2026' },
-  { id: 6, name: 'Pedro Pablo Díaz', email: 'pedro.diaz@correo.com', cedula: '98765432', celular: '318 888 9900', ubicacion: 'Santa Marta, Magdalena', periodicidad: 'mensual', role: 'user', consentLey1581: true, consentDate: '28/05/2026' },
-  { id: 7, name: 'Camila Restrepo', email: 'camila.restrepo@viajaya.com', cedula: '1055667788', celular: '312 111 2233', ubicacion: 'Bogotá, Cundinamarca', periodicidad: 'mensual', role: 'admin', consentLey1581: true, consentDate: '01/01/2026' },
-  { id: 8, name: 'Diego Alberto Sánchez', email: 'diego.sanchez@viajaya.com', cedula: '81112223', celular: '304 444 5566', ubicacion: 'Medellín, Antioquia', periodicidad: 'quincenal', role: 'admin', consentLey1581: true, consentDate: '15/01/2026' },
-  { id: 9, name: 'Valentina Ocampo', email: 'val.ocampo@correo.com', cedula: '1066778899', celular: '316 777 8899', ubicacion: 'Pereira, Risaralda', periodicidad: 'semanal', role: 'user', consentLey1581: true, consentDate: '03/06/2026' },
-  { id: 10, name: 'Andrés Felipe Castro', email: 'andres.castro@correo.com', cedula: '72223334', celular: '319 000 1122', ubicacion: 'Manizales, Caldas', periodicidad: 'mensual', role: 'user', consentLey1581: false },
-])
-
-const mockGroups = [
-  { id: 1, name: 'Recaudo mensual', count: 5 },
-  { id: 2, name: 'Recaudo quincenal', count: 3 },
-  { id: 3, name: 'Bogotá y alrededores', count: 3 },
-  { id: 4, name: 'Clientes sin consentimiento', count: 2 },
-]
-
-const smsHistory = ref<SmsHistoryItem[]>([
-  { id: 1, targetType: 'todos', targetLabel: 'Todos los usuarios', message: 'Recordatorio: mañana es fecha de pago del recibo de recaudo. Gracias por su puntualidad.', recipients: 8, periodicidad: 'unica', date: '18/06/2026 09:15', sentBy: 'Camila Restrepo' },
-  { id: 2, targetType: 'grupo', targetLabel: 'Recaudo mensual', message: 'Su cuota mensual vence el 30 de junio. Consulte el portal para más detalles.', recipients: 5, periodicidad: 'mensual', date: '16/06/2026 14:30', sentBy: 'Camila Restrepo' },
-  { id: 3, targetType: 'persona', targetLabel: 'María Fernanda López', message: 'Hola María, confirmamos su pago del 15. ¡Gracias!', recipients: 1, periodicidad: 'unica', date: '15/06/2026 11:02', sentBy: 'Diego Alberto Sánchez' },
-  { id: 4, targetType: 'grupo', targetLabel: 'Bogotá y alrededores', message: 'Nuevo punto de recaudo disponible en Chapinero. Atención de 8am a 5pm.', recipients: 3, periodicidad: 'quincenal', date: '12/06/2026 08:45', sentBy: 'Camila Restrepo' },
-])
+import { ref, computed, watch } from 'vue'
+import { usuarios, type MockUser } from '@/composables/useUsuariosStore'
 
 const loading = ref(false)
 const searchTerm = ref('')
-const roleFilter = ref('')
 const periodFilter = ref('')
 const currentPage = ref(1)
 const perPage = 20
@@ -639,10 +442,19 @@ const perPage = 20
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const showDeleteModal = ref(false)
+const showMsgOptions = ref(false)
+const msgTargetUser = ref<MockUser | null>(null)
+const msgStatus = ref<'sending' | 'sent' | null>(null)
+const msgConfirm = ref(false)
+const msgKind = ref<'ultimo' | 'total'>('ultimo')
+const msgSentTo = ref('')
+const msgSentTipo = ref('')
 const saving = ref(false)
 const formError = ref('')
 const createSubmitted = ref(false)
 const showPassword = ref(false)
+
+const mostrarPolitica = false
 
 const deleteId = ref(0)
 const deleteName = ref('')
@@ -671,17 +483,6 @@ const editForm = ref({
   consentLey1581: false,
 })
 
-const smsForm = ref({
-  targetType: 'persona' as 'persona' | 'grupo' | 'todos',
-  userId: null as number | null,
-  groupId: null as number | null,
-  periodicidad: 'unica',
-  message: '',
-})
-const smsSending = ref(false)
-const smsError = ref('')
-const historyFilter = ref('')
-
 const filteredUsuarios = computed(() => {
   let result = [...usuarios.value]
   if (searchTerm.value) {
@@ -693,9 +494,6 @@ const filteredUsuarios = computed(() => {
       u.ubicacion.toLowerCase().includes(term) ||
       u.email.toLowerCase().includes(term),
     )
-  }
-  if (roleFilter.value) {
-    result = result.filter(u => u.role === roleFilter.value)
   }
   if (periodFilter.value) {
     result = result.filter(u => u.periodicidad === periodFilter.value)
@@ -709,27 +507,29 @@ const paginatedUsuarios = computed(() => {
   return filteredUsuarios.value.slice(start, start + perPage)
 })
 
-const smsRecipientCount = computed(() => {
-  if (smsForm.value.targetType === 'persona') return smsForm.value.userId ? 1 : 0
-  if (smsForm.value.targetType === 'grupo') {
-    const g = mockGroups.find(x => x.id === smsForm.value.groupId)
-    return g ? g.count : 0
-  }
-  return usuarios.value.length
-})
+// ========== SELECCIÓN DE USUARIOS ==========
+const seleccionados = ref<number[]>([])
 
-const filteredHistory = computed(() => {
-  if (!historyFilter.value) return smsHistory.value
-  return smsHistory.value.filter(h => h.targetType === historyFilter.value)
-})
+const todosSeleccionados = computed(() =>
+  filteredUsuarios.value.length > 0 && filteredUsuarios.value.every((u) => seleccionados.value.includes(u.id)),
+)
 
-watch([searchTerm, roleFilter, periodFilter], () => { currentPage.value = 1 })
-
-function typeLabel(t: string): string {
-  if (t === 'persona') return 'Persona'
-  if (t === 'grupo') return 'Grupo'
-  return 'Todos'
+function toggleSeleccion(id: number) {
+  const idx = seleccionados.value.indexOf(id)
+  if (idx === -1) seleccionados.value.push(id)
+  else seleccionados.value.splice(idx, 1)
 }
+
+function toggleTodos() {
+  const ids = filteredUsuarios.value.map((u) => u.id)
+  if (todosSeleccionados.value) {
+    seleccionados.value = seleccionados.value.filter((id) => !ids.includes(id))
+  } else {
+    seleccionados.value = Array.from(new Set([...seleccionados.value, ...ids]))
+  }
+}
+
+watch([searchTerm, periodFilter], () => { currentPage.value = 1 })
 
 function getUserInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
@@ -782,10 +582,8 @@ function handleCreate() {
   if (!f.name.trim()) { formError.value = 'El nombre completo es obligatorio.'; return }
   if (!f.cedula.trim()) { formError.value = 'La cédula es obligatoria.'; return }
   if (!f.celular.trim()) { formError.value = 'El celular es obligatorio.'; return }
-  if (!f.ubicacion.trim()) { formError.value = 'La ubicación es obligatoria.'; return }
-  if (!f.periodicidad) { formError.value = 'La periodicidad de recaudo es obligatoria.'; return }
-  if (!f.password || f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
-  if (!f.acceptPolicy) {
+  if (f.password && f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
+  if (mostrarPolitica && !f.acceptPolicy) {
     formError.value = 'Debe aceptar la Política de tratamiento de datos personales (Ley 1581) para crear el usuario.'
     return
   }
@@ -813,7 +611,7 @@ function handleCreate() {
 function handleUpdate() {
   formError.value = ''
   const f = editForm.value
-  if (!f.name.trim() || !f.cedula.trim() || !f.celular.trim() || !f.ubicacion.trim()) {
+  if (!f.name.trim() || !f.cedula.trim() || !f.celular.trim()) {
     formError.value = 'Complete los campos obligatorios.'
     return
   }
@@ -843,81 +641,37 @@ function deleteUsuario(id: number, name: string) {
 
 function confirmDelete() {
   usuarios.value = usuarios.value.filter(u => u.id !== deleteId.value)
+  seleccionados.value = seleccionados.value.filter((id) => id !== deleteId.value)
   showDeleteModal.value = false
 }
 
-function openSmsForUser(u: MockUser) {
-  activeTab.value = 'mensajes'
-  smsForm.value.targetType = 'persona'
-  smsForm.value.userId = u.id
-  smsForm.value.message = ''
-  smsError.value = ''
+function openMsgOptions(u: MockUser) {
+  msgTargetUser.value = u
+  msgConfirm.value = false
+  showMsgOptions.value = true
 }
 
-function handleSendSms() {
-  smsError.value = ''
-  if (!canSendSms.value) {
-    smsError.value = 'No tiene privilegio para enviar SMS.'
-    return
-  }
-  if (!smsForm.value.message.trim()) {
-    smsError.value = 'El mensaje es obligatorio.'
-    return
-  }
-  if (smsForm.value.targetType === 'persona' && !smsForm.value.userId) {
-    smsError.value = 'Seleccione el usuario destinatario.'
-    return
-  }
-  if (smsForm.value.targetType === 'grupo' && !smsForm.value.groupId) {
-    smsError.value = 'Seleccione el grupo destinatario.'
-    return
-  }
+let msgTimer: ReturnType<typeof setTimeout> | undefined
 
-  smsSending.value = true
-  setTimeout(() => {
-    const count = smsRecipientCount.value
-    let label = 'Todos los usuarios'
-    if (smsForm.value.targetType === 'persona') {
-      label = usuarios.value.find(u => u.id === smsForm.value.userId)?.name || 'Persona'
-    } else if (smsForm.value.targetType === 'grupo') {
-      label = mockGroups.find(g => g.id === smsForm.value.groupId)?.name || 'Grupo'
-    }
-
-    smsHistory.value.unshift({
-      id: Date.now(),
-      targetType: smsForm.value.targetType,
-      targetLabel: label,
-      message: smsForm.value.message.trim(),
-      recipients: count,
-      periodicidad: smsForm.value.periodicidad,
-      date: new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }),
-      sentBy: currentUser?.name || 'Admin',
-    })
-
-    smsForm.value.message = ''
-    smsForm.value.userId = null
-    smsForm.value.groupId = null
-    smsForm.value.periodicidad = 'unica'
-    smsSending.value = false
-  }, 600)
+function chooseMsgOption(kind: 'ultimo' | 'total') {
+  msgKind.value = kind
+  showMsgOptions.value = false
+  msgConfirm.value = true
 }
 
-function deleteHistory(id: number) {
-  smsHistory.value = smsHistory.value.filter(h => h.id !== id)
+function confirmSendMsg() {
+  const u = msgTargetUser.value
+  msgConfirm.value = false
+  if (!u) return
+  msgSentTo.value = u.name
+  msgSentTipo.value = msgKind.value === 'ultimo' ? 'Último Recaudo' : 'Total Recaudo'
+  msgStatus.value = 'sending'
+  clearTimeout(msgTimer)
+  msgTimer = setTimeout(() => {
+    msgStatus.value = 'sent'
+    msgTimer = setTimeout(() => { msgStatus.value = null }, 4000)
+  }, 900)
 }
-
-function toggleAdminSmsPrivilege() {
-  adminSmsPrivilege.value = !adminSmsPrivilege.value
-  if (currentRole.value === 'admin') {
-    canSendSms.value = adminSmsPrivilege.value
-  }
-}
-
-onMounted(() => {
-  if (currentRole.value === 'admin' && !adminSmsPrivilege.value) {
-    canSendSms.value = false
-  }
-})
 </script>
 
 <style scoped>
@@ -932,31 +686,17 @@ onMounted(() => {
 .summary-card { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--c-white); border: 1px solid var(--c-border); border-radius: 10px; }
 .summary-icon { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 8px; }
 .summary-icon.activos { background: #DCFCE7; color: #16A34A; }
-.summary-icon.admins { background: #DBEAFE; color: #2563EB; }
-.summary-icon.clientes { background: #FEF3C7; color: #D97706; }
 .summary-info { display: flex; flex-direction: column; }
 .summary-count { font-size: 1.1rem; font-weight: 700; color: var(--c-black); line-height: 1; }
 .summary-label { font-size: 0.68rem; color: var(--c-gray); margin-top: 2px; white-space: nowrap; }
 
-.view-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--c-border); padding-bottom: 0; }
-.view-tab {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 16px; border: none; background: none;
-  font-size: 0.88rem; font-weight: 600; color: var(--c-gray);
-  cursor: pointer; border-bottom: 2px solid transparent;
-  margin-bottom: -1px; transition: all 0.15s; font-family: inherit;
-}
-.view-tab:hover { color: var(--c-primary); }
-.view-tab.active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
-.tab-lock { color: #E8483F; display: inline-flex; }
-
-.filters-bar { display: flex; flex-direction: column; gap: 10px; }
-.search-box { position: relative; max-width: 420px; }
+.filters-bar { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.search-box { position: relative; max-width: 420px; flex: 1; min-width: 240px; }
 .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--c-gray-light); pointer-events: none; }
 .search-input { width: 100%; padding: 10px 14px 10px 42px; border: 1.5px solid #d1d5db; border-radius: 10px; font-size: 0.88rem; font-family: inherit; background: var(--c-white); color: var(--c-black); outline: none; transition: all 0.2s; box-sizing: border-box; }
 .search-input:focus { border-color: #0E3570; box-shadow: 0 0 0 3px rgba(14, 53, 112, 0.12); }
 .search-input::placeholder { color: var(--c-gray-light); }
-.filter-group { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.filter-group { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; margin-left: auto; }
 .filter-field { display: flex; flex-direction: column; gap: 4px; }
 .filter-label { font-size: 0.72rem; font-weight: 600; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.3px; }
 .form-select { padding: 11px 32px 11px 14px; border: 1.5px solid #d1d5db; border-radius: 10px; font-size: 0.88rem; font-family: inherit; background: var(--c-white); color: var(--c-black); outline: none; cursor: pointer; width: 150px; transition: all 0.2s; }
@@ -970,7 +710,9 @@ onMounted(() => {
 .data-table th { padding: 12px 14px; text-align: left; font-size: 0.7rem; font-weight: 600; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.05em; background: var(--c-light); border-bottom: 1px solid var(--c-border); white-space: nowrap; }
 .data-table td { padding: 12px 14px; font-size: 0.84rem; color: var(--c-black); border-bottom: 1px solid var(--c-border); vertical-align: middle; white-space: nowrap; }
 .data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: rgba(249, 250, 251, 0.5); }
+.data-table tr:hover td { background: rgba(240, 192, 9, 0.07); }
+.data-table .col-check { width: 42px; text-align: center; }
+.row-check { width: 16px; height: 16px; accent-color: var(--c-primary); cursor: pointer; }
 
 .user-cell { display: flex; align-items: center; gap: 10px; }
 .user-avatar { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; color: white; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; }
@@ -985,17 +727,44 @@ onMounted(() => {
 
 .period-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; background: #EEF2FF; color: #4338CA; text-transform: capitalize; }
 
-.consent-ok { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; background: #DCFCE7; color: #16A34A; }
-.consent-pending { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; background: #FEF3C7; color: #D97706; }
-
 .loading-state, .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; gap: 12px; color: var(--c-gray); }
 .spinner { width: 32px; height: 32px; border: 3px solid var(--c-border); border-top-color: #0E3570; border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.actions-cell { display: flex; gap: 4px; }
+.actions-cell { display: flex; gap: 6px; align-items: center; }
 .action-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: none; color: var(--c-gray); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
 .action-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--c-black); }
 .action-btn.delete-btn:hover { background: rgba(232, 72, 63, 0.1); color: #E8483F; }
+
+.msg-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--c-primary), #E8C25A); color: #102857; font-size: 0.76rem; font-weight: 700; font-family: inherit; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 8px rgba(200, 155, 45, 0.4); transition: all 0.15s; }
+.msg-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(200, 155, 45, 0.5); }
+.msg-btn:active { transform: translateY(0); }
+
+.msg-options-sub { margin: 0 0 16px; font-size: 0.86rem; color: var(--c-gray); }
+.msg-options { display: flex; flex-direction: column; gap: 10px; }
+.msg-option { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; border: 1.5px solid var(--c-border); border-radius: 12px; background: var(--c-light); cursor: pointer; text-align: left; font-family: inherit; transition: all 0.15s; }
+.msg-option:hover { border-color: var(--c-primary); background: rgba(200, 155, 45, 0.12); transform: translateY(-1px); }
+.msg-option-icon { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; }
+.msg-option-icon.ultimo { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+.msg-option-icon.total { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+.msg-option-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.msg-option-text strong { font-size: 0.9rem; font-weight: 700; color: var(--c-black); }
+.msg-option-text small { font-size: 0.76rem; color: var(--c-gray); }
+.msg-option-arrow { color: var(--c-gray-light); flex-shrink: 0; }
+.msg-option:hover .msg-option-arrow { color: var(--c-primary); }
+
+.msg-sent-toast { position: fixed; right: 24px; bottom: 24px; z-index: 1200; display: flex; align-items: center; gap: 12px; min-width: 280px; max-width: 90vw; padding: 14px 16px; border-radius: 12px; background: var(--c-white); border: 1px solid var(--c-border); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25); }
+.msg-sent-toast.sent { border-color: rgba(16, 185, 129, 0.5); }
+.msg-sent-icon { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
+.msg-sent-toast.sent .msg-sent-icon { background: rgba(16, 185, 129, 0.18); color: #10B981; }
+.msg-sent-spinner { width: 16px; height: 16px; border: 2px solid rgba(59, 130, 246, 0.3); border-top-color: #3B82F6; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.msg-sent-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.msg-sent-text strong { font-size: 0.86rem; font-weight: 700; color: var(--c-black); }
+.msg-sent-text span { font-size: 0.76rem; color: var(--c-gray); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-sent-close { display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: none; background: none; color: var(--c-gray); border-radius: 6px; cursor: pointer; flex-shrink: 0; }
+.msg-sent-close:hover { background: var(--c-light); color: var(--c-black); }
+.msg-toast-fade-enter-active, .msg-toast-fade-leave-active { transition: all 0.25s ease; }
+.msg-toast-fade-enter-from, .msg-toast-fade-leave-to { opacity: 0; transform: translateY(12px); }
 
 .pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 16px; border-top: 1px solid var(--c-border); }
 .page-btn { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; padding: 0 8px; border: 1px solid var(--c-border); border-radius: 6px; background: var(--c-white); color: var(--c-dark); font-size: 0.82rem; cursor: pointer; transition: all 0.15s; }
@@ -1008,79 +777,11 @@ onMounted(() => {
 .btn-primary:hover:not(:disabled) { background: var(--c-primary-hover); }
 .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
 
-/* SMS layout */
-.sms-privilege-banner {
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 18px; border-radius: 12px;
-  background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C;
-}
-.sms-privilege-banner p { margin: 2px 0 0; font-size: 0.8rem; opacity: 0.9; }
-.btn-restore { margin-left: auto; padding: 8px 14px; border: 1px solid #B91C1C; background: white; color: #B91C1C; border-radius: 8px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.btn-restore:hover { background: #FEF2F2; }
-
-.sms-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start; }
-.card-panel { background: var(--c-white); border: 1px solid var(--c-border); border-radius: 14px; padding: 22px; }
-.panel-title { margin-bottom: 18px; }
-.panel-title h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--c-black); }
-.panel-sub { font-size: 0.78rem; color: var(--c-gray); }
-
-.sms-target-tabs { display: flex; gap: 6px; background: var(--c-light); padding: 4px; border-radius: 10px; }
-.target-tab {
-  flex: 1; padding: 8px 10px; border: none; background: transparent;
-  border-radius: 8px; font-size: 0.82rem; font-weight: 600; color: var(--c-gray);
-  cursor: pointer; transition: all 0.15s; font-family: inherit;
-}
-.target-tab.active { background: white; color: #0E3570; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
-
 .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; position: relative; }
 .form-group label { font-size: 0.76rem; font-weight: 600; color: var(--c-gray); text-transform: uppercase; letter-spacing: 0.3px; }
 .form-input { padding: 11px 14px; border: 1.5px solid #d1d5db; border-radius: 10px; font-size: 0.88rem; font-family: inherit; background: var(--c-white); color: var(--c-black); outline: none; transition: all 0.2s; width: 100%; box-sizing: border-box; }
 .form-input:focus { border-color: #0E3570; box-shadow: 0 0 0 3px rgba(14, 53, 112, 0.12); }
 .field-error { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important; }
-.sms-textarea { resize: vertical; min-height: 90px; }
-.char-count { align-self: flex-end; font-size: 0.72rem; color: var(--c-gray); }
-
-.sms-error { margin: 0 0 12px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; background: #FEF2F2; color: #DC2626; border-radius: 8px; font-size: 0.82rem; border: 1px solid #FECACA; }
-
-.sms-summary {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 12px; margin-bottom: 14px;
-  background: #EFF6FF; border: 1px solid #BFDBFE;
-  border-radius: 8px; font-size: 0.82rem; color: #1E40AF;
-}
-.btn-send { width: 100%; justify-content: center; }
-
-.history-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
-.history-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.history-select { width: auto; padding: 8px 28px 8px 12px; font-size: 0.8rem; }
-.privilege-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.76rem; font-weight: 600; color: #B91C1C; cursor: pointer; text-transform: none; letter-spacing: 0; }
-.privilege-toggle input { accent-color: #E8483F; }
-
-.history-list { display: flex; flex-direction: column; gap: 10px; max-height: 520px; overflow-y: auto; }
-.history-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 14px; border: 1px solid var(--c-border);
-  border-radius: 10px; background: #FAFAF8; transition: border-color 0.15s;
-}
-.history-item:hover { border-color: #c7d0de; }
-.history-icon {
-  display: flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
-}
-.history-icon.persona { background: #DBEAFE; color: #2563EB; }
-.history-icon.grupo { background: #FEF3C7; color: #D97706; }
-.history-icon.todos { background: #DCFCE7; color: #16A34A; }
-.history-body { flex: 1; min-width: 0; }
-.history-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.history-target { font-weight: 700; font-size: 0.86rem; color: var(--c-black); }
-.history-type-badge { padding: 2px 8px; border-radius: 12px; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
-.history-type-badge.persona { background: #EFF6FF; color: #2563EB; }
-.history-type-badge.grupo { background: #FFFBEB; color: #B45309; }
-.history-type-badge.todos { background: #F0FDF4; color: #16A34A; }
-.history-message { margin: 6px 0; font-size: 0.82rem; color: #374151; line-height: 1.4; word-break: break-word; }
-.history-meta { display: flex; flex-wrap: wrap; gap: 4px; font-size: 0.72rem; color: var(--c-gray); }
-.history-period { color: #4338CA; font-weight: 600; }
-.history-empty { padding: 36px; }
 
 /* Modals */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; backdrop-filter: blur(4px); }
@@ -1136,6 +837,14 @@ onMounted(() => {
 .btn-save { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--c-primary); color: #102857; border: none; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s; font-family: inherit; }
 .btn-save:hover { background: var(--c-primary-hover); transform: translateY(-1px); }
 .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+.modal-overlay-confirm { z-index: 1100; }
+.modal-content.modal-confirm { max-width: 440px; }
+.confirm-body { text-align: center; padding: 30px 24px; }
+.confirm-icon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; background: rgba(240, 192, 9, 0.16); color: var(--c-primary); }
+.confirm-body h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; color: var(--c-black); }
+.confirm-body p { margin: 0 0 20px; font-size: 0.87rem; color: var(--c-gray); line-height: 1.6; }
+.confirm-actions { display: flex; justify-content: center; gap: 10px; }
 .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
 
 .delete-modal-body { padding: 32px 28px; text-align: center; }
@@ -1145,10 +854,6 @@ onMounted(() => {
 .delete-actions { display: flex; gap: 10px; justify-content: center; }
 .delete-actions .btn-delete { padding: 10px 20px; border: none; border-radius: 10px; background: #E8483F; color: white; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
 .delete-actions .btn-delete:hover { background: #c93a32; transform: translateY(-1px); }
-
-@media (max-width: 1024px) {
-  .sms-layout { grid-template-columns: 1fr; }
-}
 
 @media (max-width: 768px) {
   .page-header { flex-direction: column; align-items: flex-start; }
@@ -1160,9 +865,6 @@ onMounted(() => {
   .summary-count { font-size: 1rem; }
   .summary-label { font-size: 0.6rem; white-space: normal; text-align: center; }
   .btn-primary { margin-left: 0; justify-content: center; width: 100%; padding: 13px 20px; font-size: 0.92rem; }
-
-  .view-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .view-tab { padding: 12px 14px; font-size: 0.85rem; white-space: nowrap; flex-shrink: 0; }
 
   .search-box { max-width: 100%; width: 100%; }
   .filter-group { width: 100%; }
@@ -1177,13 +879,6 @@ onMounted(() => {
   .form-grid-modal { grid-template-columns: 1fr; gap: 14px; }
 
   .search-input, .form-select, .form-input { font-size: 16px; }
-
-  .sms-layout { gap: 14px; }
-  .card-panel { padding: 16px; }
-  .history-header { flex-direction: column; }
-  .history-controls { width: 100%; }
-  .history-controls .form-select { width: auto; max-width: 100%; }
-  .history-item { padding: 10px; gap: 8px; }
 
   .modal-overlay { padding: 10px; }
   .modal-content { max-height: 94vh; border-radius: 14px; }
