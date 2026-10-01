@@ -1,18 +1,10 @@
 import { apiClient, type ApiResponse } from './apiConfig'
 import type { LoginCredentials, LoginResponse, DecodedToken, UserInfo } from './authService'
 
-export interface SmsCodeResponse {
-  success: boolean
-  message: string
-  expiresIn?: number
-}
-
 class ClientAuthService {
   private readonly TOKEN_KEY = 'clientAuthToken'
   private readonly USER_INFO_KEY = 'clientUserInfo'
-  private readonly MOCK_SMS_CODE = '123456'
-  private readonly CODE_EXPIRY_MINUTES = 5
-  private codeTimestamp: number | null = null
+  private readonly MOCK_PASSWORD = '123456'
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
     const response = await apiClient.post<LoginResponse>('/login', credentials)
@@ -28,53 +20,26 @@ class ClientAuthService {
     return response
   }
 
-  async sendSmsCode(cedula: string): Promise<SmsCodeResponse> {
-    // Mock: simula envío de SMS con código 123456
-    void cedula
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    this.codeTimestamp = Date.now()
-    return {
-      success: true,
-      message: 'Código de verificación enviado a su celular',
-      expiresIn: this.CODE_EXPIRY_MINUTES * 60,
-    }
-  }
+  async loginWithPassword(cedula: string, password: string): Promise<ApiResponse<LoginResponse>> {
+    // Mock: valida cédula + contraseña (cualquier cédula y contraseña 123456)
+    await new Promise(resolve => setTimeout(resolve, 800))
 
-  isCodeExpired(): boolean {
-    if (!this.codeTimestamp) return true
-    const elapsed = Date.now() - this.codeTimestamp
-    return elapsed > this.CODE_EXPIRY_MINUTES * 60 * 1000
-  }
-
-  async verifySmsCode(cedula: string, code: string): Promise<ApiResponse<LoginResponse>> {
-    if (this.isCodeExpired()) {
+    if (password !== this.MOCK_PASSWORD) {
       return {
         success: false,
-        message: 'El código ha expirado. Solicite uno nuevo.',
+        message: 'Cédula o contraseña incorrectos',
         data: null as unknown as LoginResponse,
         timestamp: new Date().toISOString(),
-        statusCode: 400,
+        statusCode: 401,
       }
     }
 
-    if (code !== this.MOCK_SMS_CODE) {
-      return {
-        success: false,
-        message: 'Código de verificación inválido',
-        data: null as unknown as LoginResponse,
-        timestamp: new Date().toISOString(),
-        statusCode: 400,
-      }
-    }
-
-    // Mock: genera un token JWT falso
     const mockToken = this.generateMockToken(cedula)
     this.setToken(mockToken)
     const userInfo = this.decodeToken(mockToken)
     if (userInfo) {
       this.setUserInfo(userInfo)
     }
-    this.codeTimestamp = null
 
     return {
       success: true,
