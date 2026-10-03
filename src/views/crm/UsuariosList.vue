@@ -44,9 +44,19 @@
       </div>
 
       <div class="table-card">
+        <div v-if="actionError" class="modal-error action-error">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          {{ actionError }}
+        </div>
         <div v-if="loading" class="loading-state">
           <div class="spinner"></div>
           <p>Cargando usuarios...</p>
+        </div>
+        <div v-else-if="usuariosError" class="loading-state">
+          <p>{{ usuariosError }}</p>
+          <button class="btn-cancel" @click="loadUsuarios(true)">Reintentar</button>
         </div>
         <div v-else-if="filteredUsuarios.length === 0" class="empty-state">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -67,6 +77,7 @@
                 <th>Celular</th>
                 <th>Ubicación</th>
                 <th>Periodicidad</th>
+                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -91,11 +102,28 @@
                 <td>{{ u.ubicacion || '—' }}</td>
                 <td><span class="period-badge">{{ u.periodicidad || '—' }}</span></td>
                 <td>
+                  <span class="status-badge" :class="u.isActive ? 'active' : 'inactive'">
+                    {{ u.isActive ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </td>
+                <td>
                   <div class="actions-cell">
                     <button class="action-btn" title="Editar datos" @click="openEditModal(u)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button
+                      class="action-btn"
+                      :title="u.isActive ? 'Inactivar usuario' : 'Reactivar usuario'"
+                      @click="toggleActive(u)"
+                    >
+                      <svg v-if="u.isActive" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/><line x1="12" y1="2" x2="12" y2="12"/>
+                      </svg>
+                      <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
                       </svg>
                     </button>
                     <button class="msg-btn" title="Enviar mensaje" @click="openMsgOptions(u)">
@@ -172,8 +200,8 @@
             </div>
 
             <div class="form-group">
-              <label>Periodicidad de recaudo</label>
-              <select v-model="createForm.periodicidad" class="form-input">
+              <label>Periodicidad de recaudo *</label>
+              <select v-model="createForm.periodicidad" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.periodicidad }">
                 <option value="" disabled>Seleccionar</option>
                 <option value="diario">Diario</option>
                 <option value="mensual">Mensual</option>
@@ -188,9 +216,9 @@
             </div>
 
             <div class="form-group form-group-full">
-              <label>Contraseña</label>
+              <label>Contraseña *</label>
               <div class="password-input-wrap">
-                <input v-model="createForm.password" :type="showPassword ? 'text' : 'password'" class="form-input" placeholder="Opcional (mínimo 6 caracteres)" />
+                <input v-model="createForm.password" :type="showPassword ? 'text' : 'password'" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.password }" placeholder="Mínimo 6 caracteres" />
                 <button type="button" class="btn-toggle-password" @click="showPassword = !showPassword">
                   <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -251,14 +279,6 @@
         <div class="modal-body">
           <div class="form-grid-modal">
             <div class="form-group">
-              <label>Rol</label>
-              <select v-model="editForm.role" class="form-input">
-                <option value="user">Cliente</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-
-            <div class="form-group">
               <label>Nombre completo *</label>
               <input v-model="editForm.name" type="text" class="form-input" placeholder="Nombre completo" />
             </div>
@@ -291,6 +311,28 @@
             <div class="form-group form-group-full">
               <label>Correo electrónico</label>
               <input v-model="editForm.email" type="email" class="form-input" placeholder="correo@ejemplo.com" />
+            </div>
+
+            <div class="form-group form-group-full">
+              <label>Nueva contraseña (opcional)</label>
+              <div class="password-input-wrap">
+                <input
+                  v-model="editForm.password"
+                  :type="showPassword ? 'text' : 'password'"
+                  class="form-input"
+                  placeholder="Déjala vacía para no cambiarla (mínimo 6 caracteres)"
+                />
+                <button type="button" class="btn-toggle-password" @click="showPassword = !showPassword">
+                  <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                  </svg>
+                  <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                    <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                    <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div v-if="mostrarPolitica" class="form-group form-group-full">
@@ -328,9 +370,18 @@
           </div>
           <h3 class="delete-title">Eliminar usuario</h3>
           <p class="delete-text">¿Estás seguro de eliminar a <strong>{{ deleteName }}</strong>? Esta acción no se puede deshacer.</p>
+          <div v-if="deleteError" class="modal-error delete-error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+            </svg>
+            {{ deleteError }}
+          </div>
           <div class="delete-actions">
-            <button class="btn-cancel" @click="showDeleteModal = false">Cancelar</button>
-            <button class="btn-delete" @click="confirmDelete">Eliminar</button>
+            <button class="btn-cancel" :disabled="deleting" @click="showDeleteModal = false">Cancelar</button>
+            <button class="btn-delete" :disabled="deleting" @click="confirmDelete">
+              <span v-if="deleting" class="btn-spinner"></span>
+              {{ deleting ? 'Eliminando...' : 'Eliminar' }}
+            </button>
           </div>
         </div>
       </div>
@@ -399,9 +450,12 @@
             a <strong>{{ msgTargetUser.name }}</strong> (C.I. {{ msgTargetUser.cedula }}).
           </p>
           <div class="confirm-actions">
-            <button class="btn-cancel" @click="msgConfirm = false">Cancelar</button>
-            <button class="btn-save" @click="confirmSendMsg">Sí, enviar</button>
+            <button class="btn-cancel" :disabled="msgStatus === 'sending'" @click="msgConfirm = false">Cancelar</button>
+            <button class="btn-save" :disabled="msgStatus === 'sending'" @click="confirmSendMsg">
+              {{ msgStatus === 'sending' ? 'Enviando...' : 'Sí, enviar' }}
+            </button>
           </div>
+          <p v-if="msgError" class="field-error">{{ msgError }}</p>
         </div>
       </div>
     </div>
@@ -430,10 +484,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { usuarios, type MockUser } from '@/composables/useUsuariosStore'
+import { ref, computed, watch, onMounted } from 'vue'
+import {
+  usuarios,
+  usuariosLoading,
+  usuariosError,
+  loadUsuarios,
+  type MockUser,
+} from '@/composables/useUsuariosStore'
+import { viajeroService } from '@/services/api/viajeroService'
+import { messageService } from '@/services/api/messageService'
 
-const loading = ref(false)
+const loading = usuariosLoading
 const searchTerm = ref('')
 const periodFilter = ref('')
 const currentPage = ref(1)
@@ -449,8 +511,12 @@ const msgConfirm = ref(false)
 const msgKind = ref<'ultimo' | 'total'>('ultimo')
 const msgSentTo = ref('')
 const msgSentTipo = ref('')
+const msgError = ref('')
 const saving = ref(false)
+const deleting = ref(false)
 const formError = ref('')
+const deleteError = ref('')
+const actionError = ref('')
 const createSubmitted = ref(false)
 const showPassword = ref(false)
 
@@ -461,7 +527,6 @@ const deleteName = ref('')
 const editUserId = ref(0)
 
 const createForm = ref({
-  role: 'user' as 'user' | 'admin',
   name: '',
   cedula: '',
   celular: '',
@@ -473,13 +538,13 @@ const createForm = ref({
 })
 
 const editForm = ref({
-  role: 'user' as 'user' | 'admin',
   name: '',
   cedula: '',
   celular: '',
   ubicacion: '',
   periodicidad: 'mensual' as MockUser['periodicidad'],
   email: '',
+  password: '',
   consentLey1581: false,
 })
 
@@ -542,7 +607,6 @@ function getUserColor(id: number): string {
 
 function openCreateModal() {
   createForm.value = {
-    role: 'user',
     name: '',
     cedula: '',
     celular: '',
@@ -561,20 +625,35 @@ function openCreateModal() {
 function openEditModal(u: MockUser) {
   editUserId.value = u.id
   editForm.value = {
-    role: u.role === 'admin' || u.role === 'superadmin' ? 'admin' : 'user',
     name: u.name,
     cedula: u.cedula,
     celular: u.celular,
     ubicacion: u.ubicacion,
     periodicidad: u.periodicidad,
     email: u.email,
+    password: '',
     consentLey1581: u.consentLey1581,
   }
   formError.value = ''
+  showPassword.value = false
   showEditModal.value = true
 }
 
-function handleCreate() {
+function extractError(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message && error.message !== 'Sesión expirada') {
+    return error.message
+  }
+  return fallback
+}
+
+async function refreshList() {
+  actionError.value = ''
+  await loadUsuarios(true)
+  const validIds = new Set(usuarios.value.map((u) => u.id))
+  seleccionados.value = seleccionados.value.filter((id) => validIds.has(id))
+}
+
+async function handleCreate() {
   formError.value = ''
   createSubmitted.value = true
   const f = createForm.value
@@ -582,72 +661,103 @@ function handleCreate() {
   if (!f.name.trim()) { formError.value = 'El nombre completo es obligatorio.'; return }
   if (!f.cedula.trim()) { formError.value = 'La cédula es obligatoria.'; return }
   if (!f.celular.trim()) { formError.value = 'El celular es obligatorio.'; return }
-  if (f.password && f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
+  if (!f.periodicidad) { formError.value = 'La periodicidad de recaudo es obligatoria.'; return }
+  if (!f.password) { formError.value = 'La contraseña es obligatoria.'; return }
+  if (f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
   if (mostrarPolitica && !f.acceptPolicy) {
     formError.value = 'Debe aceptar la Política de tratamiento de datos personales (Ley 1581) para crear el usuario.'
     return
   }
 
   saving.value = true
-  setTimeout(() => {
-    const nextId = Math.max(...usuarios.value.map(u => u.id), 0) + 1
-    usuarios.value.unshift({
-      id: nextId,
+  try {
+    await viajeroService.create({
       name: f.name.trim(),
-      email: f.email.trim() || `${f.cedula}@mock.com`,
       cedula: f.cedula.trim(),
-      celular: f.celular.trim(),
+      phone: f.celular.trim(),
       ubicacion: f.ubicacion.trim(),
-      periodicidad: f.periodicidad as MockUser['periodicidad'],
-      role: f.role,
-      consentLey1581: true,
-      consentDate: new Date().toLocaleDateString('es-CO'),
+      email: f.email.trim() || undefined,
+      periodicidad: f.periodicidad,
+      password: f.password,
     })
-    saving.value = false
     showCreateModal.value = false
-  }, 500)
+    await refreshList()
+  } catch (error) {
+    formError.value = extractError(error, 'No se pudo crear el usuario. Intente nuevamente.')
+  } finally {
+    saving.value = false
+  }
 }
 
-function handleUpdate() {
+async function handleUpdate() {
   formError.value = ''
   const f = editForm.value
   if (!f.name.trim() || !f.cedula.trim() || !f.celular.trim()) {
     formError.value = 'Complete los campos obligatorios.'
     return
   }
+  if (f.password && f.password.length < 6) {
+    formError.value = 'La nueva contraseña debe tener al menos 6 caracteres.'
+    return
+  }
   saving.value = true
-  setTimeout(() => {
-    const u = usuarios.value.find(x => x.id === editUserId.value)
-    if (u) {
-      u.name = f.name.trim()
-      u.cedula = f.cedula.trim()
-      u.celular = f.celular.trim()
-      u.ubicacion = f.ubicacion.trim()
-      u.periodicidad = f.periodicidad
-      u.email = f.email.trim()
-      u.role = f.role
-      u.consentLey1581 = f.consentLey1581
-    }
-    saving.value = false
+  try {
+    await viajeroService.update(editUserId.value, {
+      name: f.name.trim(),
+      cedula: f.cedula.trim(),
+      phone: f.celular.trim(),
+      ubicacion: f.ubicacion.trim(),
+      email: f.email.trim(),
+      periodicidad: f.periodicidad,
+      password: f.password ? f.password : undefined,
+    })
     showEditModal.value = false
-  }, 400)
+    await refreshList()
+  } catch (error) {
+    formError.value = extractError(error, 'No se pudieron guardar los cambios. Intente nuevamente.')
+  } finally {
+    saving.value = false
+  }
+}
+
+async function toggleActive(u: MockUser) {
+  try {
+    await viajeroService.setActive(u.id, !u.isActive)
+    await refreshList()
+  } catch (error) {
+    actionError.value = extractError(error, 'No se pudo cambiar el estado del usuario.')
+  }
 }
 
 function deleteUsuario(id: number, name: string) {
   deleteId.value = id
   deleteName.value = name
+  deleteError.value = ''
   showDeleteModal.value = true
 }
 
-function confirmDelete() {
-  usuarios.value = usuarios.value.filter(u => u.id !== deleteId.value)
-  seleccionados.value = seleccionados.value.filter((id) => id !== deleteId.value)
-  showDeleteModal.value = false
+async function confirmDelete() {
+  deleteError.value = ''
+  deleting.value = true
+  try {
+    await viajeroService.remove(deleteId.value)
+    showDeleteModal.value = false
+    await refreshList()
+  } catch (error) {
+    deleteError.value = extractError(error, 'No se pudo eliminar el usuario.')
+  } finally {
+    deleting.value = false
+  }
 }
+
+onMounted(() => {
+  loadUsuarios()
+})
 
 function openMsgOptions(u: MockUser) {
   msgTargetUser.value = u
   msgConfirm.value = false
+  msgError.value = ''
   showMsgOptions.value = true
 }
 
@@ -655,22 +765,40 @@ let msgTimer: ReturnType<typeof setTimeout> | undefined
 
 function chooseMsgOption(kind: 'ultimo' | 'total') {
   msgKind.value = kind
+  msgError.value = ''
   showMsgOptions.value = false
   msgConfirm.value = true
 }
 
-function confirmSendMsg() {
+async function confirmSendMsg() {
   const u = msgTargetUser.value
-  msgConfirm.value = false
-  if (!u) return
-  msgSentTo.value = u.name
-  msgSentTipo.value = msgKind.value === 'ultimo' ? 'Último Recaudo' : 'Total Recaudo'
+  if (!u || msgStatus.value === 'sending') return
+
+  const phone = messageService.toInternationalPhone(u.celular)
+  if (!phone) {
+    msgError.value = 'El usuario no tiene celular registrado.'
+    return
+  }
+
+  const tipo = msgKind.value === 'ultimo' ? 'Último Recaudo' : 'Total Recaudo'
+  const texto = msgKind.value === 'ultimo'
+    ? `Hola ${u.name}, te informamos sobre tu último recaudo registrado. ¡Gracias por mantenerte al día!`
+    : `Hola ${u.name}, te informamos el estado de tu total recaudo acumulado. ¡Gracias por mantenerte al día!`
+
+  msgError.value = ''
   msgStatus.value = 'sending'
   clearTimeout(msgTimer)
-  msgTimer = setTimeout(() => {
+  try {
+    await messageService.send(phone, texto)
+    msgConfirm.value = false
+    msgSentTo.value = u.name
+    msgSentTipo.value = tipo
     msgStatus.value = 'sent'
     msgTimer = setTimeout(() => { msgStatus.value = null }, 4000)
-  }, 900)
+  } catch (error) {
+    msgStatus.value = null
+    msgError.value = extractError(error, 'No se pudo enviar el mensaje.')
+  }
 }
 </script>
 
@@ -726,6 +854,12 @@ function confirmSendMsg() {
 .rol-badge.user { background: #F0FDF4; color: #16A34A; }
 
 .period-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; background: #EEF2FF; color: #4338CA; text-transform: capitalize; }
+
+.status-badge { display: inline-block; padding: 3px 8px; border-radius: 6px; font-size: 0.74rem; font-weight: 600; }
+.status-badge.active { background: #F0FDF4; color: #16A34A; }
+.status-badge.inactive { background: #FEF2F2; color: #DC2626; }
+.delete-error { margin: 0 auto 20px; text-align: left; }
+.action-error { margin: 12px 16px 0; }
 
 .loading-state, .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px; gap: 12px; color: var(--c-gray); }
 .spinner { width: 32px; height: 32px; border: 3px solid var(--c-border); border-top-color: #0E3570; border-radius: 50%; animation: spin 0.8s linear infinite; }

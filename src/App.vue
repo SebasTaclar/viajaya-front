@@ -132,7 +132,7 @@
     </div>
   </header>
   <RouterView /> <SocialFloating v-if="!hideGlobalSections" />
-  <ContactSection v-if="!hideGlobalSections && !isContactPage" /> <AppFooter v-if="!hideGlobalSections" />
+  <ContactSection v-if="!hideGlobalSections && !isContactPage && !isTermsPage" /> <AppFooter v-if="!hideGlobalSections" />
 </template>
 
 <script setup lang="ts">
@@ -172,6 +172,7 @@ const isLoginPage = computed(
 )
 const isNosotros = computed(() => currentRoute.path === '/nosotros')
 const isContactPage = computed(() => currentRoute.path === '/contacto')
+const isTermsPage = computed(() => currentRoute.path === '/terms-and-conditions')
 const isCurrentRoute = (path: string): boolean => currentRoute.path === path
 
 const toggleMobileMenu = () => {
@@ -319,15 +320,19 @@ defineOptions({
     backdrop-filter 0.35s ease;
 }
 
-/* Header en scroll: azul al centro, blanco a los lados */
+/* Header en scroll: azul a la izquierda, blanco hacia el centro y la derecha */
 
 .site-header.scrolled {
   background: linear-gradient(
     90deg,
     rgba(255, 255, 255, 0.97) 0%,
-    rgba(232, 243, 255, 0.96) 22%,
-    rgba(86, 156, 232, 0.95) 50%,
-    rgba(232, 243, 255, 0.96) 78%,
+    rgba(214, 234, 252, 0.95) 18%,
+    rgba(140, 192, 244, 0.93) 30%,
+    rgba(86, 156, 232, 0.95) 38%,
+    rgba(150, 202, 245, 0.93) 46%,
+    rgba(196, 224, 250, 0.94) 53%,
+    rgba(232, 243, 255, 0.96) 57%,
+    rgba(255, 255, 255, 0.97) 63%,
     rgba(255, 255, 255, 0.97) 100%
   );
   backdrop-filter: blur(24px) saturate(185%);
@@ -341,6 +346,7 @@ defineOptions({
   min-height: 80px;
   height: 80px;
   padding: 0 clamp(16px, 4vw, 60px);
+  padding-right: clamp(8px, 1.5vw, 22px);
   background: transparent;
   display: flex;
   align-items: center;

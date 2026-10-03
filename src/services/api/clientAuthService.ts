@@ -1,42 +1,51 @@
 import { apiClient, type ApiResponse } from './apiConfig'
-import type { LoginCredentials, LoginResponse, DecodedToken, UserInfo } from './authService'
+import {
+  extractToken,
+  type LoginCredentials,
+  type LoginResponse,
+  type DecodedToken,
+  type UserInfo,
+} from './authService'
 
 class ClientAuthService {
   private readonly TOKEN_KEY = 'clientAuthToken'
   private readonly USER_INFO_KEY = 'clientUserInfo'
-  private readonly MOCK_PASSWORD = '123456'
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
-    const response = await apiClient.post<LoginResponse>('/login', credentials)
+    const raw = await apiClient.post<LoginResponse>('/login', {
+      email: credentials.email.trim(),
+      password: credentials.password,
+    })
 
-    if (response.success && response.data.token) {
-      this.setToken(response.data.token)
-      const userInfo = this.decodeToken(response.data.token)
-      if (userInfo) {
-        this.setUserInfo(userInfo)
-      }
-    }
-
-    return response
+    return this.handleLoginResponse(raw)
   }
 
   async loginWithPassword(cedula: string, password: string): Promise<ApiResponse<LoginResponse>> {
-    // Mock: valida cédula + contraseña (cualquier cédula y contraseña 123456)
-    await new Promise(resolve => setTimeout(resolve, 800))
+    const raw = await apiClient.post<LoginResponse>('/login', {
+      cedula: cedula.trim(),
+      password,
+    })
 
-    if (password !== this.MOCK_PASSWORD) {
+    return this.handleLoginResponse(raw)
+  }
+
+  private handleLoginResponse(raw: ApiResponse<LoginResponse>): ApiResponse<LoginResponse> {
+    const record = raw as unknown as Record<string, unknown>
+    const token = extractToken(record.data) || extractToken(record)
+
+    if (!token) {
       return {
         success: false,
-        message: 'Cédula o contraseña incorrectos',
+        message:
+          (typeof record.message === 'string' && record.message) || 'Cédula o contraseña incorrectos',
         data: null as unknown as LoginResponse,
         timestamp: new Date().toISOString(),
-        statusCode: 401,
+        statusCode: (record.statusCode as number) || 401,
       }
     }
 
-    const mockToken = this.generateMockToken(cedula)
-    this.setToken(mockToken)
-    const userInfo = this.decodeToken(mockToken)
+    this.setToken(token)
+    const userInfo = this.decodeToken(token)
     if (userInfo) {
       this.setUserInfo(userInfo)
     }
@@ -44,28 +53,10 @@ class ClientAuthService {
     return {
       success: true,
       message: 'Inicio de sesión exitoso',
-      data: { token: mockToken },
+      data: { token },
       timestamp: new Date().toISOString(),
       statusCode: 200,
     }
-  }
-
-  private generateMockToken(cedula: string): string {
-    const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }))
-    const now = Math.floor(Date.now() / 1000)
-    const payload = btoa(JSON.stringify({
-      id: 1,
-      email: `${cedula}@mock.com`,
-      name: 'Usuario Portal',
-      role: 'user',
-      membershipPaid: true,
-      clientId: 1,
-      teamId: null,
-      iat: now,
-      exp: now + 3600,
-    }))
-    const signature = btoa('mock-signature')
-    return `${header}.${payload}.${signature}`
   }
 
   logout(): void {

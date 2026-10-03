@@ -560,6 +560,61 @@
           </div>
         </section>
 
+        <!-- RECAUDOS -->
+        <section v-if="activeSection === 'recaudos'" class="section">
+          <div class="section-head">
+            <h2>Recaudos</h2>
+            <p v-if="recaudos.length > 0">{{ recaudos.length }} recaudos · Total {{ formatRecaudoValor(recaudosTotal) }}</p>
+            <p v-else>Historial de recaudos de tu cuenta</p>
+          </div>
+
+          <div v-if="recaudosLoading" class="state-container">
+            <div class="loader"></div>
+            <p>Cargando recaudos...</p>
+          </div>
+
+          <div v-else-if="recaudosError" class="state-container error">
+            <div class="error-box">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <h3>Algo salio mal</h3>
+              <p>{{ recaudosError }}</p>
+              <button class="retry-btn" @click="fetchRecaudos(true)">Intentar de nuevo</button>
+            </div>
+          </div>
+
+          <div v-else-if="recaudos.length === 0" class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.5">
+              <rect x="2" y="5" width="20" height="14" rx="2"/>
+              <line x1="2" y1="10" x2="22" y2="10"/>
+              <line x1="6" y1="15" x2="10" y2="15"/>
+            </svg>
+            <p>Aun no hay recaudos registrados</p>
+          </div>
+
+          <div v-else class="users-table-wrapper">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="r in recaudos" :key="r.id">
+                  <td>{{ formatRecaudoFecha(r.fecha) }}</td>
+                  <td>{{ formatRecaudoHora(r.fecha) || 'N/A' }}</td>
+                  <td>{{ formatRecaudoValor(r.valor) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <!-- MI PERFIL -->
         <section v-if="activeSection === 'perfil'" class="section">
           <div class="section-head">
@@ -627,7 +682,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { clientAuthService, portalService, userService } from '@/services/api'
+import { clientAuthService, portalService, userService, recaudoService } from '@/services/api'
+import type { RecaudoRow } from '@/services/api'
 import type { Cliente, Proyecto, DocumentoEntity, Cotizacion } from '@/types/crmTypes'
 import type { User } from '@/services/api/userService'
 
@@ -648,6 +704,57 @@ const visibleCotizaciones = computed(() => {
 })
 const selectedProject = ref<Proyecto | null>(null)
 const clientUsers = ref<User[]>([])
+
+const portalClientId = ref<number | null>(null)
+const recaudos = ref<RecaudoRow[]>([])
+const recaudosLoading = ref(false)
+const recaudosError = ref('')
+const recaudosLoaded = ref(false)
+
+async function fetchRecaudos(force = false) {
+  if (recaudosLoading.value || (recaudosLoaded.value && !force)) return
+
+  const clientId = portalClientId.value
+  if (!clientId) {
+    recaudos.value = []
+    recaudosError.value = 'No pudimos identificar tu cuenta. Inicia sesion nuevamente.'
+    recaudosLoaded.value = true
+    return
+  }
+
+  recaudosLoading.value = true
+  recaudosError.value = ''
+  try {
+    const res = await recaudoService.getAll({ clientId, page: 1, limit: 9999 })
+    recaudos.value = res.data.filter((r) => r.clientId === clientId)
+    recaudosLoaded.value = true
+  } catch (err: unknown) {
+    recaudos.value = []
+    recaudosError.value = err instanceof Error ? err.message : 'No se pudieron cargar los recaudos.'
+  } finally {
+    recaudosLoading.value = false
+  }
+}
+
+function formatRecaudoValor(valor: number): string {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(Number(valor) || 0)
+}
+
+function formatRecaudoFecha(fecha?: string): string {
+  if (!fecha) return 'N/A'
+  const date = new Date(fecha)
+  if (Number.isNaN(date.getTime())) return 'N/A'
+  return date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function formatRecaudoHora(fecha?: string): string {
+  if (!fecha) return ''
+  const date = new Date(fecha)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+}
+
+const recaudosTotal = computed(() => recaudos.value.reduce((sum, r) => sum + (Number(r.valor) || 0), 0))
 
 const clientInitials = computed(() => {
   const name = clientData.value?.razonSocial || ''
@@ -848,6 +955,7 @@ const mockVuelos = [
 const navItems = computed(() => {
   const items = [
     { id: 'inicio', label: 'Inicio', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>', count: 0 },
+    { id: 'recaudos', label: 'Recaudos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>', count: recaudos.value.length },
     { id: 'perfil', label: 'Mi Perfil', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>', count: 0 },
   ]
   return items
@@ -987,6 +1095,7 @@ onMounted(async () => {
     projects.value = data.projects
     documents.value = data.documents
     cotizaciones.value = data.cotizaciones
+    portalClientId.value = data.clientId ?? data.client?.id ?? null
     error.value = ''
 
     // Fetch users for the client
@@ -996,6 +1105,8 @@ onMounted(async () => {
     } catch {
       clientUsers.value = []
     }
+
+    fetchRecaudos(true)
   } catch (err: unknown) {
     console.error('Error loading portal data:', err)
     error.value = err instanceof Error ? err.message : 'Error al cargar los datos del portal'
@@ -1033,6 +1144,7 @@ async function reloadData() {
     projects.value = data.projects
     documents.value = data.documents
     cotizaciones.value = data.cotizaciones
+    portalClientId.value = data.clientId ?? data.client?.id ?? null
     error.value = ''
 
     try {
@@ -1041,6 +1153,8 @@ async function reloadData() {
     } catch {
       clientUsers.value = []
     }
+
+    fetchRecaudos(true)
   } catch (err: unknown) {
     error.value = err instanceof Error ? err.message : 'Error al cargar los datos del portal'
   } finally {
