@@ -70,16 +70,29 @@ class DocumentService {
     }
     if (data && typeof data === 'object') {
       const obj = data as Record<string, unknown>
-      let items = (obj['data'] || obj['documents'] || []) as DocumentoEntity[]
+      const nested = obj['data'] && typeof obj['data'] === 'object' && !Array.isArray(obj['data'])
+        ? obj['data'] as Record<string, unknown>
+        : obj
+
+      let items = nested['documents'] || nested['items'] || nested['data'] || []
       if (!Array.isArray(items) && items && typeof items === 'object') {
-        items = ((items as Record<string, unknown>)['documents'] || []) as DocumentoEntity[]
+        items = (items as Record<string, unknown>)['documents'] || []
       }
+
+      const pagination = (obj['pagination'] || nested['pagination']) as Record<string, unknown> | undefined
+      const total = Number(obj['total'] ?? obj['count'] ?? nested['total'] ?? nested['count'] ?? pagination?.['total'])
+        || (Array.isArray(items) ? items.length : 0)
+      const page = Number(obj['page'] ?? nested['page'] ?? pagination?.['page']) || 1
+      const pageSize = Number(obj['limit'] ?? obj['pageSize'] ?? nested['limit'] ?? pagination?.['limit']) || 0
+      const totalPages = Number(obj['totalPages'] ?? nested['totalPages'] ?? pagination?.['totalPages'])
+        || Math.max(1, pageSize > 0 ? Math.ceil(total / pageSize) : 1)
+
       return {
         data: Array.isArray(items) ? items : [],
-        total: (obj['total'] as number) || (obj['count'] as number) || 0,
-        page: (obj['page'] as number) || 1,
-        pageSize: (obj['limit'] as number) || 0,
-        totalPages: (obj['totalPages'] as number) || 1,
+        total,
+        page,
+        pageSize,
+        totalPages,
       }
     }
     return { data: [], total: 0, page: 1, pageSize: 0, totalPages: 0 }

@@ -4,17 +4,15 @@
 
     <div class="contact-page__container">
       <header class="contact-page__intro">
-        <span class="contact-page__eyebrow">CONTÁCTANOS</span>
         <h1 class="contact-page__title">¡Hablémos!</h1>
         <p class="contact-page__subtitle">
-          Escríbenos por el formulario o por nuestros canales y te respondemos lo antes posible.
-        </p>
+          Elige el canal por el que quieres comunicarte con nosotros        </p>
       </header>
 
       <div class="contact-page__grid">
         <!-- Formulario -->
         <form class="contact-form" novalidate @submit.prevent="submitForm">
-          <h2 class="form-title">O escríbenos con el formulario</h2>
+          <h2 class="form-title">Formulario de contacto</h2>
 
           <div class="form-grid">
             <div class="form-field">
@@ -78,37 +76,41 @@
           </button>
         </form>
 
-        <!-- Canales de contacto -->
-        <aside class="contact-info">
-          <a
-            href="https://api.whatsapp.com/send?phone=573193092312"
-            target="_blank"
-            rel="noopener"
-            class="info-item"
-          >
-            <span class="info-icon"><i class="fab fa-whatsapp"></i></span>
-            <span class="info-text">
-              <strong>WhatsApp</strong>
-              <span>+57 319 3092312</span>
-            </span>
-          </a>
+        <!-- Canales de contacto + ubicación -->
+        <div class="contact-side">
+          <aside class="contact-info">
+            <a
+              href="https://api.whatsapp.com/send?phone=573193092312"
+              target="_blank"
+              rel="noopener"
+              class="info-item"
+            >
+              <span class="info-icon"><i class="fab fa-whatsapp"></i></span>
+              <span class="info-text">
+                <strong>Whatsapp</strong>
+                <span>+57 319 3092312</span>
+              </span>
+            </a>
 
-          <a href="mailto:contacto@somosviajaya.com" class="info-item">
-            <span class="info-icon"><i class="fas fa-envelope"></i></span>
-            <span class="info-text">
-              <strong>Mail</strong>
-              <span>contacto@somosviajaya.com</span>
-            </span>
-          </a>
+            <a href="mailto:contacto@somosviajaya.com" class="info-item">
+              <span class="info-icon"><i class="fas fa-envelope"></i></span>
+              <span class="info-text">
+                <strong>Mail</strong>
+                <span>contacto@somosviajaya.com</span>
+              </span>
+            </a>
+          </aside>
 
-          <div class="info-item">
-            <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
-            <span class="info-text">
-              <strong>Ubicación</strong>
-              <span>Corabastos, Bodega 32, Local 111</span>
-            </span>
+          <div class="contact-info contact-info--location">
+            <div class="info-item">
+              <span class="info-icon"><i class="fas fa-map-marker-alt"></i></span>
+              <span class="info-text">
+                <strong>Ubicación</strong>
+                <span>Corabastos, Bodega 32, Local 111</span>
+              </span>
+            </div>
           </div>
-        </aside>
+        </div>
       </div>
     </div>
   </main>
@@ -212,6 +214,7 @@ function submitForm() {
   font-weight: 800;
   line-height: 1.1;
   font-family: 'VolkSans', sans-serif;
+  color: rgb(240, 192, 9);
 }
 
 .contact-page__subtitle {
@@ -225,8 +228,29 @@ function submitForm() {
 .contact-page__grid {
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
-  gap: 56px;
+  grid-template-areas: 'form side';
+  gap: 26px 56px;
   align-items: start;
+}
+
+.contact-form {
+  grid-area: form;
+}
+
+.contact-side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  align-self: center;
+}
+
+.contact-info {
+  grid-area: info;
+}
+
+.contact-info--location {
+  grid-area: location;
 }
 
 /* ── Formulario ── */
@@ -350,7 +374,6 @@ function submitForm() {
   display: flex;
   flex-direction: column;
   gap: 26px;
-  align-self: center;
   padding-top: 8px;
 }
 
@@ -383,10 +406,9 @@ function submitForm() {
 }
 
 .info-text strong {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.65);
 }
 
@@ -405,10 +427,20 @@ a.info-item:hover .info-text span {
 @media (max-width: 1024px) {
   .contact-page__grid {
     grid-template-columns: 1fr;
-    gap: 40px;
+    grid-template-areas:
+      'info'
+      'form'
+      'location';
+    grid-template-rows: none;
+    gap: 36px;
   }
 
-  .contact-info {
+  .contact-side {
+    display: contents;
+  }
+
+  .contact-info,
+  .contact-info--location {
     align-self: start;
   }
 }

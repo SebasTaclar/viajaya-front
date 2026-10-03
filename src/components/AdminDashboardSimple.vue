@@ -88,6 +88,10 @@
 
           </div>
 
+          <!-- Estado de las métricas del backend -->
+          <div v-if="dashboardError" class="form-alert" style="margin-bottom: 14px;">{{ dashboardError }}</div>
+          <div v-else-if="dashboardLoading" style="margin-bottom: 14px; font-size: 0.85rem; color: var(--c-gray);">Actualizando métricas...</div>
+
           <!-- Stats Cards -->
           <div class="stats-row">
             <div class="stat-card">
@@ -137,11 +141,11 @@
             <!-- Top usuarios por presupuesto -->
             <div class="card">
               <div class="card-header">
-                <h3>Top usuarios por presupuesto</h3>
+                <h3>Top usuarios por saldo</h3>
                 <span class="card-badge">Top {{ topUsuariosPresupuesto.length }}</span>
               </div>
               <div class="widget-body">
-                <div v-if="topUsuariosPresupuesto.length === 0" class="widget-empty">Sin datos de presupuesto</div>
+                <div v-if="topUsuariosPresupuesto.length === 0" class="widget-empty">Sin datos de saldo</div>
                 <div v-for="(u, idx) in topUsuariosPresupuesto" :key="u.id" class="rank-row">
                   <span class="rank-pos" :class="{ top: idx === 0 }">{{ idx + 1 }}</span>
                   <div class="rank-info">
@@ -531,9 +535,10 @@
 
         <!-- ========== USUARIOS ========== -->
         <UsuariosList v-if="currentSection === 'usuarios'" />
+        <PanelUsersList v-if="currentSection === 'panel-usuarios'" />
 
         <!-- ========== RECAUDOS ========== -->
-        <div v-if="currentSection === 'recaudos'">
+        <div v-if="currentSection === 'recaudos'" class="section-recaudos">
           <div class="section-top">
             <div>
               <h2 class="page-title">Recaudos</h2>
@@ -545,6 +550,11 @@
               </svg>
               Crear Recaudo
             </button>
+          </div>
+
+          <!-- Error de recaudos (carga/escritura) -->
+          <div v-if="recaudoError && !showCreateRecaudo && !recaudoEdit && !showMsgRecaudo" class="form-alert" style="margin-bottom: 16px;">
+            {{ recaudoError }}
           </div>
 
           <!-- Filtros -->
@@ -571,7 +581,11 @@
             </div>
           </div>
 
-          <div v-if="recaudosList.length === 0" class="empty-state">
+          <div v-if="recaudosLoading" class="empty-state">
+            <p>Cargando recaudos...</p>
+          </div>
+
+          <div v-else-if="recaudosList.length === 0" class="empty-state">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--c-gray-light); margin-bottom: 16px;">
               <rect x="2" y="5" width="20" height="14" rx="2"/>
               <line x1="2" y1="10" x2="22" y2="10"/>
@@ -738,14 +752,15 @@
                     />
                   </div>
                 </div>
+                <div v-if="recaudoError" class="form-alert" style="margin-top: 12px;">{{ recaudoError }}</div>
               </div>
               <div class="modal-footer">
-                <button class="btn-outline" @click="showCreateRecaudo = false">Cancelar</button>
-                <button class="btn-outline" :disabled="!recaudoFormValid" @click="createRecaudoAndMsg">
-                  Crear y enviar mensaje
+                <button class="btn-outline" :disabled="recaudoSaving" @click="showCreateRecaudo = false">Cancelar</button>
+                <button class="btn-outline" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudoAndMsg">
+                  {{ recaudoSaving ? 'Guardando...' : 'Crear y enviar mensaje' }}
                 </button>
-                <button class="btn-primary" :disabled="!recaudoFormValid" @click="createRecaudo">
-                  Crear Recaudo
+                <button class="btn-primary" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudo">
+                  {{ recaudoSaving ? 'Guardando...' : 'Crear Recaudo' }}
                 </button>
               </div>
             </div>
@@ -797,11 +812,16 @@
                     />
                   </div>
                 </div>
+                <div v-if="recaudoError" class="form-alert" style="margin-top: 12px;">{{ recaudoError }}</div>
               </div>
               <div class="modal-footer">
-                <button class="btn-outline" @click="recaudoEdit = null">Cancelar</button>
-                <button class="btn-outline" @click="saveRecaudoAndMsg">Guardar y enviar mensaje</button>
-                <button class="btn-primary" @click="saveRecaudo">Guardar cambios</button>
+                <button class="btn-outline" :disabled="recaudoSaving" @click="recaudoEdit = null">Cancelar</button>
+                <button class="btn-outline" :disabled="recaudoSaving" @click="saveRecaudoAndMsg">
+                  {{ recaudoSaving ? 'Guardando...' : 'Guardar y enviar mensaje' }}
+                </button>
+                <button class="btn-primary" :disabled="recaudoSaving" @click="saveRecaudo">
+                  {{ recaudoSaving ? 'Guardando...' : 'Guardar cambios' }}
+                </button>
               </div>
             </div>
           </div>
@@ -827,6 +847,8 @@
                   <label>Mensaje</label>
                   <textarea v-model="msgText" rows="5" class="form-input" placeholder="Escribe el mensaje..."></textarea>
                 </div>
+
+                <div v-if="msgError" class="form-alert">{{ msgError }}</div>
               </div>
               <div class="modal-footer">
                 <button class="btn-outline" @click="closeMsgRecaudo()">Cancelar</button>
@@ -1411,7 +1433,7 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { authService } from '@/services/api/authService'
 import { useCRM } from '@/composables/useCRM'
-import { usuarios as usuariosCreados } from '@/composables/useUsuariosStore'
+import { usuarios as usuariosCreados, loadUsuarios } from '@/composables/useUsuariosStore'
 import { quoteService } from '@/services/api/quoteService'
 import { collaboratorService } from '@/services/api/collaboratorService'
 
@@ -1422,6 +1444,9 @@ import { projectService } from '@/services/api/projectService'
 import { tenderService } from '@/services/api/tenderService'
 import { documentService } from '@/services/api/documentService'
 import { userService } from '@/services/api/userService'
+import { recaudoService, type RecaudoRow } from '@/services/api/recaudoService'
+import { dashboardService, type DashboardKpis } from '@/services/api/dashboardService'
+import { messageService } from '@/services/api/messageService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
 import {
   createMockClientes,
@@ -1431,16 +1456,15 @@ import {
   createMockColaboradores,
   createMockLicitaciones,
   createMockUsuarios,
-  createMockUsuariosFondo,
   createMockEntityNames,
 } from '@/mock/adminDashboard'
-import type { UsuarioFondo } from '@/mock/adminDashboard'
 import ProjectsList from '@/views/crm/ProjectsList.vue'
 import LicitacionesList from '@/views/crm/LicitacionesList.vue'
 import QuotesList from '@/views/crm/QuotesList.vue'
 import ProjectDetail from '@/views/crm/ProjectDetail.vue'
 import ColaboradoresList from '@/views/crm/ColaboradoresList.vue'
 import UsuariosList from '@/views/crm/UsuariosList.vue'
+import PanelUsersList from '@/views/crm/PanelUsersList.vue'
 import DocumentosList from '@/views/crm/DocumentosList.vue'
 import ColaboradorDetail from '@/views/crm/ColaboradorDetail.vue'
 
@@ -1956,8 +1980,14 @@ async function handleDeleteEvento() {
 }
 
 // ========== RECAUDOS ==========
-interface Recaudo {
-  id: number
+interface RecaudoView extends RecaudoRow {
+  nombre: string
+  cedula: string
+  periodicidad: string
+}
+
+interface RecaudoForm {
+  clientId: number
   nombre: string
   cedula: string
   fecha: string
@@ -1965,14 +1995,69 @@ interface Recaudo {
   periodicidad: string
 }
 
-const recaudosList = ref<Recaudo[]>([
-  { id: 1, nombre: 'María Fernanda López', cedula: '1032456789', fecha: '2026-09-28T10:15', valor: 180000, periodicidad: 'Mensual' },
-  { id: 2, nombre: 'Carlos Andrés Gómez', cedula: '80123456', fecha: '2026-09-25T08:40', valor: 95000, periodicidad: 'Quincenal' },
-  { id: 3, nombre: 'Laura Valentina Ruiz', cedula: '1098765432', fecha: '2026-09-22T16:05', valor: 60000, periodicidad: 'Semanal' },
-  { id: 4, nombre: 'Jorge Eduardo Martínez', cedula: '79876543', fecha: '2026-09-20T11:30', valor: 150000, periodicidad: 'Mensual' },
-  { id: 5, nombre: 'Ana Sofía Hernández', cedula: '1122334455', fecha: '2026-09-18T09:55', valor: 85000, periodicidad: 'Quincenal' },
-  { id: 6, nombre: 'Pedro Pablo Díaz', cedula: '98765432', fecha: '2026-09-15T14:20', valor: 200000, periodicidad: 'Mensual' },
-])
+const recaudosList = ref<RecaudoRow[]>([])
+const recaudosLoading = ref(false)
+const recaudoError = ref('')
+const recaudoSaving = ref(false)
+
+const PERIOD_LABEL: Record<string, string> = {
+  diario: 'Diaria',
+  diaria: 'Diaria',
+  mensual: 'Mensual',
+  quincenal: 'Quincenal',
+  semanal: 'Semanal',
+}
+
+function periodLabel(value?: string): string {
+  if (!value) return ''
+  const normalized = value.trim().toLowerCase()
+  return PERIOD_LABEL[normalized] || value
+}
+
+function toInputFecha(value?: string): string {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
+function fromInputFecha(value: string): string {
+  if (!value) return ''
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? value : date.toISOString()
+}
+
+function recaudoErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message && error.message !== 'Sesión expirada') return error.message
+  return fallback
+}
+
+function resolveRecaudo(row: RecaudoRow): RecaudoView {
+  const viajero = usuariosCreados.value.find((u) => u.id === row.clientId)
+  const client = row.client
+  return {
+    ...row,
+    fecha: toInputFecha(row.fecha),
+    nombre: client?.name || viajero?.name || '—',
+    cedula: client?.cedula || viajero?.cedula || '—',
+    periodicidad: periodLabel(client?.periodicidad || viajero?.periodicidad),
+  }
+}
+
+async function fetchRecaudos() {
+  recaudosLoading.value = true
+  recaudoError.value = ''
+  try {
+    const response = await recaudoService.getAll({ page: 1, limit: 9999 })
+    recaudosList.value = response.data
+  } catch (error) {
+    recaudosList.value = []
+    recaudoError.value = recaudoErrorMessage(error, 'No se pudieron cargar los recaudos.')
+  } finally {
+    recaudosLoading.value = false
+  }
+}
 
 function formatFecha(value: string): string {
   if (!value) return ''
@@ -1990,12 +2075,13 @@ const recaudoDesde = ref('')
 const recaudoHasta = ref('')
 
 const recaudosFiltrados = computed(() => {
+  const rows = recaudosList.value.map(resolveRecaudo)
   const q = recaudoSearch.value.trim().toLowerCase()
   const mes = recaudoMes.value
   const desde = recaudoDesde.value
   const hasta = recaudoHasta.value
-  if (!q && !mes && !desde && !hasta) return recaudosList.value
-  return recaudosList.value.filter((r) => {
+  if (!q && !mes && !desde && !hasta) return rows
+  return rows.filter((r) => {
     if (q && !`${r.nombre} ${r.cedula}`.toLowerCase().includes(q)) return false
     if (mes && !r.fecha.startsWith(mes)) return false
     const fecha = r.fecha.slice(0, 10)
@@ -2034,19 +2120,19 @@ function toggleAllRecaudos() {
   }
 }
 
-const recaudoSelected = ref<Recaudo | null>(null)
-const recaudoEdit = ref<Recaudo | null>(null)
+const recaudoSelected = ref<RecaudoView | null>(null)
+const recaudoEdit = ref<RecaudoView | null>(null)
 const showCreateRecaudo = ref(false)
-const recaudoForm = ref<Recaudo>({ id: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: 'Mensual' })
+const recaudoForm = ref<RecaudoForm>({ clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' })
 
 const recaudoFormValid = computed(() => {
   const f = recaudoForm.value
-  return !!f.nombre.trim() && !!f.cedula.trim() && !!f.fecha.trim() && !!f.valor
+  return f.clientId > 0 && !!f.fecha.trim() && !!f.valor
 })
 
 function openCreateRecaudo() {
-  const nextId = recaudosList.value.reduce((max, r) => Math.max(max, r.id), 0) + 1
-  recaudoForm.value = { id: nextId, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' }
+  recaudoForm.value = { clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' }
+  recaudoError.value = ''
   showCreateRecaudo.value = true
 }
 
@@ -2062,9 +2148,9 @@ watch(
   () => recaudoForm.value.nombre,
   (name) => {
     const user = usuariosCreados.value.find((u) => u.name === name)
-    const periodMap: Record<string, string> = { diario: 'Diaria', diaria: 'Diaria', mensual: 'Mensual', quincenal: 'Quincenal', semanal: 'Semanal' }
     recaudoForm.value.cedula = user ? user.cedula : ''
-    recaudoForm.value.periodicidad = user ? (periodMap[user.periodicidad] || 'Mensual') : ''
+    recaudoForm.value.periodicidad = user ? (PERIOD_LABEL[String(user.periodicidad).toLowerCase()] || 'Mensual') : ''
+    recaudoForm.value.clientId = user ? user.id : 0
   },
 )
 
@@ -2083,91 +2169,152 @@ function onValorInput(event: Event, target: 'create' | 'edit') {
   }
 }
 
-function createRecaudo(): Recaudo | null {
+async function createRecaudo(): Promise<RecaudoView | null> {
   const f = recaudoForm.value
   if (!recaudoFormValid.value) return null
-  const created = { ...f }
-  recaudosList.value.unshift(created)
-  showCreateRecaudo.value = false
-  return created
+  recaudoSaving.value = true
+  recaudoError.value = ''
+  try {
+    const created = await recaudoService.create({
+      clientId: f.clientId,
+      fecha: fromInputFecha(f.fecha),
+      valor: f.valor,
+    })
+    showCreateRecaudo.value = false
+    await fetchRecaudos()
+    const row = created && created.id
+      ? created
+      : recaudosList.value.filter((r) => r.clientId === f.clientId).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0]
+    return row ? resolveRecaudo(row) : null
+  } catch (error) {
+    recaudoError.value = recaudoErrorMessage(error, 'No se pudo crear el recaudo.')
+    return null
+  } finally {
+    recaudoSaving.value = false
+  }
 }
 
-function removeRecaudo(id: number) {
-  recaudosList.value = recaudosList.value.filter((r) => r.id !== id)
-  recaudosSeleccionados.value = recaudosSeleccionados.value.filter((selected) => selected !== id)
+async function removeRecaudo(id: number) {
+  if (!window.confirm('¿Estás seguro de eliminar este recaudo?')) return
+  recaudoError.value = ''
+  try {
+    await recaudoService.remove(id)
+    recaudosSeleccionados.value = recaudosSeleccionados.value.filter((selected) => selected !== id)
+    await fetchRecaudos()
+  } catch (error) {
+    recaudoError.value = recaudoErrorMessage(error, 'No se pudo eliminar el recaudo.')
+  }
 }
 
-function openEditRecaudo(r: Recaudo) {
+function openEditRecaudo(r: RecaudoView) {
   recaudoEdit.value = { ...r }
+  recaudoError.value = ''
 }
 
-function saveRecaudo(): Recaudo | null {
+async function saveRecaudo(): Promise<RecaudoView | null> {
   const edit = recaudoEdit.value
   if (!edit) return null
-  const saved = { ...edit }
-  const idx = recaudosList.value.findIndex((r) => r.id === saved.id)
-  if (idx !== -1) recaudosList.value[idx] = saved
-  recaudoEdit.value = null
-  return saved
+  recaudoSaving.value = true
+  recaudoError.value = ''
+  try {
+    const updated = await recaudoService.update(edit.id, {
+      fecha: fromInputFecha(edit.fecha),
+      valor: edit.valor,
+    })
+    recaudoEdit.value = null
+    await fetchRecaudos()
+    return updated && updated.id ? resolveRecaudo(updated) : resolveRecaudo(edit)
+  } catch (error) {
+    recaudoError.value = recaudoErrorMessage(error, 'No se pudo guardar el recaudo.')
+    return null
+  } finally {
+    recaudoSaving.value = false
+  }
 }
 
 // ========== MENSAJE DEL RECAUDO ==========
 const showMsgRecaudo = ref(false)
-const msgTarget = ref<Recaudo | null>(null)
+const msgTarget = ref<RecaudoView | null>(null)
 const msgText = ref('')
 const msgSending = ref(false)
 const msgSent = ref(false)
 const msgConfirm = ref(false)
+const msgError = ref('')
 let msgSentTimer = 0
 
-function openMsgRecaudo(r: Recaudo) {
+function openMsgRecaudo(r: RecaudoView) {
   msgTarget.value = r
   msgText.value = `Hola ${r.nombre}, te recordamos tu recaudo de ${formatCurrency(r.valor)} con fecha ${formatFecha(r.fecha)} (${r.periodicidad}). ¡Gracias por mantener tus pagos al día!`
   msgSending.value = false
   msgConfirm.value = false
+  msgError.value = ''
   showMsgRecaudo.value = true
 }
 
-function createRecaudoAndMsg() {
-  const created = createRecaudo()
+async function createRecaudoAndMsg() {
+  const created = await createRecaudo()
   if (created) openMsgRecaudo(created)
 }
 
-function saveRecaudoAndMsg() {
-  const saved = saveRecaudo()
+async function saveRecaudoAndMsg() {
+  const saved = await saveRecaudo()
   if (saved) openMsgRecaudo(saved)
 }
 
 function closeMsgRecaudo() {
   showMsgRecaudo.value = false
   msgConfirm.value = false
+  msgError.value = ''
 }
 
 function askSendRecaudoMsg() {
   if (msgSending.value || !msgText.value.trim()) return
+  msgError.value = ''
   msgConfirm.value = true
 }
 
-function sendRecaudoMsg() {
+function resolveMsgPhone(): string | null {
+  const target = msgTarget.value
+  if (!target) return null
+  const viajero = usuariosCreados.value.find((u) => u.id === target.clientId)
+  return messageService.toInternationalPhone(viajero?.celular || target.client?.phone || null)
+}
+
+async function sendRecaudoMsg() {
   if (msgSending.value || !msgText.value.trim()) return
   msgConfirm.value = false
+  const phone = resolveMsgPhone()
+  if (!phone) {
+    msgError.value = 'El viajero no tiene celular registrado.'
+    return
+  }
   msgSending.value = true
-  setTimeout(() => {
-    msgSending.value = false
+  try {
+    await messageService.send(phone, msgText.value.trim())
     showMsgRecaudo.value = false
     msgSent.value = true
     clearTimeout(msgSentTimer)
     msgSentTimer = window.setTimeout(() => {
       msgSent.value = false
     }, 4000)
-  }, 900)
+  } catch (error) {
+    msgError.value = recaudoErrorMessage(error, 'No se pudo enviar el mensaje.')
+  } finally {
+    msgSending.value = false
+  }
 }
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
   { id: 'usuarios', label: 'Usuarios', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+  { id: 'panel-usuarios', label: 'Usuarios del panel', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
   { id: 'recaudos', label: 'Recaudos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>' },
-].filter((item) => isSuperAdmin.value || item.id === 'usuarios' || item.id === 'recaudos')
+].filter(
+  (item) =>
+    isSuperAdmin.value ||
+    item.id === 'usuarios' ||
+    item.id === 'recaudos',
+)
 
 // ========== CALENDARIO ==========
 interface CalEvent {
@@ -2484,7 +2631,12 @@ async function fetchCotizacionesData() {
 }
 
 const setSection = (section: string) => {
-  if (!isSuperAdmin.value && section !== 'usuarios' && section !== 'recaudos') return
+  if (
+    !isSuperAdmin.value &&
+    section !== 'usuarios' &&
+    section !== 'recaudos'
+  )
+    return
   const item = navItems.find((n) => n.id === section)
   if (item && 'route' in item && item.route) {
     router.push(item.route)
@@ -2492,6 +2644,9 @@ const setSection = (section: string) => {
   }
   currentSection.value = section
   sidebarOpen.value = false
+  if (section === 'recaudos' && recaudosList.value.length === 0 && !recaudosLoading.value) {
+    fetchRecaudos()
+  }
 }
 
 const handleLogout = () => {
@@ -2533,43 +2688,46 @@ async function fetchUsuarios() {
 }
 
 // ========== FONDO VIAJERO, TOP PRESUPUESTO, ALERTAS, TIEMPO REAL ==========
-const usuariosFondo = ref<UsuarioFondo[]>(createMockUsuariosFondo())
+const dashboardKpis = ref<DashboardKpis>({ fondoViajero: 0, usuariosRegistrados: 0, alertas: [] })
+const dashboardLoading = ref(false)
+const dashboardError = ref('')
 const lastUpdated = ref(Date.now())
 const nowTick = ref(Date.now())
 
-const fondoViajeroTotal = computed(() => usuariosFondo.value.reduce((sum, u) => sum + u.fondoViajero, 0))
-const fondoViajeroAportantes = computed(() => usuariosFondo.value.filter((u) => u.fondoViajero > 0).length)
-
-function diasDesde(iso: string): number {
-  const diff = Date.now() - new Date(iso).getTime()
-  return Math.max(0, Math.floor(diff / 86400000))
+async function fetchDashboard() {
+  dashboardLoading.value = true
+  dashboardError.value = ''
+  try {
+    const kpis = await dashboardService.getKpis()
+    dashboardKpis.value = kpis
+    if (kpis.usuariosRegistrados > 0) {
+      usuariosRegistrados.value = kpis.usuariosRegistrados
+    }
+    lastUpdated.value = Date.now()
+  } catch (error) {
+    dashboardError.value = recaudoErrorMessage(error, 'No se pudo cargar el dashboard.')
+  } finally {
+    dashboardLoading.value = false
+  }
 }
 
-const limiteDiasPorPeriodicidad: Record<UsuarioFondo['periodicidad'], number> = {
-  semanal: 7,
-  quincenal: 15,
-  mensual: 30,
-}
+const fondoViajeroTotal = computed(() => dashboardKpis.value.fondoViajero)
 
 const topUsuariosPresupuesto = computed(() =>
-  [...usuariosFondo.value].sort((a, b) => b.presupuesto - a.presupuesto).slice(0, 5),
+  [...usuariosCreados.value]
+    .sort((a, b) => b.saldo - a.saldo)
+    .slice(0, 5)
+    .map((u) => ({ id: u.id, name: u.name, presupuesto: u.saldo })),
 )
 
-const maxPresupuesto = computed(() => Math.max(...usuariosFondo.value.map((u) => u.presupuesto), 1))
+const maxPresupuesto = computed(() => Math.max(...topUsuariosPresupuesto.value.map((u) => u.presupuesto), 1))
 
 function rankPercent(value: number): number {
   return Math.round((value / maxPresupuesto.value) * 100)
 }
 
 const alertasInactividad = computed(() =>
-  usuariosFondo.value
-    .map((u) => ({
-      ...u,
-      diasInactividad: diasDesde(u.ultimaActividad),
-      limiteDias: limiteDiasPorPeriodicidad[u.periodicidad],
-    }))
-    .filter((u) => u.diasInactividad > u.limiteDias)
-    .sort((a, b) => b.diasInactividad - a.diasInactividad),
+  [...dashboardKpis.value.alertas].sort((a, b) => b.diasInactividad - a.diasInactividad),
 )
 
 const lastUpdatedLabel = computed(() => {
@@ -2630,9 +2788,7 @@ let clockTimer: number | undefined
 let pollTimer: number | undefined
 
 async function refreshDashboard() {
-  await fetchUsuarios()
-  usuariosFondo.value = createMockUsuariosFondo()
-  lastUpdated.value = Date.now()
+  await Promise.allSettled([fetchUsuarios(), fetchDashboard()])
   nowTick.value = Date.now()
 }
 
@@ -2732,6 +2888,8 @@ async function loadDashboard() {
     fetchColaboradores(),
     fetchLicitaciones(),
     fetchUsuarios(),
+    fetchDashboard(),
+    fetchRecaudos(),
   ])
   seedDashboardIfEmpty()
 }
@@ -2739,6 +2897,7 @@ async function loadDashboard() {
 onMounted(() => {
   loadDashboard()
   fetchRecursosClientes()
+  loadUsuarios()
 
   document.addEventListener('click', () => {
     showEntityDropdown.value = false
@@ -4702,7 +4861,28 @@ onUnmounted(() => {
   .topbar-greeting p { display: none; }
   .topbar-search { display: none; }
   .export-btn { display: none; }
+  .section-recaudos .export-btn { display: flex; }
   .action-btn { width: 36px; height: 36px; }
+
+  /* Recaudos: móvil */
+  .section-recaudos .section-top { flex-direction: column; align-items: stretch; }
+  .section-recaudos .section-top .export-btn { width: 100%; justify-content: center; }
+  .section-recaudos .coti-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
+  .section-recaudos .coti-filter-group { width: 100%; min-width: 0; }
+  .section-recaudos .coti-filter-search { grid-column: 1 / -1; min-width: 0; }
+  .section-recaudos .coti-select,
+  .section-recaudos .coti-input { min-width: 0; width: 100%; }
+  .section-recaudos .coti-filter-group .btn-outline { width: 100%; }
+  .section-recaudos .table-card .data-table { min-width: 640px; }
+  .section-recaudos .actions-cell { flex-wrap: wrap; }
+  .section-recaudos .empty-state { padding: 40px 16px; }
+  .section-recaudos .modal-content { width: calc(100% - 24px); max-width: none; }
+  .section-recaudos .modal-content.modal-wide { max-width: none; }
+  .section-recaudos .modal-header,
+  .section-recaudos .modal-body { padding: 16px; }
+  .section-recaudos .modal-body { max-height: calc(100vh - 140px); }
+  .section-recaudos .modal-footer { padding: 12px 16px; }
+  .section-recaudos .form-grid { grid-template-columns: 1fr; gap: 12px; }
 
   .main-content { padding: 16px 14px; }
   .page-title { font-size: 1.2rem; }
@@ -4759,12 +4939,25 @@ onUnmounted(() => {
   .live-indicator { width: 100%; justify-content: center; }
   .cierre-title { gap: 6px; }
   .modal-card { padding: 16px; }
+
+  /* Recaudos: móvil pequeño */
+  .section-recaudos .coti-filters { grid-template-columns: 1fr; }
+  .section-recaudos .modal-content { width: calc(100% - 16px); }
+  .section-recaudos .modal-footer { flex-direction: column-reverse; }
+  .section-recaudos .modal-footer > * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .section-recaudos .msg-sent-toast { left: 12px; right: 12px; bottom: 12px; justify-content: center; }
 }
 
 /* ===== ADM EVENTOS ===== */
 .coti-filter-search { min-width: 280px; }
 .entity-loading { font-size: 0.75rem; color: var(--c-gray); margin-top: 4px; }
 .field-error { display: block; color: #DC2626; font-size: 0.78rem; margin-top: 4px; }
+.form-alert { display: block; color: #DC2626; font-size: 0.82rem; background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 10px 12px; }
 .form-input.input-error { border-color: #DC2626; }
 
 .entity-search-group { position: relative; width: 100%; }

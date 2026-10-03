@@ -11,4 +11,5 @@ const app = createApp(App)
 app.use(router)
 app.use(i18n)
 
-app.mount('#app')
+// Evita pintar las secciones globales (ContactSection/footer) antes de resolver la ruta inicial
+router.isReady().then(() => app.mount('#app'))

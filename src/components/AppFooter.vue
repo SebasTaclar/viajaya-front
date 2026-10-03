@@ -17,7 +17,7 @@
         </div>
 
         <div class="footer__right">
-          <div class="footer__socials-wrapper">
+          <!-- <div class="footer__socials-wrapper">
             <h4 class="footer__socials-title">Síguenos en nuestras redes sociales</h4>
             <div class="footer__socials">
               <a href="https://www.instagram.com/" target="_blank" class="footer__social" aria-label="Instagram">
@@ -27,9 +27,9 @@
                 <i class="fab fa-whatsapp"></i>
               </a>
             </div>
-          </div>
+          </div> -->
 
-          <div class="footer__col">
+          <!-- <div class="footer__col">
             <h4 class="footer__col-title">Contacto</h4>
             <ul class="footer__list footer__list--contact">
               <li>
@@ -41,7 +41,7 @@
                 <span>+57 319 3092312</span>
               </li>
             </ul>
-          </div>
+          </div> -->
         </div>
       </div>
 
