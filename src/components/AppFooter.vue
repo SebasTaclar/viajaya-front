@@ -23,7 +23,7 @@
               <a href="https://www.instagram.com/" target="_blank" class="footer__social" aria-label="Instagram">
                 <i class="fab fa-instagram"></i>
               </a>
-              <a href="https://api.whatsapp.com/send?phone=573132783573&text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n?" target="_blank" class="footer__social footer__social--whatsapp" aria-label="WhatsApp">
+              <a href="https://api.whatsapp.com/send?phone=573193092312&text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n?" target="_blank" class="footer__social footer__social--whatsapp" aria-label="WhatsApp">
                 <i class="fab fa-whatsapp"></i>
               </a>
             </div>
@@ -34,11 +34,11 @@
             <ul class="footer__list footer__list--contact">
               <li>
                 <i class="fas fa-map-marker-alt"></i>
-                <span>Colombia</span>
+                <span>Corabastos, Bodega 32, Local 111</span>
               </li>
               <li>
                 <i class="fas fa-phone-alt"></i>
-                <span>+57 313 278 3573</span>
+                <span>+57 319 3092312</span>
               </li>
             </ul>
           </div>

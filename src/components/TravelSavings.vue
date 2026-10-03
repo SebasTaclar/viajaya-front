@@ -16,8 +16,8 @@
         </p>
 
         <div class="travel-savings__cta-group">
-          <a href="https://wa.me/573132783573?text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n%20detallada?" target="_blank" class="travel-savings__btn-primary">
-            ! Lo quiero !
+          <a href="https://wa.me/573193092312?text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n%20detallada?" target="_blank" class="travel-savings__btn-primary">
+            ¡ Lo quiero !
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
@@ -135,7 +135,7 @@ defineOptions({ name: 'TravelSavings' })
 }
 
 .travel-savings__title {
-  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
+  font-family: 'VolkSans', sans-serif;
   font-size: 70px;
   font-weight: bold;
   line-height: 1.0;
@@ -145,7 +145,7 @@ defineOptions({ name: 'TravelSavings' })
 }
 
 .travel-savings__title em {
-  color:   rgb(236, 37, 37);
+  color:   var(--travel-yellow);
   font-style: normal;
 }
 

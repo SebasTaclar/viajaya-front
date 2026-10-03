@@ -1018,7 +1018,7 @@ onBeforeUnmount(() => {
   max-width: 620px;
   margin: 0;
   color: var(--travel-blue);
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  font-family: 'Bebas Neue', sans-serif;
   font-size: clamp(48px, 6vw, 88px);
   font-weight: 700;
   line-height: 0.98;
@@ -1153,7 +1153,7 @@ onBeforeUnmount(() => {
 
 .travel-hero__value-title {
   color: #fff;
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  font-family: 'Bebas Neue', sans-serif;
   font-size: 18px;
   font-weight: 600;
 }
@@ -1328,7 +1328,7 @@ onBeforeUnmount(() => {
 
 .travel-hero__step-index {
   color: #f0c009;
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  font-family: 'Bebas Neue', sans-serif;
   font-size: 30px;
   line-height: 1;
 }
@@ -1344,7 +1344,7 @@ onBeforeUnmount(() => {
 .travel-hero__step h2 {
   margin: 0 0 7px;
   color: #fff;
-  font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  font-family: 'Bebas Neue', sans-serif;
   font-size: 28px;
   font-weight: 400;
   line-height: 1;
@@ -1380,7 +1380,7 @@ onBeforeUnmount(() => {
   left: auto;
   max-width: min(560px, 100%);
   color: #fff;
-  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
+  font-family: 'VolkSans', sans-serif;
   font-size: 6.4rem;
   font-weight: bold;
   line-height: 1.05;

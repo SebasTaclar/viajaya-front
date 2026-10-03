@@ -53,7 +53,7 @@
             <p class="service-desc">{{ service.description }}</p>
             <div class="service-hover-content">
               <p class="service-summary">{{ service.summary }}</p>
-              <a :href="`https://wa.me/573132783573?text=${encodeURIComponent(`Hola, cordial saludo.\n\nMe interesa el servicio de *${service.name}*.\n\n¿Podrían enviarme información detallada, alcances, tiempos de ejecución y costos?\n\nQuedo atento(a).`)}`" target="_blank" class="service-btn">Solicitar asesoría <i class="fas fa-arrow-right"></i></a>
+              <a :href="`https://wa.me/573193092312?text=${encodeURIComponent(`Hola, cordial saludo.\n\nMe interesa el servicio de *${service.name}*.\n\n¿Podrían enviarme información detallada, alcances, tiempos de ejecución y costos?\n\nQuedo atento(a).`)}`" target="_blank" class="service-btn">Solicitar asesoría <i class="fas fa-arrow-right"></i></a>
             </div>
           </div>
         </div>
