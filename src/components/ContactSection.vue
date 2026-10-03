@@ -7,7 +7,7 @@
 
 
           <h2 class="contact-title">
-            Encuentra el plan perfecto para tus próximas vacaciones.
+            Encuentra el plan perfecto para tus próximas vacaciones
           </h2>
 
           <h3 class="contact-highlight">
@@ -37,7 +37,7 @@
 
           <div class="cta-area">
             <a
-              href="https://api.whatsapp.com/send?phone=573132783573&text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n?"
+              href="https://api.whatsapp.com/send?phone=573193092312&text=Hola,%20cordial%20saludo.%20Me%20interesa%20el%20Fondo%20Viajero.%20%C2%BFPodr%C3%ADan%20enviarme%20informaci%C3%B3n?"
               target="_blank"
               class="btn-whatsapp"
             >
@@ -72,15 +72,15 @@
               <!-- Temas Frecuentes -->
               <div class="frequent-topics">
                 <span class="topics-label">TEMAS FRECUENTES:</span>
-                <a href="https://api.whatsapp.com/send?phone=573132783573&text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20los%20planes%20de%20ahorro%20para%20viajes" target="_blank" class="topic-item">
+                <a href="https://api.whatsapp.com/send?phone=573193092312&text=Hola,%20quiero%20informaci%C3%B3n%20sobre%20los%20planes%20de%20ahorro%20para%20viajes" target="_blank" class="topic-item">
                   <span class="topic-icon">🏖️</span>
                   Quiero información sobre planes de ahorro
                 </a>
-                <a href="https://api.whatsapp.com/send?phone=573132783573&text=Hola,%20%C2%BFc%C3%B3mo%20funcionan%20los%20aportes%20peri%C3%B3dicos%3F" target="_blank" class="topic-item">
+                <a href="https://api.whatsapp.com/send?phone=573193092312&text=Hola,%20%C2%BFc%C3%B3mo%20funcionan%20los%20aportes%20peri%C3%B3dicos%3F" target="_blank" class="topic-item">
                   <span class="topic-icon">💳</span>
                   ¿Cómo funcionan los aportes periódicos?
                 </a>
-                <a href="https://api.whatsapp.com/send?phone=573132783573&text=Hola,%20quiero%20conocer%20los%20destinos%20disponibles" target="_blank" class="topic-item">
+                <a href="https://api.whatsapp.com/send?phone=573193092312&text=Hola,%20quiero%20conocer%20los%20destinos%20disponibles" target="_blank" class="topic-item">
                   <span class="topic-icon">✈️</span>
                   Quiero conocer destinos
                 </a>
@@ -136,7 +136,7 @@ defineOptions({
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 60px;
-  align-items: center;
+  align-items: start;
 }
 
 /* ── Left Side ── */
@@ -180,8 +180,7 @@ defineOptions({
   font-weight: bold;
   color: #ffffff;
   line-height: 1.2;
-  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
-  font-style: italic;
+  font-family: 'VolkSans', sans-serif;
 }
 
 .contact-highlight {
@@ -191,12 +190,13 @@ defineOptions({
   font-size: clamp(36px, 4.5vw, 52px);
   font-weight: 800;
   line-height: 1.1;
-  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
+  font-family: 'VolkSans', sans-serif;
   font-style: italic;
 }
 
 .highlight-text {
-  color: #86efac;
+  color: #f0c009;
+  font-style: italic;
 }
 
 .highlight-yellow {
@@ -298,7 +298,11 @@ defineOptions({
 /* ── Right Side - Chat ── */
 .contact-right {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 20px;
+  margin-top: 60px;
 }
 
 .chat-card {
@@ -475,6 +479,11 @@ defineOptions({
 
   .contact-right {
     justify-content: center;
+    margin-top: 0;
+  }
+
+  .contact-info {
+    margin-top: 0;
   }
 }
 

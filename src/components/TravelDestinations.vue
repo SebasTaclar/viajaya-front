@@ -3,7 +3,7 @@
     <div class="destinations__intro">
       <div>
         <p class="destinations__eyebrow">Posibilidades ilimitadas</p>
-        <h2>Descubre <em>El mundo</em></h2>
+        <h2>Descubre <em>el mundo</em></h2>
       </div>
       <!-- <p>
         Encuentra el plan perfecto para tus próximas vacaciones y táchalo de tu lista.
@@ -129,7 +129,7 @@ const packages = [
 .destinations h2 {
   margin: 0;
   color: rgb(240, 192, 9);
-  font-family: 'VolkSans', 'Arial Narrow', sans-serif;
+  font-family: 'VolkSans', sans-serif;
   font-size: 94px;
   font-weight: bold;
   line-height: 0.92;

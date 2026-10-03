@@ -16,7 +16,7 @@
       <div v-if="!isLoginPage" class="nav-menu desktop-only">
         <a href="/#destinos" class="nav-link" @click="closeMobileMenu">Experiencias</a>
         <a href="/#ahorra" class="nav-link" @click="closeMobileMenu">Fondo Viajero</a>
-        <a href="/#contacto" class="nav-link" @click="closeMobileMenu">Contacto</a>
+        <RouterLink to="/contacto" class="nav-link" @click="closeMobileMenu">Contacto</RouterLink>
       </div>
       <div class="nav-actions desktop-only">
         <div ref="premiumMenuRef" class="premium-menu">
@@ -80,7 +80,7 @@
         <div class="mobile-nav-links">
           <a href="/#destinos" class="mobile-link" @click="closeMobileMenu">Experiencias</a>
           <a href="/#ahorra" class="mobile-link" @click="closeMobileMenu">Fondo viajero</a>
-          <a href="/#contacto" class="mobile-link" @click="closeMobileMenu">Contacto</a>
+          <RouterLink to="/contacto" class="mobile-link" @click="closeMobileMenu">Contacto</RouterLink>
         </div>
         <div class="mobile-controls">
           <button
@@ -132,7 +132,7 @@
     </div>
   </header>
   <RouterView /> <SocialFloating v-if="!hideGlobalSections" />
-  <ContactSection v-if="!hideGlobalSections" /> <AppFooter v-if="!hideGlobalSections" />
+  <ContactSection v-if="!hideGlobalSections && !isContactPage" /> <AppFooter v-if="!hideGlobalSections" />
 </template>
 
 <script setup lang="ts">
@@ -171,6 +171,7 @@ const isLoginPage = computed(
   () => currentRoute.path === '/login-clientes' || currentRoute.path === '/login',
 )
 const isNosotros = computed(() => currentRoute.path === '/nosotros')
+const isContactPage = computed(() => currentRoute.path === '/contacto')
 const isCurrentRoute = (path: string): boolean => currentRoute.path === path
 
 const toggleMobileMenu = () => {
@@ -318,19 +319,21 @@ defineOptions({
     backdrop-filter 0.35s ease;
 }
 
-/* Recuadro en scroll: liquid glass con amarillo primario #f0c009 */
+/* Header en scroll: azul al centro, blanco a los lados */
 
 .site-header.scrolled {
   background: linear-gradient(
-    180deg,
-    rgba(255, 254, 246, 0.9) 0%,
-    rgba(253, 242, 197, 0.86) 45%,
-    rgba(250, 234, 172, 0.82) 100%
+    90deg,
+    rgba(255, 255, 255, 0.97) 0%,
+    rgba(232, 243, 255, 0.96) 22%,
+    rgba(86, 156, 232, 0.95) 50%,
+    rgba(232, 243, 255, 0.96) 78%,
+    rgba(255, 255, 255, 0.97) 100%
   );
   backdrop-filter: blur(24px) saturate(185%);
   -webkit-backdrop-filter: blur(24px) saturate(185%);
-  border-bottom: none;
-  box-shadow: 0 10px 34px rgba(29, 63, 124, 0.16);
+  border-bottom: 1px solid rgba(23, 78, 156, 0.18);
+  box-shadow: 0 10px 30px rgba(23, 78, 156, 0.22);
   color: #0a2460;
 }
 
@@ -431,13 +434,13 @@ defineOptions({
 }
 
 .site-header.scrolled .nav-link {
-  color: #0a2460;
+  color: #203ec9;
 }
 
 .site-header.scrolled .nav-link:hover,
 
 .site-header.scrolled .nav-link.active {
-  color: #203ec9;
+  color: #162e9e;
 }
 
 .nav-link:hover,

@@ -22,7 +22,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 // Número de WhatsApp de Viaja Ya
-const rawNumber = '3132783573'
+const rawNumber = '3193092312'
 // Normaliza a formato internacional (prepend 57 para Colombia)
 const whatsappNumber = '57' + rawNumber.replace(/[^\d]/g, '')
 

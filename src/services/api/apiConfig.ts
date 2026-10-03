@@ -2,7 +2,7 @@
 export const API_CONFIG = {
   baseURL: import.meta.env.DEV
     ? 'http://localhost:7071/api/v1'
-    : 'https://lemon-plant-0833a680f.3.azurestaticapps.net/api/v1',
+    : 'https://viajaya-back-ejf7dnhzhsfydqfx.eastus-01.azurewebsites.net/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

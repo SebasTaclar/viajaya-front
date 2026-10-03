@@ -167,7 +167,7 @@ export function useQuotation() {
   const sendToWhatsApp = () => {
     const message = buildWhatsAppMessage(quotationItems.value)
     const encoded = encodeURIComponent(message)
-    window.open(`https://wa.me/573132783573?text=${encoded}`, '_blank')
+    window.open(`https://wa.me/573193092312?text=${encoded}`, '_blank')
   }
 
   return {
