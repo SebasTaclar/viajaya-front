@@ -11,7 +11,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Crear usuario
+          Crear admin
         </button>
       </div>
     </div>
@@ -27,6 +27,14 @@
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
+      </div>
+      <div class="filter-field">
+        <select v-model="roleFilter" class="form-select">
+          <option value="">Todos los roles</option>
+          <option value="admin">Admin</option>
+          <option value="superadmin">Super Admin</option>
+          <option value="user">Usuario</option>
+        </select>
       </div>
     </div>
 
@@ -157,10 +165,9 @@
             <input v-model="createForm.password" type="password" class="form-input" :class="{ 'field-error': submitted && !createForm.password }" placeholder="Mínimo 6 caracteres" />
           </div>
           <div class="form-group">
-            <label>Rol *</label>
-            <select v-model="createForm.role" class="form-input">
+            <label>Rol</label>
+            <select v-model="createForm.role" class="form-input" disabled>
               <option value="admin">Admin</option>
-              <option value="user">Usuario</option>
             </select>
           </div>
         </div>
@@ -315,6 +322,7 @@ const loading = ref(true)
 const loadError = ref('')
 const actionError = ref('')
 const searchTerm = ref('')
+const roleFilter = ref('admin')
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -335,9 +343,12 @@ const currentUserId = authService.getCurrentUser()?.id ?? null
 const isSuperAdmin = computed(() => authService.getUserRole() === 'superadmin')
 
 const filteredUsers = computed(() => {
+  const base = roleFilter.value
+    ? users.value.filter((u) => u.role === roleFilter.value)
+    : users.value
   const term = searchTerm.value.trim().toLowerCase()
-  if (!term) return users.value
-  return users.value.filter(
+  if (!term) return base
+  return base.filter(
     (u) =>
       (u.name || '').toLowerCase().includes(term) ||
       (u.email || '').toLowerCase().includes(term) ||
@@ -521,7 +532,23 @@ onMounted(() => {
 .page-subtitle { font-size: 0.85rem; color: var(--c-gray, #98A4BF); margin-top: 4px; }
 .header-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
-.filters-bar { display: flex; gap: 12px; flex-wrap: wrap; }
+.filters-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.filter-field { display: flex; }
+.form-select {
+  padding: 10px 14px;
+  border: 1.5px solid var(--c-border, #26334F);
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  background: var(--c-white, #141D36);
+  color: var(--c-black, #E7ECF6);
+  outline: none;
+  transition: all 0.2s;
+  min-width: 170px;
+  cursor: pointer;
+}
+.form-select:focus { border-color: var(--c-primary, #F0C009); box-shadow: 0 0 0 3px rgba(240, 192, 9, 0.15); }
+.form-select option { background: var(--c-white, #141D36); color: var(--c-black, #E7ECF6); }
 .search-box { position: relative; max-width: 420px; flex: 1; min-width: 240px; }
 .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--c-gray-light, #6F7D99); pointer-events: none; }
 .search-input {
@@ -620,6 +647,7 @@ onMounted(() => {
 .form-input { padding: 11px 14px; border: 1.5px solid var(--c-border, #26334F); border-radius: 10px; font-size: 0.88rem; font-family: inherit; background: var(--c-light, #0E162C); color: var(--c-black, #E7ECF6); outline: none; transition: all 0.2s; width: 100%; box-sizing: border-box; }
 .form-input::placeholder { color: var(--c-gray-light, #6F7D99); }
 .form-input:focus { border-color: var(--c-primary, #F0C009); box-shadow: 0 0 0 3px rgba(240, 192, 9, 0.15); }
+.form-input:disabled { opacity: 0.7; cursor: not-allowed; }
 .form-input option { background: var(--c-white, #141D36); color: var(--c-black, #E7ECF6); }
 .field-error { border-color: #dc2626 !important; box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18) !important; }
 .modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--c-border, #26334F); background: var(--c-light, #0E162C); border-radius: 0 0 16px 16px; }

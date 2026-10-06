@@ -25,10 +25,10 @@ export interface CreateViajeroRequest {
   name: string
   cedula: string
   phone: string
-  ubicacion?: string
+  ubicacion: string
   email?: string
-  periodicidad: string
-  password: string
+  periodicidad?: string
+  password?: string
 }
 
 export interface UpdateViajeroRequest {
@@ -77,10 +77,10 @@ class ViajeroService {
       name: data.name.trim(),
       cedula: data.cedula.trim(),
       phone: data.phone.trim(),
-      ubicacion: data.ubicacion?.trim() || undefined,
+      ubicacion: data.ubicacion.trim(),
       email: data.email?.trim() || undefined,
-      periodicidad: data.periodicidad,
-      password: data.password,
+      periodicidad: data.periodicidad || undefined,
+      password: data.password || undefined,
     })
     return this.mapViajero(this.unwrap(response.data))
   }

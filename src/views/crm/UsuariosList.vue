@@ -2,7 +2,7 @@
   <div class="usuarios-page">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Usuarios</h1>
+        <h1 class="page-title">Clientes</h1>
         <p class="page-subtitle">{{ filteredUsuarios.length }} usuarios registrados{{ totalPages > 1 ? ` — Página ${currentPage} de ${totalPages}` : '' }}{{ seleccionados.length > 0 ? ` — ${seleccionados.length} seleccionados` : '' }}</p>
       </div>
       <div class="header-actions">
@@ -11,7 +11,7 @@
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Crear Usuario
+          Crear Cliente
         </button>
       </div>
     </div>
@@ -38,6 +38,16 @@
               <option value="mensual">Mensual</option>
               <option value="quincenal">Quincenal</option>
               <option value="semanal">Semanal</option>
+            </select>
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-field">
+            <label class="filter-label">Estado</label>
+            <select v-model="statusFilter" class="form-select">
+              <option value="">Todos</option>
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
             </select>
           </div>
         </div>
@@ -112,6 +122,11 @@
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button class="action-btn pass-btn" title="Cambiar contraseña" @click="openPasswordModal(u)">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                       </svg>
                     </button>
                     <button
@@ -195,13 +210,13 @@
             </div>
 
             <div class="form-group">
-              <label>Ubicación</label>
-              <input v-model="createForm.ubicacion" type="text" class="form-input" placeholder="Ciudad / Departamento" />
+              <label>Ubicación *</label>
+              <input v-model="createForm.ubicacion" type="text" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.ubicacion }" placeholder="Ciudad / Departamento" />
             </div>
 
             <div class="form-group">
-              <label>Periodicidad de recaudo *</label>
-              <select v-model="createForm.periodicidad" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.periodicidad }">
+              <label>Periodicidad de recaudo</label>
+              <select v-model="createForm.periodicidad" class="form-input">
                 <option value="" disabled>Seleccionar</option>
                 <option value="diario">Diario</option>
                 <option value="mensual">Mensual</option>
@@ -216,9 +231,9 @@
             </div>
 
             <div class="form-group form-group-full">
-              <label>Contraseña *</label>
+              <label>Contraseña</label>
               <div class="password-input-wrap">
-                <input v-model="createForm.password" :type="showPassword ? 'text' : 'password'" class="form-input" :class="{ 'field-error': createSubmitted && !createForm.password }" placeholder="Mínimo 6 caracteres" />
+                <input v-model="createForm.password" :type="showPassword ? 'text' : 'password'" class="form-input" placeholder="Mínimo 6 caracteres (opcional)" />
                 <button type="button" class="btn-toggle-password" @click="showPassword = !showPassword">
                   <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -357,6 +372,70 @@
       </div>
     </div>
 
+    <!-- Cambiar contraseña -->
+    <div v-if="showPasswordModal" class="modal-overlay" @click.self="showPasswordModal = false">
+      <div class="modal-content modal-sm" @click.stop>
+        <div class="modal-header">
+          <h3>Cambiar contraseña</h3>
+          <button class="modal-close" @click="showPasswordModal = false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div v-if="formError" class="modal-error">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          {{ formError }}
+        </div>
+
+        <div class="modal-body">
+          <p class="password-hint">Cliente: <strong>{{ passwordTargetName }}</strong></p>
+
+          <div class="form-group">
+            <label>Nueva contraseña *</label>
+            <div class="password-input-wrap">
+              <input
+                v-model="passwordForm.password"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-input"
+                placeholder="Mínimo 6 caracteres"
+              />
+              <button type="button" class="btn-toggle-password" @click="showPassword = !showPassword">
+                <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Confirmar contraseña *</label>
+            <input
+              v-model="passwordForm.confirm"
+              :type="showPassword ? 'text' : 'password'"
+              class="form-input"
+              placeholder="Repita la contraseña"
+            />
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" :disabled="saving" @click="showPasswordModal = false">Cancelar</button>
+          <button class="btn-save" :disabled="saving" @click="handlePasswordChange">
+            <span v-if="saving" class="btn-spinner"></span>
+            {{ saving ? 'Guardando...' : 'Guardar contraseña' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteModal" class="modal-overlay" @click.self="showDeleteModal = false">
       <div class="modal-content modal-sm" @click.stop>
@@ -399,37 +478,69 @@
           </button>
         </div>
         <div class="modal-body">
-          <p class="msg-options-sub">Selecciona el tipo de recaudo que quieres informar a <strong>{{ msgTargetUser.name }}</strong></p>
-          <div class="msg-options">
-            <button class="msg-option" @click="chooseMsgOption('ultimo')">
-              <span class="msg-option-icon ultimo">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          <template v-if="!msgCompose">
+            <p class="msg-options-sub">Selecciona qué quieres enviar a <strong>{{ msgTargetUser.name }}</strong></p>
+            <div class="msg-options">
+              <button class="msg-option" @click="chooseMsgOption('ultimo')">
+                <span class="msg-option-icon ultimo">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Último Recaudo</strong>
+                  <small>Informar sobre el último recaudo registrado</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
                 </svg>
-              </span>
-              <span class="msg-option-text">
-                <strong>Último Recaudo</strong>
-                <small>Informar sobre el último recaudo registrado</small>
-              </span>
-              <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </button>
-            <button class="msg-option" @click="chooseMsgOption('total')">
-              <span class="msg-option-icon total">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </button>
+              <button class="msg-option" @click="chooseMsgOption('total')">
+                <span class="msg-option-icon total">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 1v22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Total Recaudo</strong>
+                  <small>Informar sobre el total recaudado acumulado</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
                 </svg>
-              </span>
-              <span class="msg-option-text">
-                <strong>Total Recaudo</strong>
-                <small>Informar sobre el total recaudado acumulado</small>
-              </span>
-              <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </button>
-          </div>
+              </button>
+              <button class="msg-option" @click="chooseMsgOption('libre')">
+                <span class="msg-option-icon libre">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Mensaje libre</strong>
+                  <small>Escribe y envía el mensaje que quieras</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+          </template>
+
+          <template v-else>
+            <p class="msg-options-sub">Escribe el mensaje que quieres enviar a <strong>{{ msgTargetUser.name }}</strong></p>
+            <textarea
+              v-model="msgFreeText"
+              class="form-input msg-compose-input"
+              rows="5"
+              maxlength="1000"
+              placeholder="Escribe tu mensaje..."
+            ></textarea>
+            <div class="msg-compose-actions">
+              <button class="btn-cancel" @click="msgCompose = false">Volver</button>
+              <button class="btn-save" @click="confirmComposeMsg">Continuar</button>
+            </div>
+            <p v-if="msgError" class="field-error">{{ msgError }}</p>
+          </template>
         </div>
       </div>
     </div>
@@ -445,10 +556,15 @@
             </svg>
           </div>
           <h3>¿Estás seguro?</h3>
-          <p>
-            Vas a enviar un mensaje de <strong>{{ msgKind === 'ultimo' ? 'Último Recaudo' : 'Total Recaudo' }}</strong>
+          <p v-if="msgKind === 'libre'">
+            Vas a enviar un <strong>mensaje libre</strong>
+            a <strong>{{ msgTargetUser.name }}</strong> (C.I. {{ msgTargetUser.cedula }}):
+          </p>
+          <p v-else>
+            Vas a enviar un mensaje de <strong>{{ msgKindLabel }}</strong>
             a <strong>{{ msgTargetUser.name }}</strong> (C.I. {{ msgTargetUser.cedula }}).
           </p>
+          <blockquote v-if="msgKind === 'libre'" class="msg-compose-preview">{{ msgFreeText }}</blockquote>
           <div class="confirm-actions">
             <button class="btn-cancel" :disabled="msgStatus === 'sending'" @click="msgConfirm = false">Cancelar</button>
             <button class="btn-save" :disabled="msgStatus === 'sending'" @click="confirmSendMsg">
@@ -498,17 +614,21 @@ import { messageService } from '@/services/api/messageService'
 const loading = usuariosLoading
 const searchTerm = ref('')
 const periodFilter = ref('')
+const statusFilter = ref<'' | 'activo' | 'inactivo'>('')
 const currentPage = ref(1)
 const perPage = 20
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
+const showPasswordModal = ref(false)
 const showDeleteModal = ref(false)
 const showMsgOptions = ref(false)
 const msgTargetUser = ref<MockUser | null>(null)
 const msgStatus = ref<'sending' | 'sent' | null>(null)
 const msgConfirm = ref(false)
-const msgKind = ref<'ultimo' | 'total'>('ultimo')
+const msgKind = ref<'ultimo' | 'total' | 'libre'>('ultimo')
+const msgCompose = ref(false)
+const msgFreeText = ref('')
 const msgSentTo = ref('')
 const msgSentTipo = ref('')
 const msgError = ref('')
@@ -525,6 +645,9 @@ const mostrarPolitica = false
 const deleteId = ref(0)
 const deleteName = ref('')
 const editUserId = ref(0)
+const passwordTargetId = ref(0)
+const passwordTargetName = ref('')
+const passwordForm = ref({ password: '', confirm: '' })
 
 const createForm = ref({
   name: '',
@@ -563,6 +686,11 @@ const filteredUsuarios = computed(() => {
   if (periodFilter.value) {
     result = result.filter(u => u.periodicidad === periodFilter.value)
   }
+  if (statusFilter.value === 'activo') {
+    result = result.filter(u => u.isActive)
+  } else if (statusFilter.value === 'inactivo') {
+    result = result.filter(u => !u.isActive)
+  }
   return result
 })
 
@@ -594,7 +722,7 @@ function toggleTodos() {
   }
 }
 
-watch([searchTerm, periodFilter], () => { currentPage.value = 1 })
+watch([searchTerm, periodFilter, statusFilter], () => { currentPage.value = 1 })
 
 function getUserInitials(name: string): string {
   return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
@@ -646,6 +774,33 @@ function extractError(error: unknown, fallback: string): string {
   return fallback
 }
 
+function openPasswordModal(u: MockUser) {
+  passwordTargetId.value = u.id
+  passwordTargetName.value = u.name
+  passwordForm.value = { password: '', confirm: '' }
+  formError.value = ''
+  showPassword.value = false
+  showPasswordModal.value = true
+}
+
+async function handlePasswordChange() {
+  formError.value = ''
+  const f = passwordForm.value
+  if (!f.password) { formError.value = 'La contraseña es obligatoria.'; return }
+  if (f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
+  if (f.password !== f.confirm) { formError.value = 'Las contraseñas no coinciden.'; return }
+
+  saving.value = true
+  try {
+    await viajeroService.update(passwordTargetId.value, { password: f.password })
+    showPasswordModal.value = false
+  } catch (error) {
+    formError.value = extractError(error, 'No se pudo cambiar la contraseña.')
+  } finally {
+    saving.value = false
+  }
+}
+
 async function refreshList() {
   actionError.value = ''
   await loadUsuarios(true)
@@ -661,9 +816,8 @@ async function handleCreate() {
   if (!f.name.trim()) { formError.value = 'El nombre completo es obligatorio.'; return }
   if (!f.cedula.trim()) { formError.value = 'La cédula es obligatoria.'; return }
   if (!f.celular.trim()) { formError.value = 'El celular es obligatorio.'; return }
-  if (!f.periodicidad) { formError.value = 'La periodicidad de recaudo es obligatoria.'; return }
-  if (!f.password) { formError.value = 'La contraseña es obligatoria.'; return }
-  if (f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
+  if (!f.ubicacion.trim()) { formError.value = 'La ubicación es obligatoria.'; return }
+  if (f.password && f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
   if (mostrarPolitica && !f.acceptPolicy) {
     formError.value = 'Debe aceptar la Política de tratamiento de datos personales (Ley 1581) para crear el usuario.'
     return
@@ -677,8 +831,8 @@ async function handleCreate() {
       phone: f.celular.trim(),
       ubicacion: f.ubicacion.trim(),
       email: f.email.trim() || undefined,
-      periodicidad: f.periodicidad,
-      password: f.password,
+      periodicidad: f.periodicidad || undefined,
+      password: f.password || undefined,
     })
     showCreateModal.value = false
     await refreshList()
@@ -758,13 +912,39 @@ function openMsgOptions(u: MockUser) {
   msgTargetUser.value = u
   msgConfirm.value = false
   msgError.value = ''
+  msgKind.value = 'ultimo'
+  msgCompose.value = false
+  msgFreeText.value = ''
   showMsgOptions.value = true
 }
 
 let msgTimer: ReturnType<typeof setTimeout> | undefined
 
-function chooseMsgOption(kind: 'ultimo' | 'total') {
+const msgKindLabel = computed(() =>
+  msgKind.value === 'ultimo' ? 'Último Recaudo'
+    : msgKind.value === 'total' ? 'Total Recaudo'
+      : 'Mensaje libre'
+)
+
+function chooseMsgOption(kind: 'ultimo' | 'total' | 'libre') {
   msgKind.value = kind
+  msgError.value = ''
+  if (kind === 'libre') {
+    msgFreeText.value = ''
+    msgCompose.value = true
+    return
+  }
+  showMsgOptions.value = false
+  msgConfirm.value = true
+}
+
+function confirmComposeMsg() {
+  const text = msgFreeText.value.trim()
+  if (!text) {
+    msgError.value = 'El mensaje no puede estar vacío.'
+    return
+  }
+  msgFreeText.value = text
   msgError.value = ''
   showMsgOptions.value = false
   msgConfirm.value = true
@@ -780,10 +960,12 @@ async function confirmSendMsg() {
     return
   }
 
-  const tipo = msgKind.value === 'ultimo' ? 'Último Recaudo' : 'Total Recaudo'
-  const texto = msgKind.value === 'ultimo'
-    ? `Hola ${u.name}, te informamos sobre tu último recaudo registrado. ¡Gracias por mantenerte al día!`
-    : `Hola ${u.name}, te informamos el estado de tu total recaudo acumulado. ¡Gracias por mantenerte al día!`
+  const tipo = msgKindLabel.value
+  const texto = msgKind.value === 'libre'
+    ? msgFreeText.value
+    : msgKind.value === 'ultimo'
+      ? `Hola ${u.name}, te informamos sobre tu último recaudo registrado. ¡Gracias por mantenerte al día!`
+      : `Hola ${u.name}, te informamos el estado de tu total recaudo acumulado. ¡Gracias por mantenerte al día!`
 
   msgError.value = ''
   msgStatus.value = 'sending'
@@ -869,6 +1051,9 @@ async function confirmSendMsg() {
 .action-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: none; color: var(--c-gray); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
 .action-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--c-black); }
 .action-btn.delete-btn:hover { background: rgba(232, 72, 63, 0.1); color: #E8483F; }
+.action-btn.pass-btn:hover { background: rgba(240, 192, 9, 0.18); color: var(--c-primary); }
+.password-hint { margin: 0; font-size: 0.85rem; color: var(--c-gray); }
+.password-hint strong { color: var(--c-black); }
 
 .msg-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--c-primary), #E8C25A); color: #102857; font-size: 0.76rem; font-weight: 700; font-family: inherit; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 8px rgba(200, 155, 45, 0.4); transition: all 0.15s; }
 .msg-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(200, 155, 45, 0.5); }
@@ -881,11 +1066,16 @@ async function confirmSendMsg() {
 .msg-option-icon { display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; }
 .msg-option-icon.ultimo { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
 .msg-option-icon.total { background: rgba(16, 185, 129, 0.15); color: #10B981; }
+.msg-option-icon.libre { background: rgba(139, 92, 246, 0.15); color: #8B5CF6; }
 .msg-option-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .msg-option-text strong { font-size: 0.9rem; font-weight: 700; color: var(--c-black); }
 .msg-option-text small { font-size: 0.76rem; color: var(--c-gray); }
 .msg-option-arrow { color: var(--c-gray-light); flex-shrink: 0; }
 .msg-option:hover .msg-option-arrow { color: var(--c-primary); }
+
+.msg-compose-input { width: 100%; min-height: 130px; resize: vertical; line-height: 1.5; }
+.msg-compose-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.msg-compose-preview { margin: 10px 0 0; padding: 10px 12px; background: var(--c-light); border: 1px solid var(--c-border); border-radius: 10px; font-size: 0.85rem; color: var(--c-black); white-space: pre-wrap; text-align: left; }
 
 .msg-sent-toast { position: fixed; right: 24px; bottom: 24px; z-index: 1200; display: flex; align-items: center; gap: 12px; min-width: 280px; max-width: 90vw; padding: 14px 16px; border-radius: 12px; background: var(--c-white); border: 1px solid var(--c-border); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25); }
 .msg-sent-toast.sent { border-color: rgba(16, 185, 129, 0.5); }
@@ -990,7 +1180,8 @@ async function confirmSendMsg() {
 .delete-actions .btn-delete:hover { background: #c93a32; transform: translateY(-1px); }
 
 @media (max-width: 768px) {
-  .page-header { flex-direction: column; align-items: flex-start; }
+  .usuarios-page { gap: 16px; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
   .page-title { font-size: 1.2rem; }
   .header-actions { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; }
   .summary-cards { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -1000,9 +1191,10 @@ async function confirmSendMsg() {
   .summary-label { font-size: 0.6rem; white-space: normal; text-align: center; }
   .btn-primary { margin-left: 0; justify-content: center; width: 100%; padding: 13px 20px; font-size: 0.92rem; }
 
-  .search-box { max-width: 100%; width: 100%; }
-  .filter-group { width: 100%; }
-  .filter-field { flex: 1; min-width: 0; }
+  .filters-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+  .search-box { grid-column: 1 / -1; max-width: 100%; width: 100%; min-width: 0; }
+  .filter-group { width: auto; margin-left: 0; }
+  .filter-field { flex: 1; min-width: 0; width: 100%; }
   .form-select { width: 100%; }
 
   .table-responsive { -webkit-overflow-scrolling: touch; }
