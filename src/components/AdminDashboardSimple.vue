@@ -85,12 +85,22 @@
           <!-- Dashboard Title -->
           <div class="dashboard-title-row">
             <h2 class="dashboard-title">Panel de control</h2>
-
+            <button
+              class="refresh-btn"
+              title="Actualizar métricas"
+              :disabled="dashboardLoading"
+              @click="refreshDashboard()"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+            </button>
           </div>
 
           <!-- Estado de las métricas del backend -->
-          <div v-if="dashboardError" class="form-alert" style="margin-bottom: 14px;">{{ dashboardError }}</div>
-          <div v-else-if="dashboardLoading" style="margin-bottom: 14px; font-size: 0.85rem; color: var(--c-gray);">Actualizando métricas...</div>
+          <div v-if="dashboardLoading" style="margin-bottom: 14px; font-size: 0.85rem; color: var(--c-gray);">Actualizando métricas...</div>
 
           <!-- Stats Cards -->
           <div class="stats-row">
@@ -104,7 +114,7 @@
                 </svg>
               </div>
               <div class="stat-content">
-                <span class="stat-label">Usuarios registrados</span>
+                <span class="stat-label">Clientes registrados</span>
                 <span class="stat-value">{{ usuariosRegistrados }}</span>
 
               </div>
@@ -169,7 +179,7 @@
               </div>
               <div class="widget-body">
                 <div v-if="alertasInactividad.length === 0" class="widget-empty">
-                  Todos los usuarios están activos según su periodicidad de recaudo
+                  Ningún cliente ha superado los 2 ciclos de su periodicidad de recaudo
                 </div>
                 <div v-for="a in alertasInactividad" :key="a.id" class="alert-row">
                   <div class="alert-icon">
@@ -183,7 +193,7 @@
                       <span class="alert-name">{{ a.name }}</span>
                       <span class="alert-days">{{ a.diasInactividad }} días</span>
                     </div>
-                    <span class="alert-detail">Recaudo {{ a.periodicidad }} · sin actividad desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }})</span>
+                    <span class="alert-detail">Recaudo {{ periodLabel(a.periodicidad) }} · sin recaudo desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días = 2 ciclos)</span>
                   </div>
                 </div>
               </div>
@@ -536,6 +546,7 @@
         <!-- ========== USUARIOS ========== -->
         <UsuariosList v-if="currentSection === 'usuarios'" />
         <PanelUsersList v-if="currentSection === 'panel-usuarios'" />
+        <AuditList v-if="currentSection === 'audit'" />
 
         <!-- ========== RECAUDOS ========== -->
         <div v-if="currentSection === 'recaudos'" class="section-recaudos">
@@ -1445,7 +1456,7 @@ import { tenderService } from '@/services/api/tenderService'
 import { documentService } from '@/services/api/documentService'
 import { userService } from '@/services/api/userService'
 import { recaudoService, type RecaudoRow } from '@/services/api/recaudoService'
-import { dashboardService, type DashboardKpis } from '@/services/api/dashboardService'
+import { dashboardService, type DashboardKpis, type DashboardAlert } from '@/services/api/dashboardService'
 import { messageService } from '@/services/api/messageService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
 import {
@@ -1465,6 +1476,7 @@ import ProjectDetail from '@/views/crm/ProjectDetail.vue'
 import ColaboradoresList from '@/views/crm/ColaboradoresList.vue'
 import UsuariosList from '@/views/crm/UsuariosList.vue'
 import PanelUsersList from '@/views/crm/PanelUsersList.vue'
+import AuditList from '@/views/crm/AuditList.vue'
 import DocumentosList from '@/views/crm/DocumentosList.vue'
 import ColaboradorDetail from '@/views/crm/ColaboradorDetail.vue'
 
@@ -2306,9 +2318,10 @@ async function sendRecaudoMsg() {
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>' },
-  { id: 'usuarios', label: 'Usuarios', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
+  { id: 'usuarios', label: 'Clientes', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
   { id: 'panel-usuarios', label: 'Usuarios del panel', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
   { id: 'recaudos', label: 'Recaudos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>' },
+  { id: 'audit', label: 'Auditoría', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
 ].filter(
   (item) =>
     isSuperAdmin.value ||
@@ -2690,13 +2703,11 @@ async function fetchUsuarios() {
 // ========== FONDO VIAJERO, TOP PRESUPUESTO, ALERTAS, TIEMPO REAL ==========
 const dashboardKpis = ref<DashboardKpis>({ fondoViajero: 0, usuariosRegistrados: 0, alertas: [] })
 const dashboardLoading = ref(false)
-const dashboardError = ref('')
 const lastUpdated = ref(Date.now())
 const nowTick = ref(Date.now())
 
 async function fetchDashboard() {
   dashboardLoading.value = true
-  dashboardError.value = ''
   try {
     const kpis = await dashboardService.getKpis()
     dashboardKpis.value = kpis
@@ -2704,14 +2715,16 @@ async function fetchDashboard() {
       usuariosRegistrados.value = kpis.usuariosRegistrados
     }
     lastUpdated.value = Date.now()
-  } catch (error) {
-    dashboardError.value = recaudoErrorMessage(error, 'No se pudo cargar el dashboard.')
+  } catch {
+    // Los KPIs del backend son opcionales: el dashboard sigue funcionando sin ellos
   } finally {
     dashboardLoading.value = false
   }
 }
 
-const fondoViajeroTotal = computed(() => dashboardKpis.value.fondoViajero)
+const fondoViajeroTotal = computed(() =>
+  recaudosList.value.reduce((sum, row) => sum + (Number(row.valor) || 0), 0),
+)
 
 const topUsuariosPresupuesto = computed(() =>
   [...usuariosCreados.value]
@@ -2726,9 +2739,50 @@ function rankPercent(value: number): number {
   return Math.round((value / maxPresupuesto.value) * 100)
 }
 
-const alertasInactividad = computed(() =>
-  [...dashboardKpis.value.alertas].sort((a, b) => b.diasInactividad - a.diasInactividad),
-)
+// Días que dura un ciclo de recaudo por periodicidad
+const CICLO_DIAS_POR_PERIODICIDAD: Record<string, number> = {
+  diario: 1,
+  diaria: 1,
+  semanal: 7,
+  quincenal: 15,
+  mensual: 30,
+}
+
+// Alerta si el cliente ya pasó 2 ciclos de su periodicidad sin recaudo
+const alertasInactividad = computed(() => {
+  const porCliente = new Map<number, { ts: number; periodicidad: string }>()
+  for (const row of recaudosList.value) {
+    const ts = new Date(row.fecha).getTime()
+    if (!Number.isFinite(ts)) continue
+    const prev = porCliente.get(row.clientId)
+    if (!prev || ts > prev.ts) {
+      porCliente.set(row.clientId, { ts, periodicidad: row.client?.periodicidad || '' })
+    }
+  }
+
+  const alertas: DashboardAlert[] = []
+  for (const [clientId, last] of porCliente) {
+    const u = usuariosCreados.value.find((x) => x.id === clientId)
+    if (u && !u.isActive) continue
+    const periodicidad = (u?.periodicidad || last.periodicidad || '').trim().toLowerCase()
+    const ciclo = CICLO_DIAS_POR_PERIODICIDAD[periodicidad]
+    if (!ciclo) continue
+    const limiteDias = ciclo * 2
+    const diasInactividad = Math.floor((nowTick.value - last.ts) / 86400000)
+    if (diasInactividad >= limiteDias) {
+      alertas.push({
+        id: clientId,
+        name: u?.name || `Cliente #${clientId}`,
+        cedula: u?.cedula,
+        periodicidad,
+        diasInactividad,
+        limiteDias,
+      })
+    }
+  }
+
+  return alertas.sort((a, b) => b.diasInactividad - a.diasInactividad)
+})
 
 const lastUpdatedLabel = computed(() => {
   const seconds = Math.max(0, Math.round((nowTick.value - lastUpdated.value) / 1000))
@@ -2785,7 +2839,6 @@ const proximoCierreFecha = computed(() => {
 })
 
 let clockTimer: number | undefined
-let pollTimer: number | undefined
 
 async function refreshDashboard() {
   await Promise.allSettled([fetchUsuarios(), fetchDashboard()])
@@ -2914,15 +2967,10 @@ onMounted(() => {
   clockTimer = window.setInterval(() => {
     nowTick.value = Date.now()
   }, 1000)
-
-  pollTimer = window.setInterval(() => {
-    refreshDashboard()
-  }, 30000)
 })
 
 onUnmounted(() => {
   if (clockTimer) window.clearInterval(clockTimer)
-  if (pollTimer) window.clearInterval(pollTimer)
 })
 </script>
 
@@ -3317,6 +3365,7 @@ onUnmounted(() => {
       transition: all 0.15s;
     }
     .refresh-btn:hover { color: var(--c-black); border-color: var(--c-gray); transform: rotate(90deg); }
+    .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 
 .month-filter {
@@ -4941,7 +4990,6 @@ onUnmounted(() => {
   .modal-card { padding: 16px; }
 
   /* Recaudos: móvil pequeño */
-  .section-recaudos .coti-filters { grid-template-columns: 1fr; }
   .section-recaudos .modal-content { width: calc(100% - 16px); }
   .section-recaudos .modal-footer { flex-direction: column-reverse; }
   .section-recaudos .modal-footer > * {
@@ -5453,6 +5501,19 @@ onUnmounted(() => {
   opacity: 1;
 }
 .coti-filter-group .btn-outline { padding: 8px 16px; }
+
+/* Recaudos: filtros más compactos */
+.section-recaudos .coti-filters { gap: 10px; margin-bottom: 16px; }
+.section-recaudos .coti-filter-group { gap: 3px; }
+.section-recaudos .coti-filter-group label { font-size: 0.66rem; letter-spacing: 0.04em; }
+.section-recaudos .coti-select,
+.section-recaudos .coti-input { padding: 6px 10px; font-size: 0.8rem; border-radius: 7px; }
+.section-recaudos .coti-filter-group .btn-outline { padding: 6px 14px; font-size: 0.8rem; border-radius: 7px; }
+@media (min-width: 769px) {
+  .section-recaudos .coti-select,
+  .section-recaudos .coti-input { min-width: 150px; }
+  .section-recaudos .coti-filter-search { min-width: 220px; flex: 1 1 220px; }
+}
 
 .view-mode input,
 .view-mode select,

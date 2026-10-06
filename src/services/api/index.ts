@@ -42,6 +42,8 @@ export type {
   CreateRecaudoRequest,
   UpdateRecaudoRequest,
 } from './recaudoService'
+export { auditService } from './auditService'
+export type { AuditLog, AuditLogData, AuditListParams, AuditListResponse } from './auditService'
 export { dashboardService, LIMITE_DIAS_POR_PERIODICIDAD } from './dashboardService'
 export type { DashboardKpis, DashboardAlert } from './dashboardService'
 export { messageService } from './messageService'

@@ -172,34 +172,12 @@
         <section v-if="activeSection === 'inicio'" class="section">
           <div class="greeting-card">
             <div class="greeting-text">
-              <h1>Hola, {{ displayName || mockHome.name }}</h1>
+              <h1>Hola, {{ displayName || 'Usuario' }}</h1>
               <p>Bienvenido a tu portal de viajes con <strong>Viaja Ya</strong></p>
             </div>
           </div>
 
           <div class="stats-row">
-            <div class="stat-card green">
-              <div class="stat-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-              </div>
-              <div class="stat-data">
-                <span class="stat-number">{{ mockHome.paidInstallments }}</span>
-                <span class="stat-text">Cuotas pagadas</span>
-              </div>
-            </div>
-            <div class="stat-card orange">
-              <div class="stat-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-                </svg>
-              </div>
-              <div class="stat-data">
-                <span class="stat-number">{{ mockHome.pendingInstallments }}</span>
-                <span class="stat-text">Cuotas pendientes</span>
-              </div>
-            </div>
             <div class="stat-card gold">
               <div class="stat-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -207,27 +185,23 @@
                 </svg>
               </div>
               <div class="stat-data">
-                <span class="stat-number">{{ mockHome.lastPaymentDate }}</span>
-                <span class="stat-date">${{ mockHome.lastPayment.toLocaleString('es-CO') }}</span>
-                <span class="stat-text">Ultimo recaudo</span>
+                <template v-if="ultimoRecaudo">
+                  <span class="stat-number">{{ formatRecaudoFecha(ultimoRecaudo.fecha) }}</span>
+                  <span class="stat-date">{{ formatRecaudoValor(ultimoRecaudo.valor) }}</span>
+                  <span class="stat-text">Ultimo recaudo</span>
+                </template>
+                <template v-else>
+                  <span class="stat-number">—</span>
+                  <span class="stat-text">Ultimo recaudo</span>
+                </template>
               </div>
             </div>
           </div>
 
           <div class="saldo-banner">
             <div class="saldo-left">
-              <span class="saldo-label">Saldo Disponible:</span>
-              <span class="saldo-amount">${{ mockHome.balance.toLocaleString('es-CO') }}</span>
-            </div>
-            <div class="saldo-right">
-              <div class="saldo-detail">
-                <span class="saldo-detail-label">Pagado</span>
-                <span class="saldo-detail-value paid">${{ mockHome.paidTotal.toLocaleString('es-CO') }}</span>
-              </div>
-              <div class="saldo-detail">
-                <span class="saldo-detail-label">Pendiente</span>
-                <span class="saldo-detail-value">${{ mockHome.balance.toLocaleString('es-CO') }}</span>
-              </div>
+              <span class="saldo-label">Saldo ahorrado:</span>
+              <span class="saldo-amount">{{ formatRecaudoValor(recaudosTotal) }}</span>
             </div>
           </div>
         </section>
@@ -564,8 +538,7 @@
         <section v-if="activeSection === 'recaudos'" class="section">
           <div class="section-head">
             <h2>Recaudos</h2>
-            <p v-if="recaudos.length > 0">{{ recaudos.length }} recaudos · Total {{ formatRecaudoValor(recaudosTotal) }}</p>
-            <p v-else>Historial de recaudos de tu cuenta</p>
+            <p>Historial de recaudos de tu cuenta</p>
           </div>
 
           <div v-if="recaudosLoading" class="state-container">
@@ -586,32 +559,80 @@
             </div>
           </div>
 
-          <div v-else-if="recaudos.length === 0" class="empty-state">
+          <template v-else-if="recaudos.length > 0">
+            <div class="recaudos-summary">
+              <div class="stat-card gold recaudo-total-card">
+                <div class="stat-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </div>
+                <div class="stat-data">
+                  <span class="stat-text">Total recaudado</span>
+                  <span class="stat-number">{{ formatRecaudoValor(filteredRecaudosTotal) }}</span>
+                  <span class="recaudo-total-sub">
+                    {{ filteredRecaudos.length }} de {{ recaudos.length }} recaudos
+                    <template v-if="hasRecaudoFilters"> · Histórico {{ formatRecaudoValor(recaudosTotal) }}</template>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="recaudos-filters">
+              <label class="recaudo-filter">
+                <span>Mes</span>
+                <input v-model="recaudoMes" type="month" class="recaudo-filter-input" @change="onRecaudoMesChange" />
+              </label>
+              <label class="recaudo-filter">
+                <span>Desde</span>
+                <input v-model="recaudoDesde" type="date" class="recaudo-filter-input" @change="recaudoMes = ''" />
+              </label>
+              <label class="recaudo-filter">
+                <span>Hasta</span>
+                <input v-model="recaudoHasta" type="date" class="recaudo-filter-input" @change="recaudoMes = ''" />
+              </label>
+              <button
+                v-if="hasRecaudoFilters"
+                class="recaudo-filter-clear"
+                @click="clearRecaudoFilters"
+              >
+                Limpiar filtros
+              </button>
+            </div>
+
+            <div v-if="filteredRecaudos.length === 0" class="empty-state">
+              <p>No hay recaudos en el rango seleccionado</p>
+              <button class="retry-btn" @click="clearRecaudoFilters">Limpiar filtros</button>
+            </div>
+
+            <div v-else class="users-table-wrapper">
+              <table class="users-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    <th>Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="r in filteredRecaudos" :key="r.id">
+                    <td>{{ formatRecaudoFecha(r.fecha) }}</td>
+                    <td>{{ formatRecaudoHora(r.fecha) || 'N/A' }}</td>
+                    <td>{{ formatRecaudoValor(r.valor) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+
+          <div v-else class="empty-state">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.5">
               <rect x="2" y="5" width="20" height="14" rx="2"/>
               <line x1="2" y1="10" x2="22" y2="10"/>
               <line x1="6" y1="15" x2="10" y2="15"/>
             </svg>
             <p>Aun no hay recaudos registrados</p>
-          </div>
-
-          <div v-else class="users-table-wrapper">
-            <table class="users-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Hora</th>
-                  <th>Valor</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="r in recaudos" :key="r.id">
-                  <td>{{ formatRecaudoFecha(r.fecha) }}</td>
-                  <td>{{ formatRecaudoHora(r.fecha) || 'N/A' }}</td>
-                  <td>{{ formatRecaudoValor(r.valor) }}</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </section>
 
@@ -755,6 +776,66 @@ function formatRecaudoHora(fecha?: string): string {
 }
 
 const recaudosTotal = computed(() => recaudos.value.reduce((sum, r) => sum + (Number(r.valor) || 0), 0))
+
+const ultimoRecaudo = computed<RecaudoRow | null>(() => {
+  let best: RecaudoRow | null = null
+  let bestTime = Number.NEGATIVE_INFINITY
+  for (const r of recaudos.value) {
+    const time = new Date(r.fecha).getTime()
+    if (Number.isNaN(time)) continue
+    if (time > bestTime) {
+      bestTime = time
+      best = r
+    }
+  }
+  return best ?? recaudos.value[0] ?? null
+})
+
+const recaudoMes = ref('')
+const recaudoDesde = ref('')
+const recaudoHasta = ref('')
+
+const hasRecaudoFilters = computed(
+  () => !!(recaudoMes.value || recaudoDesde.value || recaudoHasta.value),
+)
+
+function onRecaudoMesChange() {
+  if (!recaudoMes.value) {
+    recaudoDesde.value = ''
+    recaudoHasta.value = ''
+    return
+  }
+  const [y, m] = recaudoMes.value.split('-').map(Number)
+  if (!y || !m) return
+  const pad = (n: number) => String(n).padStart(2, '0')
+  recaudoDesde.value = `${y}-${pad(m)}-01`
+  recaudoHasta.value = `${y}-${pad(m)}-${pad(new Date(y, m, 0).getDate())}`
+}
+
+function clearRecaudoFilters() {
+  recaudoMes.value = ''
+  recaudoDesde.value = ''
+  recaudoHasta.value = ''
+}
+
+const filteredRecaudos = computed(() => {
+  const desde = recaudoDesde.value
+  const hasta = recaudoHasta.value
+  if (!desde && !hasta) return recaudos.value
+  return recaudos.value.filter((r) => {
+    const d = new Date(r.fecha)
+    if (Number.isNaN(d.getTime())) return false
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const fecha = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+    if (desde && fecha < desde) return false
+    if (hasta && fecha > hasta) return false
+    return true
+  })
+})
+
+const filteredRecaudosTotal = computed(() =>
+  filteredRecaudos.value.reduce((sum, r) => sum + (Number(r.valor) || 0), 0),
+)
 
 const clientInitials = computed(() => {
   const name = clientData.value?.razonSocial || ''
@@ -1634,6 +1715,87 @@ async function reloadData() {
   margin: 0;
 }
 
+/* ===== RECAUDOS: RESUMEN Y FILTROS ===== */
+.recaudos-summary {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.recaudo-total-card {
+  max-width: 380px;
+  width: 100%;
+}
+
+.recaudo-total-card .stat-icon {
+  background: rgba(245, 193, 7, 0.15);
+  color: #FFC107;
+}
+
+.recaudo-total-sub {
+  display: block;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 4px;
+}
+
+.recaudos-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.recaudo-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recaudo-filter span {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.5);
+}
+
+.recaudo-filter-input {
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  color: #FFF;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  color-scheme: dark;
+  transition: border-color 0.2s;
+}
+
+.recaudo-filter-input:focus {
+  border-color: rgba(255,255,255,0.4);
+}
+
+.recaudo-filter-clear {
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: rgba(255,255,255,0.75);
+  font-family: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recaudo-filter-clear:hover {
+  background: rgba(255,255,255,0.08);
+  color: #FFF;
+}
+
 /* ===== GREETING ===== */
 .greeting-card {
   background: transparent;
@@ -1739,6 +1901,10 @@ async function reloadData() {
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   margin-bottom: 20px;
+}
+
+.stats-row > .stat-card:only-child {
+  grid-column: 1 / -1;
 }
 
 .stat-card {
@@ -2693,6 +2859,10 @@ async function reloadData() {
   padding: 38px 36px;
   background: transparent;
   border-right: 1px solid rgba(255,255,255,0.1);
+}
+
+.saldo-banner > .saldo-left:last-child {
+  border-right: none;
 }
 
 .saldo-label {
