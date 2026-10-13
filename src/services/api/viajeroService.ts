@@ -113,6 +113,10 @@ class ViajeroService {
     return this.mapViajero(this.unwrap(response.data))
   }
 
+  async notifyPassword(id: number): Promise<void> {
+    await apiClient.post(`${this.endpoint}/${id}/notify-password`)
+  }
+
   // ====== MAPPERS / HELPERS ======
 
   private buildListQuery(params?: ViajeroListParams): string {

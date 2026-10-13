@@ -66,15 +66,16 @@
           <thead>
             <tr>
               <th>Nombre</th>
-              <th>Correo</th>
-              <th>Rol</th>
-              <th>Estado</th>
-              <th>Acciones</th>
+              <th class="col-kebab">Info / acciones</th>
+              <th class="col-email">Correo</th>
+              <th class="col-rol">Rol</th>
+              <th class="col-estado">Estado</th>
+              <th class="col-actions">Acciones</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="u in filteredUsers" :key="u.id" :class="{ 'row-current': u.id === currentUserId }">
-              <td>
+              <td class="col-user">
                 <div class="user-cell">
                   <div class="user-avatar" :style="{ background: getColor(u.id) }">
                     <span>{{ getInitials(u.name || u.email || 'U') }}</span>
@@ -82,17 +83,25 @@
                   <div class="user-meta">
                     <span class="user-name">{{ u.name || '—' }}</span>
                     <span v-if="u.id === currentUserId" class="you-tag">Tu cuenta</span>
+                    <span class="user-email">{{ u.email || '—' }}</span>
                   </div>
                 </div>
               </td>
-              <td>{{ u.email || '—' }}</td>
-              <td><span class="rol-badge" :class="u.role">{{ roleLabel(u.role) }}</span></td>
-              <td>
+              <td class="col-kebab">
+                <button class="action-btn kebab-btn" title="Acciones" @click="sheetUser = u">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                  </svg>
+                </button>
+              </td>
+              <td class="col-email">{{ u.email || '—' }}</td>
+              <td class="col-rol"><span class="rol-badge" :class="u.role">{{ roleLabel(u.role) }}</span></td>
+              <td class="col-estado">
                 <span class="status-badge" :class="u.isActive === false ? 'inactive' : 'active'">
                   {{ u.isActive === false ? 'Inactivo' : 'Activo' }}
                 </span>
               </td>
-              <td>
+              <td class="col-actions">
                 <div class="actions-cell">
                   <button
                     v-if="u.id !== currentUserId"
@@ -212,10 +221,13 @@
           </div>
           <div class="form-group">
             <label>Rol *</label>
-            <select v-model="editForm.role" class="form-input" :disabled="editForm.role === 'superadmin'">
-              <option value="admin">Admin</option>
-              <option value="user">Usuario</option>
+            <select v-model="editForm.role" class="form-input" :disabled="editForm.role !== 'user'">
               <option v-if="editForm.role === 'superadmin'" value="superadmin">Super Admin</option>
+              <option v-else-if="editForm.role === 'admin'" value="admin">Admin</option>
+              <template v-else>
+                <option value="admin">Admin</option>
+                <option value="user">Usuario</option>
+              </template>
             </select>
           </div>
         </div>
@@ -306,6 +318,56 @@
         </div>
       </div>
     </div>
+
+    <!-- Bottom sheet: info / acciones -->
+    <div v-if="sheetUser" class="sheet-overlay" @click.self="sheetUser = null">
+      <div class="sheet">
+        <div class="sheet-header">
+          <div class="sheet-user">
+            <div class="user-avatar" :style="{ background: getColor(sheetUser.id) }">
+              <span>{{ getInitials(sheetUser.name || sheetUser.email || 'U') }}</span>
+            </div>
+            <div class="sheet-user-meta">
+              <span class="sheet-name">{{ sheetUser.name || '—' }}</span>
+              <span class="sheet-email">{{ sheetUser.email || '—' }}</span>
+            </div>
+          </div>
+          <button class="sheet-close" @click="sheetUser = null">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="sheet-info">
+          <div class="sheet-info-row"><span>Correo</span><strong>{{ sheetUser.email || '—' }}</strong></div>
+          <div class="sheet-info-row"><span>Rol</span><strong>{{ roleLabel(sheetUser.role) }}</strong></div>
+          <div class="sheet-info-row"><span>Estado</span><strong>{{ sheetUser.isActive === false ? 'Inactivo' : 'Activo' }}</strong></div>
+        </div>
+
+        <div class="sheet-actions">
+          <button v-if="sheetUser.id !== currentUserId" class="sheet-item" @click="openEditModal(sheetUser); sheetUser = null">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+              <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Editar datos
+          </button>
+          <button class="sheet-item" @click="openUserPasswordModal(sheetUser); sheetUser = null">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Cambiar contraseña
+          </button>
+          <button v-if="isSuperAdmin && sheetUser.id !== currentUserId" class="sheet-item sheet-item-danger" @click="openDeleteModal(sheetUser); sheetUser = null">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+            </svg>
+            Eliminar usuario
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -334,6 +396,7 @@ const formError = ref('')
 
 const deleteTarget = ref<User | null>(null)
 const passwordTarget = ref<User | null>(null)
+const sheetUser = ref<User | null>(null)
 
 const createForm = ref({ name: '', email: '', password: '', role: 'admin' as string })
 const editForm = ref({ id: 0, name: '', email: '', role: 'user' as string })
@@ -618,6 +681,9 @@ onMounted(() => {
 .action-error { display: flex; align-items: center; gap: 8px; margin: 12px 16px 0; padding: 12px 16px; background: rgba(239, 68, 68, 0.16); color: #FCA5A5; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(248, 113, 113, 0.4); }
 
 .actions-cell { display: flex; gap: 6px; align-items: center; }
+.col-kebab { display: none; }
+.user-email { display: none; }
+.kebab-btn { color: var(--c-gray, #98A4BF); }
 .action-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: none; color: var(--c-gray, #98A4BF); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
 .action-btn:hover { color: var(--c-black, #E7ECF6); background: rgba(255, 255, 255, 0.08); }
 .action-btn.edit-btn:hover { background: rgba(96, 165, 250, 0.18); color: #93C5FD; }
@@ -668,12 +734,52 @@ onMounted(() => {
 .btn-delete { padding: 10px 20px; border: none; border-radius: 10px; background: #E8483F; color: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; display: inline-flex; align-items: center; gap: 8px; }
 .btn-delete:hover:not(:disabled) { background: #c93a32; }
 
+.sheet-overlay { position: fixed; inset: 0; background: rgba(3, 8, 20, 0.6); z-index: 44500; display: flex; align-items: flex-end; justify-content: center; backdrop-filter: blur(3px); }
+.sheet { background: var(--c-white, #141D36); width: 100%; max-width: 520px; border-radius: 20px 20px 0 0; padding: 18px 18px 26px; box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.45); border: 1px solid var(--c-border, #26334F); border-bottom: none; animation: sheet-up 0.22s ease-out; max-height: 86vh; overflow-y: auto; }
+@keyframes sheet-up { from { transform: translateY(30px); opacity: 0.6; } to { transform: translateY(0); opacity: 1; } }
+.sheet-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--c-border, #26334F); }
+.sheet-user { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sheet-user-meta { display: flex; flex-direction: column; min-width: 0; }
+.sheet-name { font-size: 0.95rem; font-weight: 700; color: var(--c-black, #E7ECF6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-email { font-size: 0.78rem; color: var(--c-gray, #98A4BF); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-close { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--c-border, #26334F); background: var(--c-light, #0E162C); color: var(--c-gray, #98A4BF); border-radius: 10px; cursor: pointer; flex-shrink: 0; }
+.sheet-close:hover { color: var(--c-black, #E7ECF6); border-color: var(--c-gray, #98A4BF); }
+.sheet-info { display: flex; flex-direction: column; gap: 8px; padding: 14px 0; }
+.sheet-info-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.82rem; }
+.sheet-info-row span { color: var(--c-gray, #98A4BF); }
+.sheet-info-row strong { color: var(--c-black, #E7ECF6); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sheet-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 10px; border: none; background: none; font-size: 0.82rem; font-weight: 600; color: var(--c-black, #E7ECF6); text-align: left; border-radius: 10px; cursor: pointer; font-family: inherit; line-height: 1.25; }
+.sheet-item:hover { background: rgba(255, 255, 255, 0.06); }
+.sheet-item-danger { color: #F87171; }
+.sheet-item-danger:hover { background: rgba(232, 72, 63, 0.14); }
+
 @media (max-width: 768px) {
-  .page-header { flex-direction: column; align-items: stretch; }
-  .header-actions { width: 100%; flex-direction: column; }
-  .btn-primary, .btn-secondary { width: 100%; justify-content: center; padding: 13px; }
+  .page-header { flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap; }
+  .page-header > div:first-child { min-width: 0; flex: 1; }
+  .page-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .page-title { font-size: 1.2rem; }
+  .header-actions { width: auto; flex-direction: row; align-items: center; gap: 10px; margin-left: auto; }
+  .btn-primary { width: auto; justify-content: center; padding: 8px 14px; font-size: 0.78rem; gap: 5px; flex-shrink: 0; }
+  .btn-primary svg { width: 13px; height: 13px; }
+  .btn-secondary { width: 100%; justify-content: center; padding: 10px; font-size: 0.8rem; }
+  .filters-bar { gap: 8px; }
   .search-box { max-width: 100%; width: 100%; }
-  .data-table { min-width: 620px; }
+  .search-icon { left: 10px; width: 15px; height: 15px; }
+  .search-input { padding: 7px 30px 7px 32px; font-size: 0.82rem; border-radius: 8px; }
+  .clear-btn { right: 4px; width: 22px; height: 22px; }
+  .filter-field { width: 100%; }
+  .form-select { width: 100%; min-width: 0; padding: 7px 26px 7px 10px; font-size: 0.82rem; border-radius: 8px; }
+  .table-responsive { overflow-x: hidden; }
+  .data-table { min-width: 0; table-layout: fixed; }
+  .data-table th, .data-table td { padding: 11px 8px; white-space: normal; }
+  .data-table .col-email, .data-table .col-rol, .data-table .col-estado, .data-table .col-actions { display: none; }
+  .data-table .col-kebab { display: table-cell; width: 64px; text-align: right; padding-right: 12px; }
+  .data-table th.col-kebab { text-align: center; font-size: 0.58rem; line-height: 1.15; padding: 12px 6px; white-space: normal; }
+  .data-table .kebab-btn { display: inline-flex; }
+  .data-table .user-cell { gap: 8px; }
+  .data-table .user-name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; word-break: break-word; }
+  .data-table .user-email { display: block; font-size: 0.72rem; color: var(--c-gray, #98A4BF); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .modal-overlay { padding: 10px; }
   .modal-footer { flex-direction: column; }
   .modal-footer .btn-cancel, .modal-footer .btn-save { width: 100%; justify-content: center; padding: 13px; }

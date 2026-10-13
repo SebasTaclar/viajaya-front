@@ -35,7 +35,7 @@
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
-          Cerrar sesion
+          Cerrar sesión
         </button>
       </div>
     </aside>
@@ -97,17 +97,6 @@
 
     <!-- Main content -->
     <main class="main-content">
-      <!-- Top header bar -->
-      <div class="top-header">
-        <div></div>
-        <div class="top-header-right">
-          <div class="top-user-info">
-            <span class="top-hola">Hola, {{ displayName }}</span>
-          </div>
-          <div class="top-avatar">{{ clientInitials }}</div>
-
-        </div>
-      </div>
 
       <!-- Loading -->
       <div v-if="loading" class="state-container">
@@ -168,31 +157,53 @@
 
       <!-- Content -->
       <template v-else>
+        <!-- Saludo siempre visible en todas las pestañas -->
+        <div class="greeting-card greeting-always">
+          <div class="greeting-text">
+            <h1>¡Hola, {{ displayName || 'Usuario' }}! 👋</h1>
+            <p>Bienvenido a tu portal de viajes con <strong>Viaja Ya</strong></p>
+          </div>
+        </div>
+
         <!-- INICIO -->
         <section v-if="activeSection === 'inicio'" class="section">
-          <div class="greeting-card">
-            <div class="greeting-text">
-              <h1>Hola, {{ displayName || 'Usuario' }}</h1>
-              <p>Bienvenido a tu portal de viajes con <strong>Viaja Ya</strong></p>
-            </div>
+          <div class="section-head">
+            <h2>Resumen de Ahorros</h2>
+            <p>Consulta el estado de tus ahorros y último recaudos</p>
           </div>
 
           <div class="stats-row">
             <div class="stat-card gold">
               <div class="stat-icon">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
               </div>
               <div class="stat-data">
                 <template v-if="ultimoRecaudo">
-                  <span class="stat-number">{{ formatRecaudoFecha(ultimoRecaudo.fecha) }}</span>
-                  <span class="stat-date">{{ formatRecaudoValor(ultimoRecaudo.valor) }}</span>
-                  <span class="stat-text">Ultimo recaudo</span>
+                  <span class="recaudo-inline-label">Fecha último recaudo</span>
+                  <span class="recaudo-inline-value">{{ formatRecaudoFecha(ultimoRecaudo.fecha) }}</span>
                 </template>
                 <template v-else>
-                  <span class="stat-number">—</span>
-                  <span class="stat-text">Ultimo recaudo</span>
+                  <span class="recaudo-inline-label">Fecha último recaudo</span>
+                  <span class="recaudo-inline-value">—</span>
+                </template>
+              </div>
+            </div>
+            <div class="stat-card gold">
+              <div class="stat-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div class="stat-data">
+                <template v-if="ultimoRecaudo">
+                  <span class="recaudo-inline-label">Valor último recaudo</span>
+                  <span class="recaudo-inline-value">{{ formatRecaudoValor(ultimoRecaudo.valor) }}</span>
+                </template>
+                <template v-else>
+                  <span class="recaudo-inline-label">Valor último recaudo</span>
+                  <span class="recaudo-inline-value">—</span>
                 </template>
               </div>
             </div>
@@ -202,131 +213,19 @@
             <div class="saldo-left">
               <span class="saldo-label">Saldo ahorrado:</span>
               <span class="saldo-amount">{{ formatRecaudoValor(recaudosTotal) }}</span>
+              <span class="saldo-sub">Total acumulado de tus recaudos</span>
             </div>
-          </div>
-        </section>
-
-        <!-- PROYECTOS -->
-        <section v-if="activeSection === 'proyectos'" class="section">
-          <div class="section-head">
-            <h2>Mis Viajes</h2>
-            <p>Tus viajes en curso de pago por cuotas</p>
-          </div>
-
-          <div class="projects-list">
-            <div v-for="trip in simulatedTrips" :key="trip.id" class="project-row installment-row">
-              <div class="project-status-bar active"></div>
-              <div class="project-body">
-                <div class="project-top">
-                  <h3>{{ trip.name }}</h3>
-                  <span class="status-pill active">Pagando por cuotas</span>
-                </div>
-                <div class="project-details">
-                  <span class="detail-tag">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    {{ trip.destination }}
-                  </span>
-                  <span class="detail-tag">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    {{ trip.dates }}
-                  </span>
-                  <span class="detail-tag">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    Cuota: ${{ trip.installmentAmount.toLocaleString('es-CO') }}
-                  </span>
-                </div>
-
-                <div class="installment-summary">
-                  <div class="installment-stat">
-                    <span class="installment-stat-label">Total</span>
-                    <span class="installment-stat-value">${{ trip.total.toLocaleString('es-CO') }}</span>
-                  </div>
-                  <div class="installment-stat">
-                    <span class="installment-stat-label">Pagado</span>
-                    <span class="installment-stat-value paid">${{ trip.paidAmount.toLocaleString('es-CO') }}</span>
-                  </div>
-                  <div class="installment-stat">
-                    <span class="installment-stat-label">Saldo</span>
-                    <span class="installment-stat-value pending">${{ trip.remainingAmount.toLocaleString('es-CO') }}</span>
-                  </div>
-                  <div class="installment-stat">
-                    <span class="installment-stat-label">Cuotas</span>
-                    <span class="installment-stat-value">{{ trip.paidInstallments }}/{{ trip.totalInstallments }}</span>
-                  </div>
-                </div>
-
-                <div class="project-progress">
-                  <div class="progress-track">
-                    <div class="progress-fill active" :style="{ width: trip.progress + '%' }"></div>
-                  </div>
-                  <span class="progress-label">{{ trip.progress }}%</span>
-                </div>
-
-                <div class="cuotas-row">
-                  <span
-                    v-for="n in trip.totalInstallments"
-                    :key="n"
-                    class="cuota-dot"
-                    :class="{ paid: n <= trip.paidInstallments, next: n === trip.paidInstallments + 1 }"
-                    :title="'Cuota ' + n"
-                  ></span>
-                </div>
-
-                <div class="next-payment">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  Proxima cuota: {{ trip.nextPayment }} · ${{ trip.installmentAmount.toLocaleString('es-CO') }}
-                </div>
-              </div>
+            <div class="saldo-chart">
+              <svg width="56" height="40" viewBox="0 0 56 40" fill="none">
+                <polyline
+                  points="4,32 16,22 26,26 38,12 52,8"
+                  stroke="#4ADE80"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </div>
-          </div>
-        </section>
-
-        <!-- DETALLE PROYECTO -->
-        <section v-if="activeSection === 'proyecto-detalle' && selectedProject" class="section">
-          <button class="back-btn" @click="activeSection = 'proyectos'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Volver a proyectos
-          </button>
-
-          <div class="detail-header">
-            <h2>{{ selectedProject.description || `Proyecto ${selectedProject.code}` }}</h2>
-            <span class="status-pill large" :class="getStatusClass(selectedProject.status || '')">{{ getStatusLabel(selectedProject.status || '') }}</span>
-          </div>
-
-          <div class="detail-grid">
-            <div class="detail-card">
-              <h4>Informacion del proyecto</h4>
-              <div class="detail-rows">
-                <div class="detail-row"><span>Norma</span><strong>{{ selectedProject.norm }}</strong></div>
-                <div class="detail-row"><span>Responsable</span><strong>{{ selectedProject.responsible }}</strong></div>
-                <div class="detail-row"><span>Tipo</span><strong>{{ selectedProject.projectType }}</strong></div>
-                <div class="detail-row"><span>Codigo</span><strong>{{ selectedProject.code }}</strong></div>
-                <div class="detail-row"><span>Inicio</span><strong>{{ formatDate(selectedProject.startDate) }}</strong></div>
-                <div class="detail-row"><span>Fin</span><strong>{{ selectedProject.endDate ? formatDate(selectedProject.endDate) : 'En curso' }}</strong></div>
-              </div>
-            </div>
-
-            <div class="detail-card">
-              <h4>Progreso</h4>
-              <div class="big-progress">
-                <div class="big-progress-ring">
-                  <svg viewBox="0 0 120 120">
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="#F0F0F0" stroke-width="8"/>
-                    <circle cx="60" cy="60" r="52" fill="none" stroke="#16C2CA" stroke-width="8" stroke-linecap="round"
-                      :stroke-dasharray="326.7"
-                      :stroke-dashoffset="326.7 - (326.7 * calculateProgress(selectedProject) / 100)"
-                      transform="rotate(-90 60 60)"/>
-                  </svg>
-                  <span class="big-progress-text">{{ calculateProgress(selectedProject) }}%</span>
-                </div>
-                <p class="big-progress-label">{{ getStatusLabel(selectedProject.status || '') }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div v-if="selectedProject.description" class="detail-card full-width">
-            <h4>Descripcion</h4>
-            <p class="description-text">{{ selectedProject.description }}</p>
           </div>
         </section>
 
@@ -355,61 +254,6 @@
                 <h4>{{ c.name }}</h4>
                 <p>{{ c.service }}</p>
                 <span class="cert-date-new">{{ c.date }}</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- COTIZACIONES -->
-        <section v-if="activeSection === 'cotizaciones'" class="section">
-          <div class="section-head">
-            <h2>Mis Reservas</h2>
-            <p>Reservas y presupuestos de tus viajes</p>
-          </div>
-
-          <div v-if="visibleCotizaciones.length === 0" class="empty-state">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-              <line x1="12" y1="18" x2="12" y2="12"/>
-              <line x1="9" y1="15" x2="15" y2="15"/>
-            </svg>
-            <p>No hay reservas registradas</p>
-          </div>
-
-          <div v-else class="quotes-list">
-            <div v-for="q in visibleCotizaciones" :key="q.id" class="quote-row">
-              <div class="quote-status-bar" :class="getQuoteStatusClass(q.status)"></div>
-              <div class="quote-body">
-                <div class="quote-top">
-                  <h3>{{ q.code }}</h3>
-                  <span class="status-pill" :class="getQuoteStatusClass(q.status)">{{ getQuoteStatusLabel(q.status) }}</span>
-                </div>
-                <div class="quote-details">
-                  <span class="detail-tag">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    ${{ q.totalAmount?.toLocaleString('es-CO') || '0' }}
-                  </span>
-                  <span v-if="q.project" class="detail-tag">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-                    {{ q.project.description || q.project.code }}
-                  </span>
-                  <span class="detail-tag">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
-                    {{ formatDate(q.createdAt) }}
-                  </span>
-                  <span v-if="q.validUntil" class="detail-tag">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Validez: {{ formatDate(q.validUntil) }}
-                  </span>
-                </div>
-                <div v-if="q.services && q.services.length > 0" class="quote-services">
-                  <div v-for="(s, i) in q.services" :key="i" class="service-item">
-                    <span class="service-name">{{ s.name }}</span>
-                    <span class="service-qty">{{ s.quantity }}x</span>
-                    <span class="service-price">${{ s.value?.toLocaleString('es-CO') || '0' }}</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -455,37 +299,6 @@
                 </div>
               </div>
               <span class="doc-card-badge" :class="d.typeClass">{{ d.type }}</span>
-            </div>
-          </div>
-        </section>
-
-        <section v-if="activeSection === 'recursos' && clientData?.showResources" class="section">
-          <div class="section-head">
-            <h2>Recursos</h2>
-            <p>Proyectos realizados para tu empresa</p>
-          </div>
-
-          <div v-if="projects.length === 0" class="empty-state">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.5">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-              <circle cx="8.5" cy="8.5" r="1.5"/>
-              <polyline points="21 15 16 10 5 21"/>
-            </svg>
-            <p>No hay recursos para mostrar</p>
-          </div>
-
-          <div v-else class="recursos-grid">
-            <div v-for="p in projects" :key="p.id" class="recurso-card">
-              <div class="recurso-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-                </svg>
-              </div>
-              <div class="recurso-info">
-                <h4>{{ p.code || p.description }}</h4>
-                <p>{{ p.serviceType || 'Proyecto' }}</p>
-              </div>
-              <span class="recurso-status" :class="getStatusClass(p.status)">{{ getStatusLabel(p.status) }}</span>
             </div>
           </div>
         </section>
@@ -536,9 +349,29 @@
 
         <!-- RECAUDOS -->
         <section v-if="activeSection === 'recaudos'" class="section">
-          <div class="section-head">
-            <h2>Recaudos</h2>
-            <p>Historial de recaudos de tu cuenta</p>
+          <div class="section-head section-head-with-card">
+            <div class="section-head-text">
+              <h2>Recaudos</h2>
+              <p>Historial de recaudos de tu cuenta</p>
+            </div>
+            <div v-if="!recaudosLoading && !recaudosError && recaudos.length > 0" class="recaudos-summary">
+              <div class="stat-card gold recaudo-total-card">
+                <div class="stat-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                </div>
+                <div class="stat-data">
+                  <span class="stat-text">Total recaudado</span>
+                  <span class="stat-number">{{ formatRecaudoValor(filteredRecaudosTotal) }}</span>
+                  <span class="recaudo-total-sub">
+                    {{ recaudos.length }} Recaudos
+                    <template v-if="hasRecaudoFilters"> · Histórico {{ formatRecaudoValor(recaudosTotal) }}</template>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div v-if="recaudosLoading" class="state-container">
@@ -560,26 +393,16 @@
           </div>
 
           <template v-else-if="recaudos.length > 0">
-            <div class="recaudos-summary">
-              <div class="stat-card gold recaudo-total-card">
-                <div class="stat-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="1" x2="12" y2="23"/>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                  </svg>
-                </div>
-                <div class="stat-data">
-                  <span class="stat-text">Total recaudado</span>
-                  <span class="stat-number">{{ formatRecaudoValor(filteredRecaudosTotal) }}</span>
-                  <span class="recaudo-total-sub">
-                    {{ filteredRecaudos.length }} de {{ recaudos.length }} recaudos
-                    <template v-if="hasRecaudoFilters"> · Histórico {{ formatRecaudoValor(recaudosTotal) }}</template>
-                  </span>
-                </div>
-              </div>
-            </div>
-
             <div class="recaudos-filters">
+              <label class="recaudo-filter recaudo-filter-search">
+                <span>Buscar</span>
+                <div class="recaudo-search-box">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                  </svg>
+                  <input v-model="recaudoSearch" type="text" class="recaudo-filter-input" placeholder="Buscar por fecha, hora o valor..." />
+                </div>
+              </label>
               <label class="recaudo-filter">
                 <span>Mes</span>
                 <input v-model="recaudoMes" type="month" class="recaudo-filter-input" @change="onRecaudoMesChange" />
@@ -691,7 +514,7 @@
                 <polyline points="16 17 21 12 16 7"/>
                 <line x1="21" y1="12" x2="9" y2="12"/>
               </svg>
-              Cerrar sesion
+              Cerrar sesión
             </button>
           </div>
         </section>
@@ -705,7 +528,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { clientAuthService, portalService, userService, recaudoService } from '@/services/api'
 import type { RecaudoRow } from '@/services/api'
-import type { Cliente, Proyecto, DocumentoEntity, Cotizacion } from '@/types/crmTypes'
+import type { Cliente, DocumentoEntity } from '@/types/crmTypes'
 import type { User } from '@/services/api/userService'
 
 defineOptions({ name: 'ClientPortalView' })
@@ -716,14 +539,7 @@ const error = ref('')
 const showMobileMenu = ref(false)
 
 const clientData = ref<Cliente | null>(null)
-const projects = ref<Proyecto[]>([])
 const documents = ref<DocumentoEntity[]>([])
-const cotizaciones = ref<Cotizacion[]>([])
-const visibleCotizaciones = computed(() => {
-  const list = cotizaciones.value.filter((q) => q.isVisible !== false)
-  return list.length > 0 ? list : mockReservas
-})
-const selectedProject = ref<Proyecto | null>(null)
 const clientUsers = ref<User[]>([])
 
 const portalClientId = ref<number | null>(null)
@@ -738,7 +554,7 @@ async function fetchRecaudos(force = false) {
   const clientId = portalClientId.value
   if (!clientId) {
     recaudos.value = []
-    recaudosError.value = 'No pudimos identificar tu cuenta. Inicia sesion nuevamente.'
+    recaudosError.value = 'No pudimos identificar tu cuenta. Inicia sesión nuevamente.'
     recaudosLoaded.value = true
     return
   }
@@ -765,7 +581,11 @@ function formatRecaudoFecha(fecha?: string): string {
   if (!fecha) return 'N/A'
   const date = new Date(fecha)
   if (Number.isNaN(date.getTime())) return 'N/A'
-  return date.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+  return date
+    .toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })
+    .replace(/\bde\b\s*/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 function formatRecaudoHora(fecha?: string): string {
@@ -791,12 +611,13 @@ const ultimoRecaudo = computed<RecaudoRow | null>(() => {
   return best ?? recaudos.value[0] ?? null
 })
 
+const recaudoSearch = ref('')
 const recaudoMes = ref('')
 const recaudoDesde = ref('')
 const recaudoHasta = ref('')
 
 const hasRecaudoFilters = computed(
-  () => !!(recaudoMes.value || recaudoDesde.value || recaudoHasta.value),
+  () => !!(recaudoSearch.value.trim() || recaudoMes.value || recaudoDesde.value || recaudoHasta.value),
 )
 
 function onRecaudoMesChange() {
@@ -813,6 +634,7 @@ function onRecaudoMesChange() {
 }
 
 function clearRecaudoFilters() {
+  recaudoSearch.value = ''
   recaudoMes.value = ''
   recaudoDesde.value = ''
   recaudoHasta.value = ''
@@ -821,14 +643,22 @@ function clearRecaudoFilters() {
 const filteredRecaudos = computed(() => {
   const desde = recaudoDesde.value
   const hasta = recaudoHasta.value
-  if (!desde && !hasta) return recaudos.value
+  const term = recaudoSearch.value.trim().toLowerCase()
   return recaudos.value.filter((r) => {
-    const d = new Date(r.fecha)
-    if (Number.isNaN(d.getTime())) return false
-    const pad = (n: number) => String(n).padStart(2, '0')
-    const fecha = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
-    if (desde && fecha < desde) return false
-    if (hasta && fecha > hasta) return false
+    if (desde || hasta) {
+      const d = new Date(r.fecha)
+      if (Number.isNaN(d.getTime())) return false
+      const pad = (n: number) => String(n).padStart(2, '0')
+      const fecha = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+      if (desde && fecha < desde) return false
+      if (hasta && fecha > hasta) return false
+    }
+    if (term) {
+      const fecha = formatRecaudoFecha(r.fecha).toLowerCase()
+      const hora = (formatRecaudoHora(r.fecha) || '').toLowerCase()
+      const valor = formatRecaudoValor(r.valor).toLowerCase()
+      if (!fecha.includes(term) && !hora.includes(term) && !valor.includes(term)) return false
+    }
     return true
   })
 })
@@ -850,39 +680,6 @@ const displayName = computed(() => {
 
 const activeSection = ref('inicio')
 const docFilter = ref('todos')
-
-const simulatedTrips = [
-  {
-    id: 1,
-    name: 'Cancun All Inclusive - 7 noches',
-    destination: 'Cancun, Mexico',
-    dates: '15 Oct 2026 - 22 Oct 2026',
-    total: 8500000,
-    totalInstallments: 6,
-    paidInstallments: 3,
-    installmentAmount: Math.round(8500000 / 6),
-    nextPayment: '15 Oct 2026',
-  },
-  {
-    id: 2,
-    name: 'Europa - Italia y Francia',
-    destination: 'Roma, Paris',
-    dates: '01 Dic 2026 - 14 Dic 2026',
-    total: 15000000,
-    totalInstallments: 10,
-    paidInstallments: 4,
-    installmentAmount: Math.round(15000000 / 10),
-    nextPayment: '01 Dic 2026',
-  },
-].map((trip) => {
-  const paidAmount = trip.installmentAmount * trip.paidInstallments
-  return {
-    ...trip,
-    paidAmount,
-    remainingAmount: trip.total - paidAmount,
-    progress: Math.round((trip.paidInstallments / trip.totalInstallments) * 100),
-  }
-})
 
 const mockHome = {
   name: 'Carlos Andres',
@@ -939,61 +736,6 @@ const CERT_ICON =
 const REPORT_ICON =
   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'
 
-const mockReservas: Cotizacion[] = [
-  {
-    id: 9001,
-    code: 'COT-1042',
-    clientId: 1,
-    clientName: 'Corporacion Viajera S.A.S.',
-    projectId: 2,
-    project: { id: 2, code: 'PRJ-002', description: 'Europa - Italia y Francia' },
-    status: 'aprobada',
-    totalAmount: 15000000,
-    validUntil: '2026-11-30',
-    createdAt: '2026-08-20',
-    updatedAt: '2026-08-22',
-    services: [
-      { name: 'Vuelos Bogota - Roma', quantity: 2, billingType: 'ONETIME', value: 9200000 },
-      { name: 'Hoteles 4 estrellas', quantity: 13, billingType: 'ONETIME', value: 5800000 },
-    ],
-  },
-  {
-    id: 9002,
-    code: 'COT-1058',
-    clientId: 1,
-    clientName: 'Corporacion Viajera S.A.S.',
-    projectId: 1,
-    project: { id: 1, code: 'PRJ-001', description: 'Cancun All Inclusive - 7 noches' },
-    status: 'enviada',
-    totalAmount: 8500000,
-    validUntil: '2026-10-15',
-    createdAt: '2026-09-01',
-    updatedAt: '2026-09-03',
-    services: [
-      { name: 'Paquete aereo directo', quantity: 2, billingType: 'ONETIME', value: 4600000 },
-      { name: 'Traslado aeropuerto - hotel', quantity: 2, billingType: 'ONETIME', value: 900000 },
-      { name: 'Seguro de viaje', quantity: 2, billingType: 'ONETIME', value: 300000 },
-    ],
-  },
-  {
-    id: 9003,
-    code: 'COT-1063',
-    clientId: 1,
-    clientName: 'Corporacion Viajera S.A.S.',
-    projectId: 3,
-    project: { id: 3, code: 'PRJ-003', description: 'Tour Ciudad de Mexico' },
-    status: 'pendiente',
-    totalAmount: 3200000,
-    validUntil: '2026-10-31',
-    createdAt: '2026-09-18',
-    updatedAt: '2026-09-18',
-    services: [
-      { name: 'Tour centro historico', quantity: 4, billingType: 'ONETIME', value: 1600000 },
-      { name: 'Cena tipica', quantity: 4, billingType: 'ONETIME', value: 640000 },
-    ],
-  },
-]
-
 const mockVuelos = [
   {
     id: 9101,
@@ -1042,53 +784,6 @@ const navItems = computed(() => {
   return items
 })
 
-function getStatusClass(status: string): string {
-  const s = status.toLowerCase()
-  if (s.includes('activo') || s.includes('ejecucion') || s.includes('en curso') || s === 'en_curso') return 'active'
-  if (s.includes('finalizado') || s.includes('completado') || s === 'completed') return 'completed'
-  if (s.includes('programado') || s.includes('pendiente') || s.includes('nuevo')) return 'scheduled'
-  return 'active'
-}
-
-function getStatusLabel(status: string): string {
-  const s = status.toLowerCase()
-  if (s.includes('activo') || s.includes('ejecucion') || s.includes('en curso') || s === 'en_curso') return 'En ejecucion'
-  if (s.includes('finalizado') || s.includes('completado') || s === 'completed') return 'Finalizado'
-  if (s.includes('programado') || s.includes('pendiente') || s.includes('nuevo')) return 'Programado'
-  return status
-}
-
-function getQuoteStatusClass(status: string): string {
-  const s = status.toLowerCase()
-  if (s === 'aprobada') return 'active'
-  if (s === 'enviada') return 'scheduled'
-  if (s === 'rechazada' || s === 'vencida') return 'completed'
-  return 'scheduled'
-}
-
-function getQuoteStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
-    pendiente: 'Pendiente',
-    enviada: 'Enviada',
-    aprobada: 'Aprobada',
-    rechazada: 'Rechazada',
-    vencida: 'Vencida',
-  }
-  return labels[status] || status
-}
-
-function calculateProgress(project: Proyecto): number {
-  if (project.status?.toLowerCase().includes('finalizado')) return 100
-  if (project.status?.toLowerCase().includes('nuevo') || project.status?.toLowerCase().includes('programado')) return 0
-  if (!project.startDate || !project.endDate) return 50
-  const start = new Date(project.startDate).getTime()
-  const end = new Date(project.endDate).getTime()
-  const now = Date.now()
-  if (end <= start) return 100
-  const progress = Math.round(((now - start) / (end - start)) * 100)
-  return Math.min(Math.max(progress, 0), 99)
-}
-
 function formatDate(dateStr: string): string {
   if (!dateStr) return 'N/A'
   return new Date(dateStr).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -1100,7 +795,7 @@ const mappedCertificates = computed(() => {
     .map((d) => ({
       id: d.id,
       name: d.name,
-      service: getProjectName(d.entityId),
+      service: 'Viaje',
       type: d.type === 'certificado' ? 'Certificado' : 'Informe',
       typeClass: d.type === 'certificado' ? 'certificate' : 'report',
       date: new Date(d.createdAt).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -1108,11 +803,6 @@ const mappedCertificates = computed(() => {
     }))
   return items.length > 0 ? items : mockVuelos
 })
-
-function getProjectName(projectId: number): string {
-  const project = projects.value.find((p) => p.id === projectId)
-  return project?.description || project?.code || 'Proyecto'
-}
 
 function getDocTypeLabel(type: string): string {
   const labels: Record<string, string> = {
@@ -1144,7 +834,7 @@ const mappedDocuments = computed(() => {
     .map((d) => ({
     id: d.id,
     name: d.name,
-    project: getProjectName(d.entityId),
+    project: 'Viaje',
     type: getDocTypeLabel(d.type),
     typeClass: getDocTypeClass(d.type),
     size: formatFileSize(d.size),
@@ -1173,9 +863,7 @@ onMounted(async () => {
     loading.value = true
     const data = await portalService.getPortalData()
     clientData.value = data.client
-    projects.value = data.projects
     documents.value = data.documents
-    cotizaciones.value = data.cotizaciones
     portalClientId.value = data.clientId ?? data.client?.id ?? null
     error.value = ''
 
@@ -1197,7 +885,7 @@ onMounted(async () => {
 })
 
 function handleLogout() {
-  if (confirm('Desea cerrar sesion?')) {
+  if (confirm('¿Desea cerrar sesión?')) {
     clientAuthService.logout()
     router.push('/')
   }
@@ -1222,9 +910,7 @@ async function reloadData() {
   try {
     const data = await portalService.getPortalData()
     clientData.value = data.client
-    projects.value = data.projects
     documents.value = data.documents
-    cotizaciones.value = data.cotizaciones
     portalClientId.value = data.clientId ?? data.client?.id ?? null
     error.value = ''
 
@@ -1269,9 +955,8 @@ async function reloadData() {
 }
 
 .sidebar-header {
-  padding: 0 8px 20px;
-  border-bottom: none;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 10px;
   position: sticky;
@@ -1279,13 +964,15 @@ async function reloadData() {
   background: transparent;
   z-index: 10;
   margin-bottom: 8px;
+  padding: 0 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .sidebar-logo {
   height: 56px;
   width: 100%;
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
   border-radius: 6px;
   background: transparent;
   padding: 0;
@@ -1573,62 +1260,8 @@ async function reloadData() {
 .main-content {
   flex: 1;
   margin-left: 240px;
-  padding: 0 28px 28px;
+  padding: 16px 28px 28px;
   min-height: 100vh;
-}
-
-/* ===== TOP HEADER ===== */
-.top-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 0 20px;
-}
-
-.top-header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.top-user-info {
-  text-align: right;
-}
-
-.top-hola {
-  font-size: 14px;
-  font-weight: 600;
-  color: #FFF;
-}
-
-.top-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.15);
-  color: #FFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.top-bell {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.7);
-  padding: 8px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s;
-  position: relative;
-}
-
-.top-bell:hover {
-  background: rgba(255,255,255,0.1);
-  color: #FFF;
 }
 
 /* ===== LOADING / ERROR ===== */
@@ -1702,8 +1335,20 @@ async function reloadData() {
   margin-bottom: 20px;
 }
 
+.section-head-with-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.section-head-text {
+  min-width: 0;
+}
+
 .section-head h2 {
-  font-size: 20px;
+  font-size: 25px;
   font-weight: 800;
   margin: 0 0 4px;
   color: #FFF;
@@ -1719,13 +1364,40 @@ async function reloadData() {
 .recaudos-summary {
   display: flex;
   gap: 14px;
-  margin-bottom: 18px;
+  margin-bottom: 0;
   flex-wrap: wrap;
 }
 
 .recaudo-total-card {
-  max-width: 380px;
-  width: 100%;
+  width: auto;
+  min-width: 220px;
+  padding: 12px 16px;
+  gap: 10px;
+  border-radius: 12px;
+}
+
+.recaudo-total-card .stat-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+}
+
+.recaudo-total-card .stat-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.recaudo-total-card .stat-text {
+  font-size: 12px;
+}
+
+.recaudo-total-card .stat-number {
+  font-size: 18px;
+}
+
+.recaudo-total-card .recaudo-total-sub {
+  font-size: 11px;
+  margin-top: 1px;
 }
 
 .recaudo-total-card .stat-icon {
@@ -1779,6 +1451,38 @@ async function reloadData() {
   border-color: rgba(255,255,255,0.4);
 }
 
+.recaudo-filter-search {
+  flex: 1;
+  min-width: 200px;
+}
+
+.recaudo-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.08);
+  transition: border-color 0.2s;
+}
+
+.recaudo-search-box:focus-within {
+  border-color: rgba(255,255,255,0.4);
+}
+
+.recaudo-search-box svg {
+  flex-shrink: 0;
+  color: rgba(255,255,255,0.45);
+}
+
+.recaudo-search-box .recaudo-filter-input {
+  border: none;
+  background: transparent;
+  padding: 9px 0;
+  width: 100%;
+}
+
 .recaudo-filter-clear {
   padding: 9px 14px;
   border-radius: 10px;
@@ -1808,6 +1512,35 @@ async function reloadData() {
   margin-bottom: 0;
   position: relative;
   overflow: hidden;
+}
+
+.greeting-always {
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+.greeting-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #FFF;
+  flex-shrink: 0;
+}
+
+.greeting-always .greeting-text h1 {
+  font-size: 20px;
+}
+
+.greeting-always .greeting-text p {
+  font-size: 13px;
 }
 
 .greeting-text h1 {
@@ -1898,13 +1631,9 @@ async function reloadData() {
 /* ===== STATS ===== */
 .stats-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 14px;
   margin-bottom: 20px;
-}
-
-.stats-row > .stat-card:only-child {
-  grid-column: 1 / -1;
 }
 
 .stat-card {
@@ -1963,6 +1692,10 @@ async function reloadData() {
 
 .stat-card.gold {
   align-items: stretch;
+  background: linear-gradient(135deg, rgba(30, 48, 84, 0.75) 0%, rgba(36, 58, 100, 0.65) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .stat-card.gold .stat-icon {
@@ -1972,11 +1705,30 @@ async function reloadData() {
 .stat-card.gold .stat-data {
   flex: 1;
   justify-content: center;
+  gap: 5px;
+  flex-direction: column;
+}
+
+.recaudo-inline {
+  display: flex;
+  align-items: baseline;
   gap: 6px;
 }
 
+.recaudo-inline-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+}
+
+.recaudo-inline-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #FFF;
+}
+
 .stat-card.gold .stat-number {
-  font-size: 22px;
+  font-size: 20px;
   letter-spacing: -0.01em;
 }
 
@@ -2747,8 +2499,7 @@ async function reloadData() {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .stats-row > *:last-child { grid-column: 1 / -1; }
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .info-grid { grid-template-columns: 1fr; }
   .detail-grid { grid-template-columns: 1fr; }
 }
@@ -2829,40 +2580,39 @@ async function reloadData() {
   .project-details { flex-direction: column; gap: 6px; }
   .cert-grid { grid-template-columns: 1fr; }
   .users-table-wrapper { overflow-x: auto; }
+  .users-table { font-size: 12.5px; }
+  .users-table th,
+  .users-table td { padding: 10px 8px; white-space: nowrap; }
+  .users-table th { font-size: 10.5px; letter-spacing: 0.03em; }
   .profile-grid { grid-template-columns: 1fr; }
-  .stats-row { grid-template-columns: 1fr; }
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 
 /* ===== SALDO BANNER ===== */
 .saldo-banner {
   display: flex;
   align-items: stretch;
-  justify-content: flex-start;
+  justify-content: space-between;
   padding: 0;
   gap: 0;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(30, 48, 84, 0.75) 0%, rgba(36, 58, 100, 0.65) 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
   overflow: hidden;
-  backdrop-filter: blur(10px);
   color: #FFFFFF;
   margin-bottom: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
 }
 
 .saldo-left {
-  flex: 1.15;
+  flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 6px;
-  padding: 38px 36px;
+  gap: 4px;
+  padding: 28px 32px;
   background: transparent;
-  border-right: 1px solid rgba(255,255,255,0.1);
-}
-
-.saldo-banner > .saldo-left:last-child {
-  border-right: none;
 }
 
 .saldo-label {
@@ -2876,11 +2626,20 @@ async function reloadData() {
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #FFFFFF;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .saldo-sub {
   font-size: 12px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.4);
+}
+
+.saldo-chart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 28px;
+  flex-shrink: 0;
 }
 
 .saldo-right {
@@ -3293,24 +3052,26 @@ async function reloadData() {
     padding: 7px 14px;
   }
 
-  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .stats-row > * { min-width: 0; }
-  .stats-row > *:last-child { grid-column: 1 / -1; }
-  .stat-card { padding: 14px; gap: 10px; min-width: 0; }
-  .stat-icon { width: 36px; height: 36px; border-radius: 10px; }
-  .stat-icon svg { width: 18px; height: 18px; }
-  .stat-number { font-size: 22px; }
+  .stat-card { padding: 12px 10px; gap: 8px; min-width: 0; flex-direction: column; align-items: flex-start; }
+  .stat-icon { width: 32px; height: 32px; border-radius: 9px; }
+  .stat-icon svg { width: 16px; height: 16px; }
+  .stat-number { font-size: 18px; }
   .stat-text { font-size: 11px; }
+  .recaudo-inline-label { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .recaudo-inline-value { font-size: 15px; white-space: nowrap; }
 
   .saldo-banner {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
     gap: 0;
     padding: 0;
   }
-  .saldo-left { padding: 24px 20px; }
-  .saldo-amount { font-size: 28px; }
-  .saldo-right { justify-content: space-around; gap: 12px; flex-wrap: nowrap; padding: 22px 14px; }
+  .saldo-left { padding: 22px 18px; }
+  .saldo-amount { font-size: 26px; }
+  .saldo-chart { padding: 0 14px; }
+  .saldo-chart svg { width: 44px; height: 32px; }
   .saldo-detail { align-items: center; }
   .saldo-btn { padding: 10px 20px; flex-shrink: 0; }
 
@@ -3362,14 +3123,33 @@ async function reloadData() {
   /* --- Encabezados de sección --- */
   .section-head { margin-bottom: 16px; }
   .section-head h2 { font-size: 19px; }
+  .section-head-with-card { flex-direction: column; align-items: stretch; }
+  .recaudo-total-card {
+    min-width: 0;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .recaudo-total-card .stat-icon { align-self: center; flex-shrink: 0; }
+  .recaudos-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+  .recaudo-filter-search { grid-column: 1 / -1; min-width: 0; }
+  .recaudo-filter { min-width: 0; width: 100%; }
+  .recaudo-filter-input { width: 100%; min-width: 0; }
+  .recaudo-filter-clear { grid-column: 1 / -1; width: 100%; }
 }
 
 @media (max-width: 400px) {
   .greeting-text h1 { font-size: 18px; }
-  .stat-card { padding: 12px; gap: 8px; }
-  .stat-icon { width: 32px; height: 32px; }
-  .stat-number { font-size: 19px; }
+  .stats-row { gap: 6px; }
+  .stat-card { padding: 10px 8px; gap: 6px; }
+  .stat-icon { width: 28px; height: 28px; border-radius: 8px; }
+  .stat-icon svg { width: 14px; height: 14px; }
+  .stat-number { font-size: 17px; }
   .stat-text { font-size: 10.5px; }
+  .recaudo-inline-label { font-size: 12px; }
+  .recaudo-inline-value { font-size: 15px; }
   .saldo-amount { font-size: 23px; }
   .info-card,
   .profile-card,

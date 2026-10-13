@@ -76,11 +76,11 @@
         </div>
       </div>
 
-      <!-- Normas -->
+      <!-- Categorías -->
       <div class="chart-card">
         <div class="chart-header">
-          <h3>Normas</h3>
-          <span class="chart-subtitle">{{ normas.length }} normas</span>
+          <h3>Categorías</h3>
+          <span class="chart-subtitle">{{ normas.length }} categorías</span>
         </div>
         <div class="chart-body">
           <div v-if="normas.length === 0" class="chart-empty">Sin datos</div>

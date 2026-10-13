@@ -7,7 +7,7 @@
         </div>
 
         <h1 class="login-title">Acceso Administrativo</h1>
-        <p class="login-subtitle">Panel de gestion Viaja Ya</p>
+        <p class="login-subtitle">Panel de Gestión Viaja Ya</p>
 
         <form @submit.prevent="handleLogin" class="login-form">
           <div v-if="errorMessage" class="error-message">
@@ -16,7 +16,7 @@
           </div>
 
           <div class="input-group">
-            <label for="email">Correo electronico</label>
+            <label for="email">Correo electrónico</label>
             <div class="input-wrapper">
               <i class="fas fa-envelope"></i>
               <input
@@ -32,14 +32,14 @@
           </div>
 
           <div class="input-group">
-            <label for="password">Contrasena</label>
+            <label for="password">Contraseña</label>
             <div class="input-wrapper">
               <i class="fas fa-lock"></i>
               <input
                 :type="showPassword ? 'text' : 'password'"
                 id="password"
                 v-model="password"
-                placeholder="Ingrese su contrasena"
+                placeholder="Ingrese su contraseña"
                 required
                 class="form-input"
               />
@@ -295,7 +295,8 @@ const handleLogin = async () => {
 
 .toggle-password {
   position: absolute;
-  right: 12px;
+  right: 3px;
+  top: 30%;
   background: none;
   border: none;
   color: #aaaaaa;

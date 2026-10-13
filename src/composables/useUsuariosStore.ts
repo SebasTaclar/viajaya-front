@@ -48,7 +48,7 @@ export async function loadUsuarios(force = false): Promise<void> {
   usuariosLoading.value = true
   usuariosError.value = ''
   try {
-    const response = await viajeroService.getAll({ page: 1, limit: 9999 })
+    const response = await viajeroService.getAll({ page: 1, limit: 200 })
     usuarios.value = response.data.map(mapViajero)
     loadedOnce = true
   } catch (error) {
