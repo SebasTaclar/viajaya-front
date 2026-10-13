@@ -1,10 +1,30 @@
 import { apiClient } from './apiConfig'
 
+export interface SmsUsage {
+  processedSmsToday: number
+  processedSmsLastMonth: number
+  monthlyPeriodStart: string
+  monthlyResetAt: string
+  dailyLimit: number
+  monthlyLimit: number
+  bulkSendLimit: number
+  deviceLimit: number
+  dailyRemaining: number
+  monthlyRemaining: number
+  dailyUsagePercentage: number
+  monthlyUsagePercentage: number
+}
+
 class MessageService {
   private readonly endpoint = '/messages/send'
 
   async send(recipients: string | string[], message: string): Promise<void> {
     await apiClient.post(this.endpoint, { recipients, message })
+  }
+
+  async getUsage(): Promise<SmsUsage> {
+    const response = await apiClient.get<SmsUsage>('/text-messages/stats')
+    return response.data
   }
 
   /**
