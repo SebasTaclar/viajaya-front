@@ -4,6 +4,8 @@ export interface DashboardAlert {
   id: number | string
   name: string
   cedula?: string
+  email?: string
+  tipo?: 'recaudo' | 'login' | 'login-cliente'
   periodicidad: string
   diasInactividad: number
   limiteDias: number

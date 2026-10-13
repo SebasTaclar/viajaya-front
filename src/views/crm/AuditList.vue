@@ -130,10 +130,11 @@
                 <tr>
                   <th>Fecha / Hora</th>
                   <th>Acción</th>
-                  <th>Modulo</th>
-                  <th>Usuario / cliente</th>
-                  <th>Estado</th>
-                  <th></th>
+                  <th class="col-modulo">Modulo</th>
+                  <th class="col-user">Usuario / cliente</th>
+                  <th class="col-estado">Estado</th>
+                  <th class="col-kebab">Info / acciones</th>
+                  <th class="col-actions">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,14 +145,14 @@
                       {{ actionLabel(log.action) }}
                     </span>
                   </td>
-                  <td>{{ tableLabel(log.tableName) }}</td>
-                  <td>
+                  <td class="col-modulo">{{ tableLabel(log.tableName) }}</td>
+                  <td class="col-user">
                     <div class="user-cell">
                       <span class="user-name">{{ logUserName(log) }}</span>
                       <span v-if="logUserDetail(log)" class="user-id">{{ logUserDetail(log) }}</span>
                     </div>
                   </td>
-                  <td>
+                  <td class="col-estado">
                     <span
                       class="status-badge"
                       :class="log.status === 'FAILURE' ? 'failure' : 'success'"
@@ -159,7 +160,14 @@
                       {{ statusLabel(log.status) }}
                     </span>
                   </td>
-                  <td>
+                  <td class="col-kebab">
+                    <button class="action-btn kebab-btn" title="Acciones" @click="sheetLog = log">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                      </svg>
+                    </button>
+                  </td>
+                  <td class="col-actions">
                     <button class="action-btn" title="Ver detalle" @click="openDetail(log)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -235,7 +243,7 @@
           <div class="detail-grid">
             <div class="detail-item">
               <span class="detail-label">Fecha</span>
-              <span class="detail-value">{{ formatDate(detailLog.occurredAt, true) }}</span>
+              <span class="detail-value detail-date">{{ formatDate(detailLog.occurredAt, true) }}</span>
             </div>
             <div class="detail-item">
               <span class="detail-label">Acción</span>
@@ -297,6 +305,44 @@
         </div>
       </div>
     </div>
+
+    <!-- Bottom sheet de acciones (móvil) -->
+    <div v-if="sheetLog" class="sheet-overlay" @click.self="sheetLog = null">
+      <div class="sheet-panel">
+        <div class="sheet-handle"></div>
+        <button class="sheet-close" title="Cerrar" @click="sheetLog = null">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <div class="sheet-user">
+          <div class="user-meta">
+            <span class="user-name">{{ logUserName(sheetLog) }}</span>
+            <span v-if="logUserDetail(sheetLog)" class="user-id">{{ logUserDetail(sheetLog) }}</span>
+          </div>
+        </div>
+        <div class="sheet-info">
+          <div class="sheet-info-row"><span>Fecha</span><strong>{{ formatDate(sheetLog.occurredAt, true) }}</strong></div>
+          <div class="sheet-info-row">
+            <span>Acción</span>
+            <span class="action-badge" :class="actionClass(sheetLog.action)">{{ actionLabel(sheetLog.action) }}</span>
+          </div>
+          <div class="sheet-info-row"><span>Módulo</span><strong>{{ tableLabel(sheetLog.tableName) }}</strong></div>
+          <div class="sheet-info-row">
+            <span>Estado</span>
+            <span class="status-badge" :class="sheetLog.status === 'FAILURE' ? 'failure' : 'success'">
+              {{ statusLabel(sheetLog.status) }}
+            </span>
+          </div>
+        </div>
+        <div class="sheet-actions">
+          <button class="sheet-item" @click="sheetAction(openDetail)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            Ver detalle
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -334,6 +380,7 @@ const filters = ref({
   endDate: '',
 })
 const detailLog = ref<AuditLog | null>(null)
+const sheetLog = ref<AuditLog | null>(null)
 const panelUsers = ref<User[]>([])
 const searchTerm = ref('')
 const selectedMonth = ref('')
@@ -387,6 +434,35 @@ function logUserDetail(log: AuditLog): string {
   const name = logUserName(log)
   const username = (log.username || '').trim()
   return username && username !== name ? username : ''
+}
+
+// ========== ACTOR NO AUDITABLE EN LA VISTA ==========
+// El backend sigue registrando estas acciones; acá solo se dejan de mostrar.
+const HIDDEN_ACTOR_NAME = 'administrador'
+const HIDDEN_ACTOR_EMAIL = 'dataor52@gmail.com'
+
+const hiddenActor = computed(() => {
+  const ids = new Set<number>()
+  const emails = new Set<string>()
+  for (const u of panelUsers.value) {
+    if (u.role !== 'superadmin') continue
+    const name = (u.name || '').trim().toLowerCase()
+    const email = (u.email || '').trim().toLowerCase()
+    if (name === HIDDEN_ACTOR_NAME || email === HIDDEN_ACTOR_EMAIL) {
+      ids.add(u.id)
+      if (email) emails.add(email)
+    }
+  }
+  return { ids, emails }
+})
+
+function isHiddenActorLog(log: AuditLog): boolean {
+  const { ids, emails } = hiddenActor.value
+  if (ids.size === 0) return false
+  const username = (log.username || '').trim().toLowerCase()
+  if (username && emails.has(username)) return true
+  if (log.userId && ids.has(log.userId) && log.action !== 'LOGIN_CLIENT') return true
+  return false
 }
 
 // ========== DETALLE LEGIBLE ==========
@@ -642,15 +718,17 @@ const hasFilters = computed(() =>
 
 const filteredLogs = computed(() => {
   const term = searchTerm.value.trim().toLowerCase()
-  if (!term) return logs.value
-  return logs.value.filter(
-    (log) =>
+  return logs.value.filter((log) => {
+    if (isHiddenActorLog(log)) return false
+    if (!term) return true
+    return (
       logUserName(log).toLowerCase().includes(term) ||
       (log.username || '').toLowerCase().includes(term) ||
       tableLabel(log.tableName).toLowerCase().includes(term) ||
       actionLabel(log.action).toLowerCase().includes(term) ||
-      statusLabel(log.status).toLowerCase().includes(term),
-  )
+      statusLabel(log.status).toLowerCase().includes(term)
+    )
+  })
 })
 
 function toDateParam(d: Date): string {
@@ -765,12 +843,20 @@ function openDetail(log: AuditLog) {
   detailLog.value = log
 }
 
+function sheetAction(fn: (log: AuditLog) => void) {
+  const log = sheetLog.value
+  sheetLog.value = null
+  if (log) fn(log)
+}
+
 function formatDate(value: string, full = false): string {
   if (!value) return '—'
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   if (full) {
-    return date.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'medium' })
+    const datePart = date.toLocaleDateString('es-CO', { dateStyle: 'medium' })
+    const timePart = date.toLocaleTimeString('es-CO', { timeStyle: 'medium' })
+    return `${datePart}\n${timePart}`
   }
   return date.toLocaleString('es-CO', {
     day: '2-digit',
@@ -1098,6 +1184,73 @@ onMounted(() => {
   color: var(--c-black, #e7ecf6);
   background: rgba(255, 255, 255, 0.08);
 }
+.col-kebab { display: none; }
+.kebab-btn { display: none; }
+
+/* Bottom sheet de acciones */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  z-index: 130;
+  display: flex;
+  align-items: flex-end;
+}
+.sheet-panel {
+  width: 100%;
+  position: relative;
+  background: var(--c-white, #141d36);
+  border-radius: 16px 16px 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+  animation: sheetUp 0.18s ease-out;
+}
+.sheet-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--c-border, #26334f);
+  background: var(--c-light, #0e162c);
+  border-radius: 50%;
+  color: var(--c-gray, #98a4bf);
+  cursor: pointer;
+}
+.sheet-close:hover { background: var(--c-border, #26334f); color: var(--c-black, #e7ecf6); }
+@keyframes sheetUp {
+  from { transform: translateY(28px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+.sheet-handle { width: 40px; height: 4px; border-radius: 999px; background: var(--c-border, #26334f); margin: 2px auto 12px; }
+.sheet-user { display: flex; align-items: center; gap: 10px; padding: 0 40px 12px 0; border-bottom: 1px solid var(--c-border, #26334f); margin-bottom: 6px; }
+.sheet-user .user-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sheet-info { display: flex; flex-direction: column; gap: 6px; padding: 10px 8px 8px; border-bottom: 1px solid var(--c-border, #26334f); margin-bottom: 4px; }
+.sheet-info-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 0.82rem; }
+.sheet-info-row span { color: var(--c-gray, #98a4bf); font-weight: 600; }
+.sheet-info-row strong { color: var(--c-black, #e7ecf6); font-weight: 600; text-align: right; }
+.sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 10px;
+  border: none;
+  background: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-black, #e7ecf6);
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.25;
+}
+.sheet-item:hover { background: var(--c-light, #0e162c); }
 
 .loading-state,
 .empty-state {
@@ -1310,6 +1463,9 @@ onMounted(() => {
   word-break: break-word;
   white-space: normal;
 }
+.detail-date {
+  white-space: pre-line;
+}
 .detail-sub {
   display: block;
   margin-top: 2px;
@@ -1393,16 +1549,42 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .page-header {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+  .page-header > div:first-child {
+    min-width: 0;
+    flex: 1;
+  }
+  .page-subtitle {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .page-title {
+    font-size: 1.2rem;
   }
   .header-actions {
-    width: 100%;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
   }
-  .btn-secondary {
-    width: 100%;
+  .header-actions .btn-secondary {
+    width: auto;
     justify-content: center;
-    padding: 13px;
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    gap: 5px;
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .header-actions .btn-secondary svg {
+    width: 13px;
+    height: 13px;
   }
   .filters-bar {
     display: grid;
@@ -1428,9 +1610,40 @@ onMounted(() => {
     width: 100%;
     justify-content: center;
   }
-  .data-table {
-    min-width: 880px;
+  .table-responsive { overflow-x: hidden; }
+  .data-table { min-width: 0; table-layout: fixed; width: 100%; }
+  .data-table th,
+  .data-table td { padding: 10px 8px; white-space: normal; }
+  .data-table .col-modulo,
+  .data-table .col-estado,
+  .data-table .col-actions { display: none; }
+  .data-table .col-kebab { display: table-cell; width: 56px; text-align: right; padding-right: 12px; }
+  .data-table th.col-kebab { text-align: center; font-size: 0.58rem; line-height: 1.15; padding: 12px 6px; white-space: normal; }
+  .data-table .kebab-btn {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--c-border, #26334f);
+    background: var(--c-light, #0e162c);
+    border-radius: 8px;
   }
+  .data-table .user-cell { min-width: 0; }
+  .data-table .user-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.25;
+  }
+  .data-table .user-id { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .data-table th:nth-child(1),
+  .data-table td:nth-child(1) { width: 110px; }
+  .data-table th:nth-child(2),
+  .data-table td:nth-child(2) { width: 86px; }
+  .cell-date { font-size: 0.72rem; line-height: 1.35; }
+  .data-table .action-badge { padding: 2px 7px; font-size: 0.65rem; }
   .pagination-bar {
     flex-direction: column;
     align-items: stretch;
@@ -1443,7 +1656,11 @@ onMounted(() => {
     padding: 10px;
   }
   .detail-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 12px;
+  }
+  .detail-item {
+    min-width: 0;
   }
 }
 </style>

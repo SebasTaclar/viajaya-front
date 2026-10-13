@@ -151,8 +151,8 @@
             <!-- Top usuarios por presupuesto -->
             <div class="card">
               <div class="card-header">
-                <h3>Top usuarios por saldo</h3>
-                <span class="card-badge">Top {{ topUsuariosPresupuesto.length }}</span>
+                <h3>Top clientes por saldo</h3>
+                <span class="card-badge">Top {{ TOP_CLIENTES_N }}</span>
               </div>
               <div class="widget-body">
                 <div v-if="topUsuariosPresupuesto.length === 0" class="widget-empty">Sin datos de saldo</div>
@@ -179,21 +179,30 @@
               </div>
               <div class="widget-body">
                 <div v-if="alertasInactividad.length === 0" class="widget-empty">
-                  Ningún cliente ha superado los 2 ciclos de su periodicidad de recaudo
+                  Ningún cliente ni admin ha superado el límite de inactividad de login ni de recaudo
                 </div>
-                <div v-for="a in alertasInactividad" :key="a.id" class="alert-row">
+                <div v-for="a in alertasInactividad" :key="a.id" class="alert-row" :class="a.tipo === 'recaudo' ? 'alert-recaudo' : 'alert-login'">
                   <div class="alert-icon">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <svg v-if="a.tipo === 'recaudo'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                       <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
                     </svg>
                   </div>
                   <div class="alert-info">
                     <div class="alert-head">
-                      <span class="alert-name">{{ a.name }}</span>
+                      <span class="alert-name">
+                        {{ a.name }}
+                        <em v-if="a.tipo !== 'recaudo' && a.email" class="alert-cedula">{{ a.email }}</em>
+                        <em v-else-if="a.cedula" class="alert-cedula">CC {{ a.cedula }}</em>
+                      </span>
                       <span class="alert-days">{{ a.diasInactividad }} días</span>
                     </div>
-                    <span class="alert-detail">Recaudo {{ periodLabel(a.periodicidad) }} · sin recaudo desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días = 2 ciclos)</span>
+                    <span v-if="a.tipo === 'login'" class="alert-detail">Login admin · sin iniciar sesión desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días)</span>
+                    <span v-else-if="a.tipo === 'login-cliente'" class="alert-detail">Login cliente · sin iniciar sesión desde hace {{ a.diasInactividad }} días (límite 1 mes)</span>
+                    <span v-else class="alert-detail">Recaudo {{ periodLabel(a.periodicidad) }} · sin recaudo desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días = 2 ciclos)</span>
                   </div>
                 </div>
               </div>
@@ -279,33 +288,6 @@
             <p>Próximamente podrás gestionar todos tus clientes desde aquí.</p>
           </div>
         </div>
-
-        <!-- ========== PROYECTOS ========== -->
-        <div v-if="currentSection === 'proyectos'">
-          <div v-if="selectedProjectId" class="project-detail-inline">
-            <button class="back-btn" @click="backToProjects">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-              Volver a proyectos
-            </button>
-            <ProjectDetail :project-id="selectedProjectId" />
-          </div>
-          <ProjectsList v-else inline @view-project="viewProject" />
-        </div>
-
-        <!-- ========== LICITACIONES ========== -->
-        <div v-if="currentSection === 'licitaciones'">
-          <LicitacionesList />
-        </div>
-
-        <!-- ========== COTIZACIONES ========== -->
-        <div v-if="currentSection === 'cotizaciones'">
-          <QuotesList />
-        </div>
-
-        <!-- ========== DOCUMENTOS ========== -->
-        <DocumentosList v-if="currentSection === 'documentos'" />
 
         <!-- ========== RECURSOS ========== -->
         <div v-if="currentSection === 'recursos'">
@@ -529,20 +511,6 @@
           </div>
         </div>
 
-        <!-- ========== COLABORADORES ========== -->
-        <div v-if="currentSection === 'colaboradores'">
-          <div v-if="selectedColaboradorId" class="colaborador-detail-inline">
-            <button class="back-btn" @click="backToColaboradores">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="15 18 9 12 15 6"/>
-              </svg>
-              Volver a colaboradores
-            </button>
-            <ColaboradorDetail :colaborador-id="selectedColaboradorId" />
-          </div>
-          <ColaboradoresList v-else inline @view-colaborador="viewColaborador" />
-        </div>
-
         <!-- ========== USUARIOS ========== -->
         <UsuariosList v-if="currentSection === 'usuarios'" />
         <PanelUsersList v-if="currentSection === 'panel-usuarios'" />
@@ -553,7 +521,7 @@
           <div class="section-top">
             <div>
               <h2 class="page-title">Recaudos</h2>
-              <p class="page-subtitle">{{ recaudosFiltrados.length }} de {{ recaudosList.length }} recaudos{{ recaudosSeleccionados.length > 0 ? ` — ${recaudosSeleccionados.length} seleccionados` : '' }}</p>
+              <p class="page-subtitle"> {{ recaudosList.length }} recaudos{{ recaudosSeleccionados.length > 0 ? ` — ${recaudosSeleccionados.length} seleccionados` : '' }}</p>
             </div>
             <button class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openCreateRecaudo()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -616,17 +584,18 @@
 
           <div v-else class="table-card">
             <div class="table-responsive">
-              <table class="data-table">
+              <table class="data-table recaudos-table">
                 <thead>
                   <tr>
                     <th style="width: 44px;">
                       <input type="checkbox" class="row-check" :checked="todosRecaudosSeleccionados" title="Seleccionar todos" @change="toggleAllRecaudos" />
                     </th>
-                    <th style="width: 26%;">Nombre</th>
-                    <th style="width: 17%;">Cédula</th>
-                    <th style="width: 17%;">Fecha</th>
-                    <th style="width: 17%;">Valor</th>
-                    <th style="width: 17%;">Acciones</th>
+                    <th class="col-name" style="width: 26%;">Nombre</th>
+                    <th class="col-kebab">Info / acciones</th>
+                    <th class="col-cedula" style="width: 17%;">Cédula</th>
+                    <th class="col-fecha" style="width: 17%;">Fecha</th>
+                    <th class="col-valor" style="width: 17%;">Valor</th>
+                    <th class="col-actions" style="width: 17%;">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -634,11 +603,18 @@
                     <td class="col-check">
                       <input type="checkbox" class="row-check" :checked="recaudosSeleccionados.includes(r.id)" @change="toggleRecaudo(r.id)" />
                     </td>
-                    <td>{{ r.nombre }}</td>
-                    <td>{{ r.cedula }}</td>
-                    <td>{{ formatFecha(r.fecha) }}</td>
-                    <td>{{ formatCurrency(r.valor) }}</td>
-                    <td>
+                    <td class="col-name">{{ r.nombre }}<span class="recaudo-cc">CC {{ r.cedula }}</span></td>
+                    <td class="col-kebab">
+                      <button class="action-btn recaudo-kebab" title="Acciones" @click="recaudoSheetRow = r">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                        </svg>
+                      </button>
+                    </td>
+                    <td class="col-cedula" data-label="Cédula">{{ r.cedula }}</td>
+                    <td class="col-fecha" data-label="Fecha">{{ formatFecha(r.fecha) }}</td>
+                    <td class="col-valor" data-label="Valor">{{ formatCurrency(r.valor) }}</td>
+                    <td class="col-actions">
                       <div class="actions-cell">
                         <button class="action-btn" title="Editar" @click="openEditRecaudo(r)">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -727,7 +703,7 @@
                           @mousedown.prevent="selectRecaudoUsuario(u)"
                         >
                           <span class="combo-option-name">{{ u.name }}</span>
-                          <span class="combo-option-meta">C.I. {{ u.cedula }}</span>
+                          <span class="combo-option-meta">CC {{ u.cedula }}</span>
                         </button>
                         <div v-if="recaudoUsuariosFiltrados.length === 0" class="combo-empty">Sin usuarios encontrados</div>
                       </div>
@@ -741,7 +717,7 @@
                     <label>Periodicidad</label>
                     <select v-model="recaudoForm.periodicidad" class="form-input" disabled>
                       <option value="" disabled>Se completa al elegir el usuario</option>
-                      <option value="Diaria">Diaria</option>
+                      <option value="Diario">Diario</option>
                       <option value="Semanal">Semanal</option>
                       <option value="Quincenal">Quincenal</option>
                       <option value="Mensual">Mensual</option>
@@ -801,7 +777,7 @@
                   <div class="form-group">
                     <label>Periodicidad</label>
                     <select v-model="recaudoEdit.periodicidad" class="form-input" disabled>
-                      <option value="Diaria">Diaria</option>
+                      <option value="Diario">Diario</option>
                       <option value="Semanal">Semanal</option>
                       <option value="Quincenal">Quincenal</option>
                       <option value="Mensual">Mensual</option>
@@ -851,7 +827,7 @@
               <div class="modal-body">
                 <div class="msg-recipient" v-if="msgTarget">
                   <strong>{{ msgTarget.nombre }}</strong>
-                  <span>C.I. {{ msgTarget.cedula }} · {{ formatFecha(msgTarget.fecha) }} · {{ formatCurrency(msgTarget.valor) }}</span>
+                  <span>CC {{ msgTarget.cedula }} · {{ formatFecha(msgTarget.fecha) }} · {{ formatCurrency(msgTarget.valor) }}</span>
                 </div>
 
                 <div class="form-group">
@@ -880,7 +856,7 @@
                 </svg>
               </div>
               <h3>¿Estás seguro?</h3>
-              <p v-if="msgTarget">Vas a enviar este mensaje a <strong>{{ msgTarget.nombre }}</strong> (C.I. {{ msgTarget.cedula }}).</p>
+              <p v-if="msgTarget">Vas a enviar este mensaje a <strong>{{ msgTarget.nombre }}</strong> (CC {{ msgTarget.cedula }}).</p>
               <div class="confirm-preview">{{ msgText }}</div>
               <div class="confirm-actions">
                 <button class="btn-outline" @click="msgConfirm = false">Cancelar</button>
@@ -907,6 +883,47 @@
               </button>
             </div>
           </transition>
+
+          <!-- Bottom sheet de acciones de recaudo (móvil) -->
+          <div v-if="recaudoSheetRow" class="recaudo-sheet-overlay" @click.self="recaudoSheetRow = null">
+            <div class="recaudo-sheet-panel">
+              <div class="recaudo-sheet-handle"></div>
+              <div class="recaudo-sheet-top">
+                <div class="recaudo-sheet-header">
+                  <strong>{{ recaudoSheetRow.nombre }}</strong>
+                  <span>CC {{ recaudoSheetRow.cedula }} · {{ formatCurrency(recaudoSheetRow.valor) }}</span>
+                </div>
+                <button class="recaudo-sheet-close" @click="recaudoSheetRow = null">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="recaudo-sheet-info">
+                <div class="recaudo-sheet-info-row"><span>Cédula</span><strong>CC {{ recaudoSheetRow.cedula }}</strong></div>
+                <div class="recaudo-sheet-info-row"><span>Fecha</span><strong>{{ formatFecha(recaudoSheetRow.fecha) }}</strong></div>
+                <div class="recaudo-sheet-info-row"><span>Valor</span><strong>{{ formatCurrency(recaudoSheetRow.valor) }}</strong></div>
+              </div>
+              <div class="recaudo-sheet-actions">
+                <button class="recaudo-sheet-item" @click="recaudoSheetDo(openEditRecaudo)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editar
+                </button>
+                <button class="recaudo-sheet-item" @click="recaudoSheetDo((r) => { recaudoSelected = r })">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  Ver detalle
+                </button>
+                <button class="recaudo-sheet-item" @click="recaudoSheetDo(openMsgRecaudo)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  Enviar mensaje
+                </button>
+                <button class="recaudo-sheet-item danger" @click="recaudoSheetDo((r) => removeRecaudo(r.id))">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- ========== ADM EVENTOS ========== -->
@@ -1111,7 +1128,7 @@
                   <div class="section-body">
                     <div class="form-group">
                       <label>Título del Evento / Servicio *</label>
-                      <input v-model="eventForm.title" type="text" class="form-input" placeholder="Ej: Auditoría Interna de Calidad ISO/IEC 17025" @input="clearFieldError('title')" />
+                      <input v-model="eventForm.title" type="text" class="form-input" placeholder="Ej: Reunión de planificación del congreso Medellín" @input="clearFieldError('title')" />
                       <span v-if="fieldErrors.title" class="field-error">{{ fieldErrors.title }}</span>
                     </div>
                     <div class="form-group">
@@ -1347,14 +1364,14 @@
                 <div class="section-card">
                   <div class="section-header">
                     <span class="section-badge">SECCIÓN D</span>
-                    <span class="section-title">NORMATIVA / NOTAS</span>
+                    <span class="section-title">CATEGORÍAS / NOTAS</span>
                   </div>
                   <div class="section-body">
                     <div class="form-group">
-                      <label>Normas Aplicables</label>
+                      <label>Categorías Aplicables</label>
                       <div class="normas-select-row">
                         <select v-model="selectedNorma" class="form-input" style="flex:1;">
-                          <option value="">Seleccionar norma...</option>
+                          <option value="">Seleccionar categoría...</option>
                           <option v-for="n in normasDisponibles" :key="n" :value="n">{{ n }}</option>
                           <option value="Otro">Otro</option>
                         </select>
@@ -1365,7 +1382,7 @@
                         v-model="normaOtra"
                         type="text"
                         class="form-input"
-                        placeholder="Especifique la norma..."
+                        placeholder="Especifique la categoría..."
                         style="margin-top: 8px;"
                         @keyup.enter="addNorma"
                       />
@@ -1454,41 +1471,23 @@ import { clientService } from '@/services/api/clientService'
 import { projectService } from '@/services/api/projectService'
 import { tenderService } from '@/services/api/tenderService'
 import { documentService } from '@/services/api/documentService'
-import { userService } from '@/services/api/userService'
+import { userService, type User } from '@/services/api/userService'
+import { auditService } from '@/services/api/auditService'
 import { recaudoService, type RecaudoRow } from '@/services/api/recaudoService'
 import { dashboardService, type DashboardKpis, type DashboardAlert } from '@/services/api/dashboardService'
 import { messageService } from '@/services/api/messageService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
-import {
-  createMockClientes,
-  createMockProyectos,
-  createMockCotizaciones,
-  createMockEventos,
-  createMockColaboradores,
-  createMockLicitaciones,
-  createMockUsuarios,
-  createMockEntityNames,
-} from '@/mock/adminDashboard'
-import ProjectsList from '@/views/crm/ProjectsList.vue'
-import LicitacionesList from '@/views/crm/LicitacionesList.vue'
-import QuotesList from '@/views/crm/QuotesList.vue'
-import ProjectDetail from '@/views/crm/ProjectDetail.vue'
-import ColaboradoresList from '@/views/crm/ColaboradoresList.vue'
 import UsuariosList from '@/views/crm/UsuariosList.vue'
 import PanelUsersList from '@/views/crm/PanelUsersList.vue'
 import AuditList from '@/views/crm/AuditList.vue'
-import DocumentosList from '@/views/crm/DocumentosList.vue'
-import ColaboradorDetail from '@/views/crm/ColaboradorDetail.vue'
 
 const router = useRouter()
-const { clientes, proyectos, fetchClientes, fetchProyectos } = useCRM()
+const { clientes, proyectos } = useCRM()
 const currentRole = ref(authService.getUserRole() || 'admin')
 const isSuperAdmin = computed(() => currentRole.value === 'superadmin')
 const currentSection = ref(isSuperAdmin.value ? 'dashboard' : 'usuarios')
 const sidebarOpen = ref(false)
 const userAvatar = ref<string | null>(null)
-const selectedProjectId = ref<number | null>(null)
-const selectedColaboradorId = ref<number | null>(null)
 const currentUser = authService.getCurrentUser()
 
 function getUserInitials(name: string): string {
@@ -1498,22 +1497,6 @@ function getUserInitials(name: string): string {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
   }
   return name.substring(0, 2).toUpperCase()
-}
-
-function viewProject(id: number) {
-  selectedProjectId.value = id
-}
-
-function backToProjects() {
-  selectedProjectId.value = null
-}
-
-function viewColaborador(id: number) {
-  selectedColaboradorId.value = id
-}
-
-function backToColaboradores() {
-  selectedColaboradorId.value = null
 }
 
 const recursosClientes = ref<Array<{ cliente: any; documentos: DocumentoEntity[] }>>([])
@@ -1746,35 +1729,18 @@ const selectedNorma = ref('')
 const normaOtra = ref('')
 
 const normasDisponibles = [
-  'ANAB',
-  'ASEGURAMIENTO METROLÓGICO',
-  'BPM',
-  'HABILIDADES BLANDAS',
-  'HACCP',
-  'ISO 14001:2015',
-  'ISO 22000:2018',
-  'ISO 27001:2022',
-  'ISO 31000:2018',
-  'ISO 45001:2018',
-  'ISO 9001:2015',
-  'ISO IEC 17020:2012',
-  'ISO IEC 17021:2015',
-  'ISO IEC 17024:2012',
-  'ISO IEC 17025:2017',
-  'ISO IEC 17043:2023',
-  'ISO IEC 17065:2012',
-  'PRESIÓN',
-  'RETIE',
-  'RETILAP',
-  'RITEL',
-  'RTE INEN 069',
-  'RUC',
-  'SERVICIO AL CLIENTE Y VENTAS',
-  'SG - SST',
-  'SG TRANSVERSAL',
-  'TRINORMA (ISO 9001:2015 - ISO 14001:2015 - ISO 45001:2018)',
-  'VARIABLES',
-  'Medición correcta de temperatura',
+  'Operación de tours',
+  'Logística de eventos',
+  'Paquetes corporativos',
+  'Viajes incentive',
+  'Congresos y ferias',
+  'Hotelería y alojamiento',
+  'Guianza y experiencias',
+  'Transporte terrestre',
+  'Transporte aéreo',
+  'Gastronomía y catering',
+  'Seguro de viaje',
+  'Fondo Viajero',
 ]
 
 function addNorma() {
@@ -2013,8 +1979,8 @@ const recaudoError = ref('')
 const recaudoSaving = ref(false)
 
 const PERIOD_LABEL: Record<string, string> = {
-  diario: 'Diaria',
-  diaria: 'Diaria',
+  diario: 'Diario',
+  diaria: 'Diario',
   mensual: 'Mensual',
   quincenal: 'Quincenal',
   semanal: 'Semanal',
@@ -2061,7 +2027,7 @@ async function fetchRecaudos() {
   recaudosLoading.value = true
   recaudoError.value = ''
   try {
-    const response = await recaudoService.getAll({ page: 1, limit: 9999 })
+    const response = await recaudoService.getAll({ page: 1, limit: 200 })
     recaudosList.value = response.data
   } catch (error) {
     recaudosList.value = []
@@ -2078,6 +2044,12 @@ function formatFecha(value: string): string {
   const [y, m, d] = datePart.split('-')
   if (!y || !m || !d) return value
   return `${d}/${m}/${y} ${timePart.slice(0, 5)}`
+}
+
+function formatFechaLarga(value: string): string {
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return formatFecha(value)
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
 // ========== FILTROS DE RECAUDOS ==========
@@ -2133,6 +2105,7 @@ function toggleAllRecaudos() {
 }
 
 const recaudoSelected = ref<RecaudoView | null>(null)
+const recaudoSheetRow = ref<RecaudoView | null>(null)
 const recaudoEdit = ref<RecaudoView | null>(null)
 const showCreateRecaudo = ref(false)
 const recaudoForm = ref<RecaudoForm>({ clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' })
@@ -2218,6 +2191,12 @@ async function removeRecaudo(id: number) {
   }
 }
 
+function recaudoSheetDo(fn: (r: RecaudoView) => void) {
+  const r = recaudoSheetRow.value
+  recaudoSheetRow.value = null
+  if (r) fn(r)
+}
+
 function openEditRecaudo(r: RecaudoView) {
   recaudoEdit.value = { ...r }
   recaudoError.value = ''
@@ -2256,7 +2235,10 @@ let msgSentTimer = 0
 
 function openMsgRecaudo(r: RecaudoView) {
   msgTarget.value = r
-  msgText.value = `Hola ${r.nombre}, te recordamos tu recaudo de ${formatCurrency(r.valor)} con fecha ${formatFecha(r.fecha)} (${r.periodicidad}). ¡Gracias por mantener tus pagos al día!`
+  const cedula = r.cedula ? ` (CC ${r.cedula})` : ''
+  const fecha = r.fecha ? `\nFecha: ${formatFechaLarga(r.fecha)}` : ''
+  const periodicidad = r.periodicidad ? `\nPeriodicidad: ${r.periodicidad}` : ''
+  msgText.value = `Hola, ${r.nombre}${cedula},\n\nViaja Ya te recuerda tu recaudo registrado\n\nValor: ${formatCurrency(r.valor)}${fecha}${periodicidad}\n\n¡Gracias por confiar en nosotros!`
   msgSending.value = false
   msgConfirm.value = false
   msgError.value = ''
@@ -2681,24 +2663,8 @@ function matchStatus(status: string, target: string): boolean {
 
 const proyectosEnEjecucion = computed(() => proyectos.value.filter(p => matchStatus(p.status, 'ejecucion')).length)
 
-const usuariosRegistrados = ref(0)
-const usuariosActivos = ref(0)
-
-async function fetchUsuarios() {
-  try {
-    const users = await userService.getAll()
-    if (users.length > 0) {
-      usuariosRegistrados.value = users.length
-      usuariosActivos.value = users.filter((u) => u.isActive !== false).length
-      return
-    }
-  } catch {
-    // sin datos del servicio: se usa el mock
-  }
-  const mocks = createMockUsuarios()
-  usuariosRegistrados.value = mocks.length
-  usuariosActivos.value = mocks.filter((u) => u.isActive !== false).length
-}
+const usuariosRegistrados = computed(() => usuariosCreados.value.length)
+const usuariosActivos = computed(() => usuariosCreados.value.filter((u) => u.isActive !== false).length)
 
 // ========== FONDO VIAJERO, TOP PRESUPUESTO, ALERTAS, TIEMPO REAL ==========
 const dashboardKpis = ref<DashboardKpis>({ fondoViajero: 0, usuariosRegistrados: 0, alertas: [] })
@@ -2711,9 +2677,6 @@ async function fetchDashboard() {
   try {
     const kpis = await dashboardService.getKpis()
     dashboardKpis.value = kpis
-    if (kpis.usuariosRegistrados > 0) {
-      usuariosRegistrados.value = kpis.usuariosRegistrados
-    }
     lastUpdated.value = Date.now()
   } catch {
     // Los KPIs del backend son opcionales: el dashboard sigue funcionando sin ellos
@@ -2726,10 +2689,12 @@ const fondoViajeroTotal = computed(() =>
   recaudosList.value.reduce((sum, row) => sum + (Number(row.valor) || 0), 0),
 )
 
+const TOP_CLIENTES_N = 10
+
 const topUsuariosPresupuesto = computed(() =>
   [...usuariosCreados.value]
     .sort((a, b) => b.saldo - a.saldo)
-    .slice(0, 5)
+    .slice(0, TOP_CLIENTES_N)
     .map((u) => ({ id: u.id, name: u.name, presupuesto: u.saldo })),
 )
 
@@ -2749,14 +2714,19 @@ const CICLO_DIAS_POR_PERIODICIDAD: Record<string, number> = {
 }
 
 // Alerta si el cliente ya pasó 2 ciclos de su periodicidad sin recaudo
-const alertasInactividad = computed(() => {
-  const porCliente = new Map<number, { ts: number; periodicidad: string }>()
+const alertasRecaudo = computed(() => {
+  const porCliente = new Map<number, { ts: number; periodicidad: string; cedula?: string; name?: string }>()
   for (const row of recaudosList.value) {
     const ts = new Date(row.fecha).getTime()
     if (!Number.isFinite(ts)) continue
     const prev = porCliente.get(row.clientId)
     if (!prev || ts > prev.ts) {
-      porCliente.set(row.clientId, { ts, periodicidad: row.client?.periodicidad || '' })
+      porCliente.set(row.clientId, {
+        ts,
+        periodicidad: row.client?.periodicidad || '',
+        cedula: row.client?.cedula,
+        name: row.client?.name,
+      })
     }
   }
 
@@ -2772,8 +2742,9 @@ const alertasInactividad = computed(() => {
     if (diasInactividad >= limiteDias) {
       alertas.push({
         id: clientId,
-        name: u?.name || `Cliente #${clientId}`,
-        cedula: u?.cedula,
+        tipo: 'recaudo',
+        name: u?.name || last.name || `Cliente #${clientId}`,
+        cedula: u?.cedula || last.cedula,
         periodicidad,
         diasInactividad,
         limiteDias,
@@ -2781,8 +2752,99 @@ const alertasInactividad = computed(() => {
     }
   }
 
-  return alertas.sort((a, b) => b.diasInactividad - a.diasInactividad)
+  return alertas
 })
+
+// ========== ALERTAS DE LOGIN INACTIVO (ADMIN Y CLIENTE) ==========
+const LIMITE_DIAS_LOGIN_ADMIN = 2
+const LIMITE_DIAS_LOGIN_CLIENTE = 30
+const adminsPanel = ref<User[]>([])
+const loginTsPorId = ref<Map<number, number>>(new Map())
+const loginTsPorEmail = ref<Map<string, number>>(new Map())
+
+async function fetchLoginAdmins() {
+  try {
+    const [users, logsResp] = await Promise.all([
+      userService.getAll(),
+      auditService.getAll({ action: 'LOGIN', limit: 100, page: 1 }),
+    ])
+    adminsPanel.value = (users || []).filter((u) => u.role === 'admin' || u.role === 'superadmin')
+
+    const tsPorId = new Map<number, number>()
+    const tsPorEmail = new Map<string, number>()
+    for (const log of logsResp.data) {
+      if ((log.action || '').toUpperCase() !== 'LOGIN') continue
+      const ts = new Date(log.occurredAt).getTime()
+      if (!Number.isFinite(ts)) continue
+      if (log.userId && ts > (tsPorId.get(log.userId) ?? 0)) tsPorId.set(log.userId, ts)
+      const email = (log.username || '').trim().toLowerCase()
+      if (email && ts > (tsPorEmail.get(email) ?? 0)) tsPorEmail.set(email, ts)
+    }
+
+    loginTsPorId.value = tsPorId
+    loginTsPorEmail.value = tsPorEmail
+  } catch {
+    loginTsPorId.value = new Map()
+    loginTsPorEmail.value = new Map()
+  }
+}
+
+function ultimoLoginDe(id: number, email?: string): number {
+  const ts = loginTsPorId.value.get(id) ?? 0
+  const tsEmail = email ? loginTsPorEmail.value.get(email.trim().toLowerCase()) ?? 0 : 0
+  return Math.max(ts, tsEmail)
+}
+
+const alertasLoginAdmin = computed<DashboardAlert[]>(() => {
+  const alertas: DashboardAlert[] = []
+  for (const u of adminsPanel.value) {
+    if (!u.id || u.isActive === false) continue
+    const ts = ultimoLoginDe(u.id, u.email)
+    if (!ts) continue
+    const diasInactividad = Math.floor((nowTick.value - ts) / 86400000)
+    if (diasInactividad >= LIMITE_DIAS_LOGIN_ADMIN) {
+      alertas.push({
+        id: `admin-login-${u.id}`,
+        tipo: 'login',
+        name: u.name || u.email || `Admin #${u.id}`,
+        email: u.email,
+        periodicidad: '',
+        diasInactividad,
+        limiteDias: LIMITE_DIAS_LOGIN_ADMIN,
+      })
+    }
+  }
+  return alertas
+})
+
+const alertasLoginCliente = computed<DashboardAlert[]>(() => {
+  const alertas: DashboardAlert[] = []
+  for (const u of usuariosCreados.value) {
+    if (!u.id || u.role !== 'user' || !u.isActive) continue
+    const ts = ultimoLoginDe(u.id, u.email)
+    if (!ts) continue
+    const diasInactividad = Math.floor((nowTick.value - ts) / 86400000)
+    if (diasInactividad >= LIMITE_DIAS_LOGIN_CLIENTE) {
+      alertas.push({
+        id: `cliente-login-${u.id}`,
+        tipo: 'login-cliente',
+        name: u.name || `Cliente #${u.id}`,
+        cedula: u.cedula,
+        email: u.email,
+        periodicidad: '',
+        diasInactividad,
+        limiteDias: LIMITE_DIAS_LOGIN_CLIENTE,
+      })
+    }
+  }
+  return alertas
+})
+
+const alertasInactividad = computed(() =>
+  [...alertasRecaudo.value, ...alertasLoginAdmin.value, ...alertasLoginCliente.value].sort(
+    (a, b) => b.diasInactividad - a.diasInactividad,
+  ),
+)
 
 const lastUpdatedLabel = computed(() => {
   const seconds = Math.max(0, Math.round((nowTick.value - lastUpdated.value) / 1000))
@@ -2841,7 +2903,7 @@ const proximoCierreFecha = computed(() => {
 let clockTimer: number | undefined
 
 async function refreshDashboard() {
-  await Promise.allSettled([fetchUsuarios(), fetchDashboard()])
+  await Promise.allSettled([loadUsuarios(true), fetchDashboard()])
   nowTick.value = Date.now()
 }
 
@@ -2919,37 +2981,16 @@ function getStatusLabel(status: EstadoCotizacion): string {
   return map[status] || status
 }
 
-function seedDashboardIfEmpty() {
-  if (clientes.value.length === 0) clientes.value = createMockClientes()
-  if (proyectos.value.length === 0) proyectos.value = createMockProyectos()
-  if (cotizaciones.value.length === 0) cotizaciones.value = createMockCotizaciones()
-  if (eventos.value.length === 0) {
-    eventos.value = createMockEventos()
-    entityNameMap.value = createMockEntityNames()
-    buildCalendarEvents()
-  }
-  if (colaboradores.value.length === 0) colaboradores.value = createMockColaboradores()
-  if (licitaciones.value.length === 0) licitaciones.value = createMockLicitaciones()
-}
-
 async function loadDashboard() {
   await Promise.allSettled([
-    fetchClientes({ page: 1, limit: 9999 }),
-    fetchProyectos({ limit: 9999 }),
-    fetchCotizacionesData(),
-    fetchEventos(),
-    fetchColaboradores(),
-    fetchLicitaciones(),
-    fetchUsuarios(),
     fetchDashboard(),
     fetchRecaudos(),
+    fetchLoginAdmins(),
   ])
-  seedDashboardIfEmpty()
 }
 
 onMounted(() => {
   loadDashboard()
-  fetchRecursosClientes()
   loadUsuarios()
 
   document.addEventListener('click', () => {
@@ -3978,7 +4019,7 @@ onUnmounted(() => {
       flex-direction: column;
       gap: 12px;
       padding: 4px 20px 20px;
-      max-height: 280px;
+      max-height: 850px;
       overflow-y: auto;
     }
     .widget-empty { font-size: 0.82rem; color: var(--c-gray); padding: 16px 0; }
@@ -4014,6 +4055,22 @@ onUnmounted(() => {
       border-radius: 10px;
       background: var(--c-light);
     }
+    .alert-row.alert-recaudo {
+      border-color: rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.05);
+    }
+    .alert-row.alert-login {
+      border-color: rgba(59, 130, 246, 0.35);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    .alert-row.alert-login .alert-icon {
+      background: rgba(59, 130, 246, 0.16);
+      color: var(--c-info);
+    }
+    .alert-row.alert-login .alert-days {
+      color: var(--c-info);
+      background: rgba(59, 130, 246, 0.14);
+    }
     .alert-icon {
       display: flex;
       align-items: center;
@@ -4027,7 +4084,14 @@ onUnmounted(() => {
     }
     .alert-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
     .alert-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-    .alert-name { font-size: 0.82rem; font-weight: 600; color: var(--c-black); }
+    .alert-name { font-size: 0.82rem; font-weight: 600; color: var(--c-black); overflow-wrap: anywhere; }
+    .alert-cedula {
+      margin-left: 6px;
+      font-size: 0.7rem;
+      font-style: normal;
+      font-weight: 500;
+      color: var(--c-gray);
+    }
     .alert-days {
       font-size: 0.72rem;
       font-weight: 700;
@@ -4037,7 +4101,7 @@ onUnmounted(() => {
       border-radius: 999px;
       white-space: nowrap;
     }
-    .alert-detail { font-size: 0.72rem; color: var(--c-gray); text-transform: capitalize; }
+    .alert-detail { font-size: 0.70rem; color: var(--c-gray); text-transform: capitalize; }
 
     /* ===== CIERRE PRESUPUESTAL ===== */
     .cierre-card { margin-bottom: 24px; }
@@ -4346,6 +4410,62 @@ onUnmounted(() => {
 .msg-toast-close:hover { color: #fff; }
 .msg-toast-fade-enter-active, .msg-toast-fade-leave-active { transition: all 0.3s ease; }
 .msg-toast-fade-enter-from, .msg-toast-fade-leave-to { opacity: 0; transform: translateY(12px); }
+
+.section-recaudos .recaudo-kebab { display: none; }
+.section-recaudos .recaudos-table .col-kebab { display: none; }
+.recaudo-cc { display: none; }
+.recaudo-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  z-index: 44600;
+  display: flex;
+  align-items: flex-end;
+}
+.recaudo-sheet-panel {
+  width: 100%;
+  background: var(--c-white);
+  border-radius: 16px 16px 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+  animation: recaudoSheetUp 0.18s ease-out;
+}
+@keyframes recaudoSheetUp {
+  from { transform: translateY(28px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+.recaudo-sheet-handle { width: 40px; height: 4px; border-radius: 999px; background: var(--c-border); margin: 2px auto 12px; }
+.recaudo-sheet-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--c-border); margin-bottom: 6px; }
+.recaudo-sheet-close { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border: 1px solid var(--c-border); background: var(--c-light); color: var(--c-gray); border-radius: 10px; cursor: pointer; flex-shrink: 0; }
+.recaudo-sheet-close:hover { color: var(--c-black); border-color: var(--c-gray); }
+.recaudo-sheet-header { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.recaudo-sheet-header strong { font-size: 0.92rem; color: var(--c-black); }
+.recaudo-sheet-header span { font-size: 0.78rem; color: var(--c-gray); }
+.recaudo-sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.recaudo-sheet-info { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; }
+.recaudo-sheet-info-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.82rem; }
+.recaudo-sheet-info-row span { color: var(--c-gray); }
+.recaudo-sheet-info-row strong { color: var(--c-black); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+.recaudo-sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 10px;
+  border: none;
+  background: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-black);
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.25;
+}
+.recaudo-sheet-item:hover { background: var(--c-light); }
+.recaudo-sheet-item.danger { color: #DC2626; }
+.recaudo-sheet-item.danger:hover { background: #FEF2F2; }
 
 .modal-overlay-confirm { z-index: 44500; }
 .modal-content.modal-confirm { max-width: 460px; padding: 28px 24px 24px; text-align: center; }
@@ -4898,6 +5018,13 @@ onUnmounted(() => {
     padding: 0 14px;
     gap: 10px;
     height: 64px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: var(--c-white, #141D36);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
   }
   .topbar-greeting { min-width: 0; }
   .topbar-greeting h1 {
@@ -4914,15 +5041,45 @@ onUnmounted(() => {
   .action-btn { width: 36px; height: 36px; }
 
   /* Recaudos: móvil */
-  .section-recaudos .section-top { flex-direction: column; align-items: stretch; }
-  .section-recaudos .section-top .export-btn { width: 100%; justify-content: center; }
+  .section-recaudos .section-top { flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap; }
+  .section-recaudos .section-top > div { min-width: 0; flex: 1; }
+  .section-recaudos .section-top .export-btn { width: auto; justify-content: center; padding: 8px 14px; font-size: 0.78rem; gap: 5px; flex-shrink: 0; white-space: nowrap; }
+  .section-recaudos .section-top .export-btn svg { width: 13px; height: 13px; }
   .section-recaudos .coti-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; }
   .section-recaudos .coti-filter-group { width: 100%; min-width: 0; }
   .section-recaudos .coti-filter-search { grid-column: 1 / -1; min-width: 0; }
   .section-recaudos .coti-select,
   .section-recaudos .coti-input { min-width: 0; width: 100%; }
   .section-recaudos .coti-filter-group .btn-outline { width: 100%; }
-  .section-recaudos .table-card .data-table { min-width: 640px; }
+  .section-recaudos .table-card .table-responsive { overflow-x: hidden; }
+  .section-recaudos .table-card .data-table { min-width: 0; table-layout: fixed; }
+  .section-recaudos .table-card .data-table th,
+  .section-recaudos .table-card .data-table td { white-space: normal; }
+  .section-recaudos .recaudos-table .col-cedula,
+  .section-recaudos .recaudos-table .col-fecha,
+  .section-recaudos .recaudos-table .col-valor { display: none; }
+  .section-recaudos .recaudos-table .col-name { word-break: break-word; }
+  .section-recaudos .recaudos-table .recaudo-cc {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--c-gray);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .section-recaudos .recaudos-table th.col-name { width: auto !important; }
+  /* En móvil la columna de acciones se reemplaza por el menú ⋮ al extremo derecho */
+  .section-recaudos .recaudos-table .col-kebab { display: table-cell; width: 64px; text-align: right; padding-right: 12px; }
+  .section-recaudos .recaudos-table th.col-kebab { text-align: center; font-size: 0.58rem; line-height: 1.15; padding: 12px 6px; white-space: normal; }
+  .section-recaudos .recaudos-table .col-actions { display: none; }
+  .section-recaudos .recaudo-kebab {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--c-border);
+    background: var(--c-light);
+    border-radius: 8px;
+  }
   .section-recaudos .actions-cell { flex-wrap: wrap; }
   .section-recaudos .empty-state { padding: 40px 16px; }
   .section-recaudos .modal-content { width: calc(100% - 24px); max-width: none; }
@@ -4933,7 +5090,7 @@ onUnmounted(() => {
   .section-recaudos .modal-footer { padding: 12px 16px; }
   .section-recaudos .form-grid { grid-template-columns: 1fr; gap: 12px; }
 
-  .main-content { padding: 16px 14px; }
+  .main-content { padding: calc(64px + 16px) 14px 16px; }
   .page-title { font-size: 1.2rem; }
   .section-top { margin-bottom: 16px; }
   .dashboard-title-row { margin-bottom: 14px; }
@@ -4953,7 +5110,7 @@ onUnmounted(() => {
 
   .dashboard-widgets { grid-template-columns: 1fr; gap: 14px; }
   .card-header { padding: 14px 16px; flex-wrap: wrap; gap: 6px; }
-  .widget-body { padding: 4px 16px 16px; gap: 10px; }
+  .widget-body { padding: 4px 16px 16px; gap: 10px; max-height: 360px; }
   .rank-head { gap: 4px; }
   .rank-name { font-size: 0.8rem; }
   .rank-amount { font-size: 0.76rem; }
@@ -4976,7 +5133,7 @@ onUnmounted(() => {
 }
 
 @media (max-width: 480px) {
-  .main-content { padding: 12px; }
+  .main-content { padding: calc(64px + 12px) 12px 12px; }
   .topbar { padding: 0 12px; gap: 8px; }
   .topbar-greeting h1 { font-size: 0.8rem; }
   .stats-row { gap: 8px; }

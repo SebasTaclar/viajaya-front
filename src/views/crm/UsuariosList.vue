@@ -3,9 +3,15 @@
     <div class="page-header">
       <div>
         <h1 class="page-title">Clientes</h1>
-        <p class="page-subtitle">{{ filteredUsuarios.length }} usuarios registrados{{ totalPages > 1 ? ` — Página ${currentPage} de ${totalPages}` : '' }}{{ seleccionados.length > 0 ? ` — ${seleccionados.length} seleccionados` : '' }}</p>
+        <p class="page-subtitle">{{ filteredUsuarios.length }} Clientes registrados{{ totalPages > 1 ? ` — Página ${currentPage} de ${totalPages}` : '' }}{{ seleccionados.length > 0 ? ` — ${seleccionados.length} seleccionados` : '' }}</p>
       </div>
       <div class="header-actions">
+        <button v-if="isAdmin" class="btn-secondary" @click="openBulkMsg()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="btn-label">Mensaje masivo</span>
+        </button>
 
         <button class="btn-primary" @click="openCreateModal">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -53,6 +59,24 @@
         </div>
       </div>
 
+      <div v-if="isAdmin && seleccionados.length > 0" class="selection-bar">
+        <span class="selection-bar-text">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          {{ seleccionados.length }} cliente{{ seleccionados.length === 1 ? '' : 's' }} seleccionado{{ seleccionados.length === 1 ? '' : 's' }}
+        </span>
+        <div class="selection-bar-actions">
+          <button class="btn-primary" @click="openBulkMsg('seleccionados')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            Enviar mensaje
+          </button>
+          <button class="btn-cancel" @click="seleccionados = []">Limpiar selección</button>
+        </div>
+      </div>
+
       <div class="table-card">
         <div v-if="actionError" class="modal-error action-error">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -83,12 +107,13 @@
                   <input type="checkbox" class="row-check" :checked="todosSeleccionados" title="Seleccionar todos" @change="toggleTodos" />
                 </th>
                 <th>Nombre completo</th>
-                <th>Cédula</th>
-                <th>Celular</th>
-                <th>Ubicación</th>
-                <th>Periodicidad</th>
-                <th>Estado</th>
-                <th>Acciones</th>
+                <th class="col-kebab">Info / acciones</th>
+                <th class="col-cedula">Cédula</th>
+                <th class="col-celular">Celular</th>
+                <th class="col-ubicacion">Ubicación</th>
+                <th class="col-periodo">Periodicidad</th>
+                <th class="col-estado">Estado</th>
+                <th class="col-actions">Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -96,7 +121,7 @@
                 <td class="col-check">
                   <input type="checkbox" class="row-check" :checked="seleccionados.includes(u.id)" @change="toggleSeleccion(u.id)" />
                 </td>
-                <td>
+                <td class="col-user">
                   <div class="user-cell">
                     <div class="user-avatar" :style="{ background: getUserColor(u.id) }">
                       <span>{{ getUserInitials(u.name || 'U') }}</span>
@@ -104,19 +129,27 @@
                     <div class="user-meta">
                       <span class="user-name">{{ u.name }}</span>
                       <span class="user-email">{{ u.email || '—' }}</span>
+                      <span class="user-cedula">CC {{ u.cedula }}</span>
                     </div>
                   </div>
                 </td>
-                <td>{{ u.cedula }}</td>
-                <td>{{ u.celular }}</td>
-                <td>{{ u.ubicacion || '—' }}</td>
-                <td><span class="period-badge">{{ u.periodicidad || '—' }}</span></td>
-                <td>
+                <td class="col-kebab">
+                  <button class="action-btn kebab-btn" title="Acciones" @click="sheetUser = u">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                    </svg>
+                  </button>
+                </td>
+                <td class="col-cedula" data-label="Cédula">{{ u.cedula }}</td>
+                <td class="col-celular" data-label="Celular">{{ u.celular }}</td>
+                <td class="col-ubicacion" data-label="Ubicación">{{ u.ubicacion || '—' }}</td>
+                <td class="col-periodo" data-label="Periodicidad"><span class="period-badge">{{ u.periodicidad || '—' }}</span></td>
+                <td class="col-estado" data-label="Estado">
                   <span class="status-badge" :class="u.isActive ? 'active' : 'inactive'">
                     {{ u.isActive ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td>
+                <td class="col-actions">
                   <div class="actions-cell">
                     <button class="action-btn" title="Editar datos" @click="openEditModal(u)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -130,6 +163,7 @@
                       </svg>
                     </button>
                     <button
+                      v-if="isSuperAdmin"
                       class="action-btn"
                       :title="u.isActive ? 'Inactivar usuario' : 'Reactivar usuario'"
                       @click="toggleActive(u)"
@@ -147,7 +181,7 @@
                       </svg>
                       <span>Enviar mensaje</span>
                     </button>
-                    <button class="action-btn delete-btn" title="Eliminar" @click="deleteUsuario(u.id, u.name)">
+                    <button v-if="isSuperAdmin" class="action-btn delete-btn" title="Eliminar" @click="deleteUsuario(u.id, u.name)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                       </svg>
@@ -478,7 +512,7 @@
           </button>
         </div>
         <div class="modal-body">
-          <template v-if="!msgCompose">
+          <template v-if="!msgCompose && !claveMode">
             <p class="msg-options-sub">Selecciona qué quieres enviar a <strong>{{ msgTargetUser.name }}</strong></p>
             <div class="msg-options">
               <button class="msg-option" @click="chooseMsgOption('ultimo')">
@@ -523,18 +557,115 @@
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </button>
+              <button class="msg-option" @click="chooseMsgOption('clave')">
+                <span class="msg-option-icon clave">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Notificar clave</strong>
+                  <small>Envía la clave actual o genera una nueva por SMS</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
             </div>
+          </template>
+
+          <template v-else-if="claveMode === 'menu'">
+            <p class="msg-options-sub">¿Qué clave quieres enviar a <strong>{{ msgTargetUser.name }}</strong>?</p>
+            <div class="msg-options">
+              <button class="msg-option" @click="chooseClaveActual">
+                <span class="msg-option-icon clave">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Enviar clave actual</strong>
+                  <small>Escríbela y se envía por SMS sin cambiarla</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+              <button class="msg-option" @click="chooseClaveNueva">
+                <span class="msg-option-icon clave">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Generar clave nueva</strong>
+                  <small>Se genera, se guarda y se envía por SMS</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+            <div class="msg-compose-actions">
+              <button class="btn-cancel" @click="claveMode = null">Volver</button>
+            </div>
+          </template>
+
+          <template v-else-if="claveMode === 'actual'">
+            <p class="msg-options-sub">Escribe la clave actual de <strong>{{ msgTargetUser.name }}</strong> para enviarla por SMS</p>
+            <div class="password-input-wrap">
+              <input
+                v-model="msgClaveActual"
+                :type="showPassword ? 'text' : 'password'"
+                class="form-input"
+                placeholder="Clave actual"
+              />
+              <button type="button" class="btn-toggle-password" @click="showPassword = !showPassword">
+                <svg v-if="!showPassword" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                  <line x1="1" y1="1" x2="23" y2="23"/>
+                </svg>
+              </button>
+            </div>
+            <div v-if="msgClaveActual.trim()" class="bulk-preview">
+              <span class="msg-vars-label">Vista previa para {{ msgTargetUser.name }}</span>
+              <blockquote class="msg-compose-preview">{{ msgClaveActualPreview }}</blockquote>
+            </div>
+            <div class="msg-compose-actions">
+              <button class="btn-cancel" @click="claveMode = 'menu'">Volver</button>
+              <button class="btn-save" @click="confirmComposeClaveActual">Continuar</button>
+            </div>
+            <p v-if="msgError" class="field-error">{{ msgError }}</p>
           </template>
 
           <template v-else>
             <p class="msg-options-sub">Escribe el mensaje que quieres enviar a <strong>{{ msgTargetUser.name }}</strong></p>
             <textarea
+              ref="msgFreeTextArea"
               v-model="msgFreeText"
               class="form-input msg-compose-input"
               rows="5"
               maxlength="1000"
               placeholder="Escribe tu mensaje..."
             ></textarea>
+            <div class="msg-vars">
+              <span class="msg-vars-label">Personaliza con:</span>
+              <button
+                v-for="v in MSG_VARS"
+                :key="v.token"
+                type="button"
+                class="msg-var-chip"
+                :title="`Inserta ${v.token}`"
+                @click="insertMsgVar(v.token)"
+              >{{ v.label }}</button>
+            </div>
+            <div v-if="msgFreeText.trim()" class="bulk-preview">
+              <span class="msg-vars-label">Vista previa para {{ msgTargetUser.name }}</span>
+              <blockquote class="msg-compose-preview">{{ msgFreePreview }}</blockquote>
+            </div>
             <div class="msg-compose-actions">
               <button class="btn-cancel" @click="msgCompose = false">Volver</button>
               <button class="btn-save" @click="confirmComposeMsg">Continuar</button>
@@ -560,11 +691,24 @@
             Vas a enviar un <strong>mensaje libre</strong>
             a <strong>{{ msgTargetUser.name }}</strong> (C.I. {{ msgTargetUser.cedula }}):
           </p>
-          <p v-else>
-            Vas a enviar un mensaje de <strong>{{ msgKindLabel }}</strong>
-            a <strong>{{ msgTargetUser.name }}</strong> (C.I. {{ msgTargetUser.cedula }}).
+          <p v-else-if="msgKind === 'clave'">
+            Se generará una <strong>clave aleatoria</strong> para <strong>{{ msgTargetUser.name }}</strong>,
+            se guardará de forma segura y se enviará por SMS al celular
+            <strong>{{ msgTargetUser.celular || 'sin registrar' }}</strong>.
+            La clave anterior dejará de funcionar.
           </p>
-          <blockquote v-if="msgKind === 'libre'" class="msg-compose-preview">{{ msgFreeText }}</blockquote>
+          <p v-else-if="msgKind === 'clave-actual'">
+            Vas a enviar la <strong>clave actual</strong> de <strong>{{ msgTargetUser.name }}</strong>
+            por SMS al celular <strong>{{ msgTargetUser.celular || 'sin registrar' }}</strong>.
+            La clave no cambiará.
+          </p>
+          <p v-else>
+            Vas a enviar un mensaje de <strong>{{ msgKindLabel }}</strong>.
+          </p>
+          <blockquote v-if="msgKind === 'ultimo'" class="msg-compose-preview">{{ msgPreviewText }}</blockquote>
+          <blockquote v-if="msgKind === 'total'" class="msg-compose-preview">{{ msgPreviewText }}</blockquote>
+          <blockquote v-if="msgKind === 'libre'" class="msg-compose-preview">{{ msgFreePreview }}</blockquote>
+          <blockquote v-if="msgKind === 'clave-actual'" class="msg-compose-preview">{{ msgClaveActualPreview }}</blockquote>
           <div class="confirm-actions">
             <button class="btn-cancel" :disabled="msgStatus === 'sending'" @click="msgConfirm = false">Cancelar</button>
             <button class="btn-save" :disabled="msgStatus === 'sending'" @click="confirmSendMsg">
@@ -572,6 +716,195 @@
             </button>
           </div>
           <p v-if="msgError" class="field-error">{{ msgError }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensaje masivo: elegir destinatarios / redactar -->
+    <div v-if="showBulkMsg" class="modal-overlay" @click.self="closeBulkMsg">
+      <div class="modal-content modal-md" @click.stop>
+        <div class="modal-header">
+          <h3>Enviar mensaje masivo</h3>
+          <button class="modal-close" @click="closeBulkMsg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <template v-if="bulkStep === 'kind'">
+            <p class="msg-options-sub">¿Qué quieres enviar masivamente?</p>
+            <div class="msg-options">
+              <button class="msg-option" @click="chooseBulkKind('libre')">
+                <span class="msg-option-icon libre">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Mensaje libre</strong>
+                  <small>Escribe un mensaje personalizado con variables</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+              <button class="msg-option" @click="chooseBulkKind('clave')">
+                <span class="msg-option-icon clave">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Notificar clave nueva</strong>
+                  <small>Genera una clave nueva para cada cliente y envíala por SMS</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+          </template>
+
+          <template v-else-if="bulkStep === 'target'">
+            <p class="msg-options-sub">
+              {{ bulkKind === 'clave' ? '¿Para quiénes quieres generar la clave nueva?' : '¿A quiénes quieres enviar el mensaje?' }}
+            </p>
+            <div class="msg-options">
+              <button
+                class="msg-option"
+                :disabled="seleccionados.length === 0"
+                @click="chooseBulkTarget('seleccionados')"
+              >
+                <span class="msg-option-icon libre">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Clientes seleccionados</strong>
+                  <small>
+                    {{ seleccionados.length === 0
+                      ? 'Selecciona clientes en la tabla para habilitar esta opción'
+                      : `${seleccionados.length} cliente${seleccionados.length === 1 ? '' : 's'} seleccionado${seleccionados.length === 1 ? '' : 's'}` }}
+                  </small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+              <button class="msg-option" @click="chooseBulkTarget('todos')">
+                <span class="msg-option-icon total">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                </span>
+                <span class="msg-option-text">
+                  <strong>Todos los clientes</strong>
+                  <small v-if="bulkKind === 'clave'">{{ usuarios.length }} cliente{{ usuarios.length === 1 ? '' : 's' }} — a cada uno se le generará su propia clave</small>
+                  <small v-else>{{ usuarios.length }} cliente{{ usuarios.length === 1 ? '' : 's' }} — personaliza el mensaje con variables para cada uno</small>
+                </span>
+                <svg class="msg-option-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+            </div>
+            <div class="msg-compose-actions">
+              <button class="btn-cancel" @click="bulkStep = 'kind'">Volver</button>
+            </div>
+          </template>
+
+          <template v-else-if="bulkStep === 'compose'">
+            <p class="msg-options-sub">
+              El mensaje se enviará a
+              <strong>{{ bulkRecipients.length }} cliente{{ bulkRecipients.length === 1 ? '' : 's' }}</strong>
+              {{ bulkTarget === 'todos' ? '(todos los clientes)' : '(seleccionados)' }}.
+              Usa las variables para que cada uno reciba un texto personalizado.
+            </p>
+            <textarea
+              ref="bulkTextArea"
+              v-model="bulkText"
+              class="form-input msg-compose-input"
+              rows="6"
+              maxlength="1000"
+              placeholder="Escribe tu mensaje..."
+            ></textarea>
+            <div class="msg-vars">
+              <span class="msg-vars-label">Personaliza con:</span>
+              <button
+                v-for="v in MSG_VARS"
+                :key="v.token"
+                type="button"
+                class="msg-var-chip"
+                :title="`Inserta ${v.token}`"
+                @click="insertBulkVar(v.token)"
+              >{{ v.label }}</button>
+            </div>
+            <div v-if="bulkText.trim() && bulkPreviewUser" class="bulk-preview">
+              <div class="bulk-preview-head">
+                <span class="msg-vars-label">Vista previa personalizada</span>
+                <select
+                  v-if="bulkRecipients.length > 1"
+                  v-model="bulkPreviewId"
+                  class="form-select bulk-preview-select"
+                >
+                  <option v-for="u in bulkRecipients" :key="u.id" :value="u.id">{{ u.name }}</option>
+                </select>
+              </div>
+              <blockquote class="msg-compose-preview">{{ bulkPreviewText }}</blockquote>
+            </div>
+            <div class="msg-compose-actions">
+              <button class="btn-cancel" @click="bulkStep = 'target'">Volver</button>
+              <button class="btn-save" @click="confirmBulkCompose">Continuar</button>
+            </div>
+            <p v-if="bulkError" class="msg-form-error">{{ bulkError }}</p>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmar envío masivo -->
+    <div v-if="bulkConfirm" class="modal-overlay modal-overlay-confirm" @click.self="!bulkSending && (bulkConfirm = false)">
+      <div class="modal-content modal-sm modal-confirm" @click.stop>
+        <div class="modal-body confirm-body">
+          <div class="confirm-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <h3>¿Estás seguro?</h3>
+          <p v-if="bulkKind === 'clave'">
+            Se generará una <strong>clave aleatoria</strong> para cada uno de los
+            <strong>{{ bulkRecipients.length }} cliente{{ bulkRecipients.length === 1 ? '' : 's' }}</strong>
+            {{ bulkTarget === 'todos' ? '(todos los clientes)' : '(seleccionados)' }}.
+            Cada clave se guardará de forma segura y se enviará por SMS.
+            Las claves anteriores dejarán de funcionar.
+          </p>
+          <p v-else>
+            Vas a enviar este <strong>mensaje{{ bulkHasVars ? ' personalizado' : '' }}</strong> a
+            <strong>{{ bulkRecipients.length }} cliente{{ bulkRecipients.length === 1 ? '' : 's' }}</strong>
+            {{ bulkTarget === 'todos' ? '(todos los clientes)' : '(seleccionados)' }}:
+          </p>
+          <p v-if="bulkKind !== 'clave' && bulkHasVars && bulkPreviewUser" class="msg-options-sub">
+            Vista previa para <strong>{{ bulkPreviewUser.name }}</strong> — cada cliente recibirá su propio texto:
+          </p>
+          <blockquote v-if="bulkKind !== 'clave'" class="msg-compose-preview">{{ bulkPreviewText }}</blockquote>
+          <div v-if="bulkSending" class="bulk-progress">
+            <div class="bulk-progress-bar"><span :style="{ width: bulkProgressPct + '%' }"></span></div>
+            <span class="bulk-progress-text">
+              Enviando {{ bulkProgress.sent }} / {{ bulkProgress.total }}{{ bulkProgress.failed ? ` · ${bulkProgress.failed} con error` : '' }}
+            </span>
+          </div>
+          <div class="confirm-actions">
+            <button class="btn-cancel" :disabled="bulkSending" @click="bulkConfirm = false">Cancelar</button>
+            <button class="btn-save" :disabled="bulkSending" @click="sendBulkMsg">
+              {{ bulkSending ? 'Enviando...' : 'Sí, enviar' }}
+            </button>
+          </div>
+          <p v-if="bulkError" class="msg-form-error">{{ bulkError }}</p>
         </div>
       </div>
     </div>
@@ -596,11 +929,67 @@
         </button>
       </div>
     </transition>
+
+    <!-- Bottom sheet de acciones (móvil) -->
+    <div v-if="sheetUser" class="sheet-overlay" @click.self="sheetUser = null">
+      <div class="sheet-panel">
+        <div class="sheet-handle"></div>
+        <button class="sheet-close" title="Cerrar" @click="sheetUser = null">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+        <div class="sheet-user">
+          <div class="user-avatar" :style="{ background: getUserColor(sheetUser.id) }">
+            <span>{{ getUserInitials(sheetUser.name || 'U') }}</span>
+          </div>
+          <div class="user-meta">
+            <span class="user-name">{{ sheetUser.name }}</span>
+            <span class="user-email">{{ sheetUser.email || '—' }}</span>
+          </div>
+        </div>
+        <div class="sheet-info">
+          <div class="sheet-info-row"><span>Cédula</span><strong>{{ sheetUser.cedula }}</strong></div>
+          <div class="sheet-info-row"><span>Celular</span><strong>{{ sheetUser.celular || '—' }}</strong></div>
+          <div class="sheet-info-row"><span>Ubicación</span><strong>{{ sheetUser.ubicacion || '—' }}</strong></div>
+          <div class="sheet-info-row"><span>Periodicidad</span><strong>{{ sheetUser.periodicidad || '—' }}</strong></div>
+          <div class="sheet-info-row">
+            <span>Estado</span>
+            <span class="status-badge" :class="sheetUser.isActive ? 'active' : 'inactive'">
+              {{ sheetUser.isActive ? 'Activo' : 'Inactivo' }}
+            </span>
+          </div>
+        </div>
+        <div class="sheet-actions">
+          <button class="sheet-item" @click="sheetAction(openEditModal)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar datos
+          </button>
+          <button class="sheet-item" @click="sheetAction(openPasswordModal)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Cambiar contraseña
+          </button>
+          <button v-if="isSuperAdmin" class="sheet-item" @click="sheetAction(toggleActive)">
+            <svg v-if="sheetUser.isActive" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18.36 6.64A9 9 0 1 1 5.64 6.64"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+            <svg v-else width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            {{ sheetUser.isActive ? 'Inactivar usuario' : 'Reactivar usuario' }}
+          </button>
+          <button class="sheet-item" @click="sheetAction(openMsgOptions)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Enviar mensaje
+          </button>
+          <button v-if="isSuperAdmin" class="sheet-item danger" @click="sheetDelete">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Eliminar usuario
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, type Ref } from 'vue'
 import {
   usuarios,
   usuariosLoading,
@@ -610,6 +999,11 @@ import {
 } from '@/composables/useUsuariosStore'
 import { viajeroService } from '@/services/api/viajeroService'
 import { messageService } from '@/services/api/messageService'
+import { recaudoService } from '@/services/api/recaudoService'
+import { authService } from '@/services/api'
+
+const isSuperAdmin = computed(() => authService.getUserRole() === 'superadmin')
+const isAdmin = computed(() => authService.isAdmin())
 
 const loading = usuariosLoading
 const searchTerm = ref('')
@@ -626,9 +1020,12 @@ const showMsgOptions = ref(false)
 const msgTargetUser = ref<MockUser | null>(null)
 const msgStatus = ref<'sending' | 'sent' | null>(null)
 const msgConfirm = ref(false)
-const msgKind = ref<'ultimo' | 'total' | 'libre'>('ultimo')
+const msgKind = ref<'ultimo' | 'total' | 'libre' | 'clave' | 'clave-actual'>('ultimo')
+const claveMode = ref<'menu' | 'actual' | null>(null)
+const msgClaveActual = ref('')
 const msgCompose = ref(false)
 const msgFreeText = ref('')
+const msgFreeTextArea = ref<HTMLTextAreaElement | null>(null)
 const msgSentTo = ref('')
 const msgSentTipo = ref('')
 const msgError = ref('')
@@ -875,6 +1272,7 @@ async function handleUpdate() {
 }
 
 async function toggleActive(u: MockUser) {
+  if (!isSuperAdmin.value) return
   try {
     await viajeroService.setActive(u.id, !u.isActive)
     await refreshList()
@@ -884,13 +1282,27 @@ async function toggleActive(u: MockUser) {
 }
 
 function deleteUsuario(id: number, name: string) {
+  if (!isSuperAdmin.value) return
   deleteId.value = id
   deleteName.value = name
   deleteError.value = ''
   showDeleteModal.value = true
 }
 
+const sheetUser = ref<MockUser | null>(null)
+
+function sheetAction(fn: (u: MockUser) => void) {
+  const u = sheetUser.value
+  sheetUser.value = null
+  if (u) fn(u)
+}
+
+function sheetDelete() {
+  sheetAction((u) => deleteUsuario(u.id, u.name))
+}
+
 async function confirmDelete() {
+  if (!isSuperAdmin.value) return
   deleteError.value = ''
   deleting.value = true
   try {
@@ -908,6 +1320,69 @@ onMounted(() => {
   loadUsuarios()
 })
 
+const ultimoRecaudo = ref<{ valor: number; fecha: string } | null>(null)
+const totalRecaudos = ref(0)
+
+async function fetchRecaudosUsuario(userId: number) {
+  ultimoRecaudo.value = null
+  totalRecaudos.value = 0
+  try {
+    const resp = await recaudoService.getAll({ clientId: userId, page: 1, limit: 100 })
+    const rows = (resp.data || [])
+      .filter(r => Number.isFinite(new Date(r.fecha).getTime()))
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+    const last = rows[0]
+    ultimoRecaudo.value = last ? { valor: Number(last.valor) || 0, fecha: last.fecha } : null
+    totalRecaudos.value = rows.reduce((sum, r) => sum + (Number(r.valor) || 0), 0)
+  } catch {
+    ultimoRecaudo.value = null
+    totalRecaudos.value = 0
+  }
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(value)
+}
+
+function formatFechaLarga(value: string): string {
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })
+}
+
+// ========== PERSONALIZACIÓN DE MENSAJES ==========
+const MSG_VARS = [
+  { token: '{nombre}', label: 'Nombre' },
+  { token: '{cedula}', label: 'Cédula' },
+  { token: '{celular}', label: 'Celular' },
+  { token: '{saldo}', label: 'Saldo' },
+]
+
+function personalizeMsg(text: string, u: MockUser): string {
+  return text
+    .replace(/\{nombre\}/g, u.name || '')
+    .replace(/\{cedula\}/g, u.cedula || '')
+    .replace(/\{celular\}/g, u.celular || '')
+    .replace(/\{saldo\}/g, Number.isFinite(u.saldo) ? formatCurrency(u.saldo) : '')
+}
+
+function insertVarAtCursor(el: HTMLTextAreaElement | null, model: Ref<string>, token: string) {
+  const start = el?.selectionStart ?? model.value.length
+  const end = el?.selectionEnd ?? start
+  model.value = model.value.slice(0, start) + token + model.value.slice(end)
+  if (el) {
+    nextTick(() => {
+      el.focus()
+      const pos = start + token.length
+      el.setSelectionRange(pos, pos)
+    })
+  }
+}
+
+function insertMsgVar(token: string) {
+  insertVarAtCursor(msgFreeTextArea.value, msgFreeText, token)
+}
+
 function openMsgOptions(u: MockUser) {
   msgTargetUser.value = u
   msgConfirm.value = false
@@ -915,7 +1390,10 @@ function openMsgOptions(u: MockUser) {
   msgKind.value = 'ultimo'
   msgCompose.value = false
   msgFreeText.value = ''
+  claveMode.value = null
+  msgClaveActual.value = ''
   showMsgOptions.value = true
+  fetchRecaudosUsuario(u.id)
 }
 
 let msgTimer: ReturnType<typeof setTimeout> | undefined
@@ -923,20 +1401,80 @@ let msgTimer: ReturnType<typeof setTimeout> | undefined
 const msgKindLabel = computed(() =>
   msgKind.value === 'ultimo' ? 'Último Recaudo'
     : msgKind.value === 'total' ? 'Total Recaudo'
-      : 'Mensaje libre'
+      : msgKind.value === 'clave' ? 'Clave nueva por SMS'
+        : msgKind.value === 'clave-actual' ? 'Clave actual por SMS'
+          : 'Mensaje libre'
 )
 
-function chooseMsgOption(kind: 'ultimo' | 'total' | 'libre') {
-  msgKind.value = kind
+function chooseMsgOption(kind: 'ultimo' | 'total' | 'libre' | 'clave') {
   msgError.value = ''
   if (kind === 'libre') {
+    msgKind.value = kind
     msgFreeText.value = ''
     msgCompose.value = true
     return
   }
+  if (kind === 'clave') {
+    msgKind.value = kind
+    claveMode.value = 'menu'
+    return
+  }
+  msgKind.value = kind
   showMsgOptions.value = false
   msgConfirm.value = true
 }
+
+function chooseClaveActual() {
+  msgKind.value = 'clave-actual'
+  msgClaveActual.value = ''
+  msgError.value = ''
+  showPassword.value = false
+  claveMode.value = 'actual'
+}
+
+function chooseClaveNueva() {
+  msgKind.value = 'clave'
+  claveMode.value = null
+  showMsgOptions.value = false
+  msgConfirm.value = true
+}
+
+function buildMsgTexto(kind: 'ultimo' | 'total' | 'libre', u: MockUser): string {
+  if (kind === 'libre') return personalizeMsg(msgFreeText.value, u)
+  const cedula = u.cedula ? ` (C.C. ${u.cedula})` : ''
+  if (kind === 'ultimo') {
+    const last = ultimoRecaudo.value
+    if (!last) {
+      return `Hola, ${u.name}${cedula},\n\nViaja Ya te informa que aún no tienes recaudos registrados.\n\n¡Gracias por confiar en nosotros!`
+    }
+    const fecha = last.fecha ? `\nFecha: ${formatFechaLarga(last.fecha)}` : ''
+    return `Hola, ${u.name}${cedula},\n\nViaja Ya te informa sobre tu último recaudo registrado\n\nValor: ${formatCurrency(last.valor)}${fecha}\n\n¡Gracias por confiar en nosotros!`
+  }
+  if (kind === 'total') {
+    if (!totalRecaudos.value) {
+      return `Hola, ${u.name}${cedula},\n\nViaja Ya te informa que aún no tienes recaudos registrados.\n\n¡Gracias por confiar en nosotros!`
+    }
+    return `Hola, ${u.name}${cedula},\n\nTu total recaudado a la fecha del envío de este mensaje es:\n\nValor: ${formatCurrency(totalRecaudos.value)}\n\n¡Gracias por confiar en nosotros!`
+  }
+  return ''
+}
+
+const msgPreviewText = computed(() => {
+  const u = msgTargetUser.value
+  if (!u) return ''
+  return buildMsgTexto(msgKind.value === 'total' ? 'total' : 'ultimo', u)
+})
+
+const msgFreePreview = computed(() => {
+  const u = msgTargetUser.value
+  return u ? personalizeMsg(msgFreeText.value, u) : msgFreeText.value
+})
+
+const msgClaveActualPreview = computed(() => {
+  const u = msgTargetUser.value
+  if (!u) return ''
+  return `Hola, ${u.name},\n\nViaja Ya te informa tu clave actual para acceder al portal:\n\nClave: ${msgClaveActual.value}\n\n¡Gracias por confiar en nosotros!`
+})
 
 function confirmComposeMsg() {
   const text = msgFreeText.value.trim()
@@ -950,37 +1488,248 @@ function confirmComposeMsg() {
   msgConfirm.value = true
 }
 
+function confirmComposeClaveActual() {
+  if (!msgClaveActual.value.trim()) {
+    msgError.value = 'La clave es obligatoria.'
+    return
+  }
+  msgError.value = ''
+  claveMode.value = null
+  showMsgOptions.value = false
+  msgConfirm.value = true
+}
+
 async function confirmSendMsg() {
   const u = msgTargetUser.value
   if (!u || msgStatus.value === 'sending') return
 
-  const phone = messageService.toInternationalPhone(u.celular)
-  if (!phone) {
-    msgError.value = 'El usuario no tiene celular registrado.'
-    return
-  }
-
   const tipo = msgKindLabel.value
-  const texto = msgKind.value === 'libre'
-    ? msgFreeText.value
-    : msgKind.value === 'ultimo'
-      ? `Hola ${u.name}, te informamos sobre tu último recaudo registrado. ¡Gracias por mantenerte al día!`
-      : `Hola ${u.name}, te informamos el estado de tu total recaudo acumulado. ¡Gracias por mantenerte al día!`
+  const kind = msgKind.value
 
   msgError.value = ''
   msgStatus.value = 'sending'
   clearTimeout(msgTimer)
   try {
-    await messageService.send(phone, texto)
+    if (kind === 'clave') {
+      await viajeroService.notifyPassword(u.id)
+    } else {
+      const phone = messageService.toInternationalPhone(u.celular)
+      if (!phone) {
+        msgStatus.value = null
+        msgError.value = 'El usuario no tiene celular registrado.'
+        return
+      }
+      const texto = kind === 'clave-actual' ? msgClaveActualPreview.value : buildMsgTexto(kind, u)
+      await messageService.send(phone, texto)
+    }
     msgConfirm.value = false
     msgSentTo.value = u.name
     msgSentTipo.value = tipo
     msgStatus.value = 'sent'
+    msgClaveActual.value = ''
     msgTimer = setTimeout(() => { msgStatus.value = null }, 4000)
   } catch (error) {
     msgStatus.value = null
     msgError.value = extractError(error, 'No se pudo enviar el mensaje.')
   }
+}
+
+// ========== MENSAJE MASIVO (ADMIN / SUPERADMIN) ==========
+const showBulkMsg = ref(false)
+const bulkStep = ref<'kind' | 'target' | 'compose'>('kind')
+const bulkKind = ref<'libre' | 'clave'>('libre')
+const bulkPrefer = ref<'seleccionados' | 'todos' | null>(null)
+const bulkTarget = ref<'seleccionados' | 'todos'>('seleccionados')
+const bulkText = ref('')
+const bulkError = ref('')
+const bulkConfirm = ref(false)
+const bulkSending = ref(false)
+const bulkProgress = ref({ sent: 0, total: 0, failed: 0 })
+const bulkTextArea = ref<HTMLTextAreaElement | null>(null)
+const bulkPreviewId = ref<number | null>(null)
+
+const bulkRecipients = computed(() => {
+  if (bulkTarget.value === 'todos') return usuarios.value
+  const ids = new Set(seleccionados.value)
+  return usuarios.value.filter((u) => ids.has(u.id))
+})
+
+const bulkPreviewUser = computed(() => {
+  const list = bulkRecipients.value
+  return list.find((u) => u.id === bulkPreviewId.value) || list[0] || null
+})
+
+const bulkPreviewText = computed(() => {
+  const u = bulkPreviewUser.value
+  return u ? personalizeMsg(bulkText.value, u) : bulkText.value
+})
+
+const bulkHasVars = computed(() => MSG_VARS.some((v) => bulkText.value.includes(v.token)))
+
+function insertBulkVar(token: string) {
+  insertVarAtCursor(bulkTextArea.value, bulkText, token)
+}
+
+const bulkProgressPct = computed(() =>
+  bulkProgress.value.total ? Math.round((bulkProgress.value.sent / bulkProgress.value.total) * 100) : 0,
+)
+
+function openBulkMsg(prefer?: 'seleccionados' | 'todos') {
+  if (!isAdmin.value) return
+  bulkError.value = ''
+  bulkText.value = ''
+  bulkConfirm.value = false
+  bulkPreviewId.value = null
+  bulkProgress.value = { sent: 0, total: 0, failed: 0 }
+  bulkKind.value = 'libre'
+  bulkPrefer.value = prefer && !(prefer === 'seleccionados' && seleccionados.value.length === 0) ? prefer : null
+  if (bulkPrefer.value) bulkTarget.value = bulkPrefer.value
+  bulkStep.value = 'kind'
+  showBulkMsg.value = true
+}
+
+function closeBulkMsg() {
+  if (bulkSending.value) return
+  showBulkMsg.value = false
+}
+
+function chooseBulkKind(kind: 'libre' | 'clave') {
+  bulkKind.value = kind
+  bulkError.value = ''
+  bulkPreviewId.value = null
+  if (bulkPrefer.value) {
+    bulkTarget.value = bulkPrefer.value
+    if (kind === 'clave') {
+      showBulkMsg.value = false
+      bulkConfirm.value = true
+    } else {
+      bulkStep.value = 'compose'
+    }
+    return
+  }
+  bulkStep.value = 'target'
+}
+
+function chooseBulkTarget(target: 'seleccionados' | 'todos') {
+  if (target === 'seleccionados' && seleccionados.value.length === 0) return
+  bulkTarget.value = target
+  bulkError.value = ''
+  bulkPreviewId.value = null
+  if (bulkKind.value === 'clave') {
+    showBulkMsg.value = false
+    bulkConfirm.value = true
+    return
+  }
+  bulkStep.value = 'compose'
+}
+
+function confirmBulkCompose() {
+  const text = bulkText.value.trim()
+  if (!text) {
+    bulkError.value = 'El mensaje no puede estar vacío.'
+    return
+  }
+  if (bulkRecipients.value.length === 0) {
+    bulkError.value = 'No hay clientes destinatarios.'
+    return
+  }
+  bulkText.value = text
+  bulkError.value = ''
+  showBulkMsg.value = false
+  bulkConfirm.value = true
+}
+
+async function sendBulkMsg() {
+  if (!isAdmin.value || bulkSending.value) return
+
+  const recipients = bulkRecipients.value
+  if (recipients.length === 0) {
+    bulkError.value = 'No hay clientes destinatarios.'
+    return
+  }
+
+  bulkError.value = ''
+  bulkSending.value = true
+  bulkProgress.value = { sent: 0, total: recipients.length, failed: 0 }
+  let ok = 0
+  let failed = 0
+
+  if (bulkKind.value === 'clave') {
+    for (const u of recipients) {
+      try {
+        await viajeroService.notifyPassword(u.id)
+        ok++
+      } catch {
+        failed++
+      }
+      bulkProgress.value = { sent: ok + failed, total: recipients.length, failed }
+    }
+    bulkSending.value = false
+
+    if (ok === 0) {
+      bulkError.value = 'No se pudo generar la clave para ningún cliente.'
+      return
+    }
+
+    bulkConfirm.value = false
+    showBulkMsg.value = false
+    clearTimeout(msgTimer)
+    msgSentTipo.value = 'Clave nueva masiva'
+    const extras: string[] = []
+    if (failed) extras.push(`${failed} con error`)
+    msgSentTo.value = `${ok} de ${recipients.length} clientes${extras.length ? ` — ${extras.join(' · ')}` : ''}`
+    msgStatus.value = 'sent'
+    msgTimer = setTimeout(() => { msgStatus.value = null }, 6000)
+    return
+  }
+
+  const text = bulkText.value.trim()
+  if (!text) {
+    bulkSending.value = false
+    bulkError.value = 'El mensaje no puede estar vacío.'
+    return
+  }
+
+  const withPhone: { phone: string; text: string }[] = []
+  let sinCelular = 0
+  for (const u of recipients) {
+    const phone = messageService.toInternationalPhone(u.celular)
+    if (phone) withPhone.push({ phone, text: personalizeMsg(text, u) })
+    else sinCelular++
+  }
+  if (withPhone.length === 0) {
+    bulkSending.value = false
+    bulkError.value = 'Ningún cliente destinatario tiene celular registrado.'
+    return
+  }
+
+  bulkProgress.value = { sent: 0, total: withPhone.length, failed: 0 }
+  for (const r of withPhone) {
+    try {
+      await messageService.send(r.phone, r.text)
+      ok++
+    } catch {
+      failed++
+    }
+    bulkProgress.value = { sent: ok + failed, total: withPhone.length, failed }
+  }
+  bulkSending.value = false
+
+  if (ok === 0) {
+    bulkError.value = 'No se pudo enviar el mensaje a ningún cliente.'
+    return
+  }
+
+  bulkConfirm.value = false
+  showBulkMsg.value = false
+  clearTimeout(msgTimer)
+  msgSentTipo.value = 'Mensaje masivo'
+  const extras: string[] = []
+  if (failed) extras.push(`${failed} con error`)
+  if (sinCelular) extras.push(`${sinCelular} sin celular`)
+  msgSentTo.value = `${ok} de ${withPhone.length} clientes${extras.length ? ` — ${extras.join(' · ')}` : ''}`
+  msgStatus.value = 'sent'
+  msgTimer = setTimeout(() => { msgStatus.value = null }, 6000)
 }
 </script>
 
@@ -1029,6 +1778,7 @@ async function confirmSendMsg() {
 .user-meta { display: flex; flex-direction: column; min-width: 0; }
 .user-name { font-weight: 600; font-size: 0.86rem; }
 .user-email { font-size: 0.72rem; color: var(--c-gray); }
+.user-cedula { display: none; font-size: 0.72rem; color: var(--c-gray); }
 
 .rol-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.74rem; font-weight: 600; }
 .rol-badge.admin { background: #EFF6FF; color: #2563EB; }
@@ -1048,6 +1798,8 @@ async function confirmSendMsg() {
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .actions-cell { display: flex; gap: 6px; align-items: center; }
+.col-kebab { display: none; }
+.kebab-btn { display: none; }
 .action-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; background: none; color: var(--c-gray); border-radius: 6px; cursor: pointer; transition: all 0.15s; }
 .action-btn:hover { background: rgba(255, 255, 255, 0.08); color: var(--c-black); }
 .action-btn.delete-btn:hover { background: rgba(232, 72, 63, 0.1); color: #E8483F; }
@@ -1067,15 +1819,46 @@ async function confirmSendMsg() {
 .msg-option-icon.ultimo { background: rgba(59, 130, 246, 0.15); color: #3B82F6; }
 .msg-option-icon.total { background: rgba(16, 185, 129, 0.15); color: #10B981; }
 .msg-option-icon.libre { background: rgba(139, 92, 246, 0.15); color: #8B5CF6; }
+.msg-option-icon.clave { background: rgba(240, 192, 9, 0.15); color: #F0C009; }
 .msg-option-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
 .msg-option-text strong { font-size: 0.9rem; font-weight: 700; color: var(--c-black); }
 .msg-option-text small { font-size: 0.76rem; color: var(--c-gray); }
 .msg-option-arrow { color: var(--c-gray-light); flex-shrink: 0; }
 .msg-option:hover .msg-option-arrow { color: var(--c-primary); }
 
+.msg-option:disabled { opacity: 0.5; cursor: not-allowed; }
+.msg-option:disabled:hover { border-color: var(--c-border); background: var(--c-light); transform: none; }
+.msg-option:disabled:hover .msg-option-arrow { color: var(--c-gray-light); }
+
+.msg-form-error { margin: 10px 0 0; font-size: 0.82rem; color: #ef4444; text-align: left; }
+
+.btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--c-white); color: var(--c-black); border: 1.5px solid var(--c-border); border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; white-space: nowrap; }
+.btn-secondary:hover:not(:disabled) { border-color: var(--c-primary); color: var(--c-primary); }
+.btn-secondary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.selection-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; background: rgba(200, 155, 45, 0.1); border: 1px solid rgba(200, 155, 45, 0.35); border-radius: 12px; }
+.selection-bar-text { display: inline-flex; align-items: center; gap: 8px; font-size: 0.86rem; font-weight: 600; color: var(--c-black); }
+.selection-bar-text svg { color: var(--c-primary); }
+.selection-bar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.bulk-progress { margin: 0 auto 16px; max-width: 320px; text-align: center; }
+.bulk-progress-bar { height: 8px; background: var(--c-border); border-radius: 999px; overflow: hidden; }
+.bulk-progress-bar span { display: block; height: 100%; background: var(--c-primary); border-radius: 999px; transition: width 0.25s ease; }
+.bulk-progress-text { display: block; margin-top: 6px; font-size: 0.78rem; color: var(--c-gray); }
+
 .msg-compose-input { width: 100%; min-height: 130px; resize: vertical; line-height: 1.5; }
 .msg-compose-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
 .msg-compose-preview { margin: 10px 0 0; padding: 10px 12px; background: var(--c-light); border: 1px solid var(--c-border); border-radius: 10px; font-size: 0.85rem; color: var(--c-black); white-space: pre-wrap; text-align: left; }
+
+.msg-vars { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.msg-vars-label { font-size: 0.78rem; color: var(--c-gray); font-weight: 600; }
+.msg-var-chip { padding: 4px 10px; border: 1px dashed var(--c-border); border-radius: 999px; background: var(--c-light); color: var(--c-black); font-size: 0.75rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.msg-var-chip:hover { border-color: var(--c-primary); border-style: solid; color: var(--c-primary); background: rgba(200, 155, 45, 0.12); }
+
+.bulk-preview { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--c-border); border-radius: 12px; background: var(--c-light); }
+.bulk-preview-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.bulk-preview-select { max-width: 220px; padding: 6px 10px; font-size: 0.8rem; }
+.bulk-preview .msg-compose-preview { margin: 0; background: var(--c-white); }
 
 .msg-sent-toast { position: fixed; right: 24px; bottom: 24px; z-index: 1200; display: flex; align-items: center; gap: 12px; min-width: 280px; max-width: 90vw; padding: 14px 16px; border-radius: 12px; background: var(--c-white); border: 1px solid var(--c-border); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25); }
 .msg-sent-toast.sent { border-color: rgba(16, 185, 129, 0.5); }
@@ -1168,7 +1951,7 @@ async function confirmSendMsg() {
 .confirm-icon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; background: rgba(240, 192, 9, 0.16); color: var(--c-primary); }
 .confirm-body h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; color: var(--c-black); }
 .confirm-body p { margin: 0 0 20px; font-size: 0.87rem; color: var(--c-gray); line-height: 1.6; }
-.confirm-actions { display: flex; justify-content: center; gap: 10px; }
+.confirm-actions { display: flex; justify-content: center; gap: 10px; padding-top: 10px; }
 .btn-spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
 
 .delete-modal-body { padding: 32px 28px; text-align: center; }
@@ -1179,32 +1962,154 @@ async function confirmSendMsg() {
 .delete-actions .btn-delete { padding: 10px 20px; border: none; border-radius: 10px; background: #E8483F; color: white; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
 .delete-actions .btn-delete:hover { background: #c93a32; transform: translateY(-1px); }
 
+/* Bottom sheet de acciones */
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+  z-index: 130;
+  display: flex;
+  align-items: flex-end;
+}
+.sheet-panel {
+  width: 100%;
+  position: relative;
+  background: var(--c-white);
+  border-radius: 16px 16px 0 0;
+  padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+  animation: sheetUp 0.18s ease-out;
+}
+.sheet-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--c-border);
+  background: var(--c-light);
+  border-radius: 50%;
+  color: var(--c-gray);
+  cursor: pointer;
+}
+.sheet-close:hover { background: var(--c-border); color: var(--c-black); }
+@keyframes sheetUp {
+  from { transform: translateY(28px); opacity: 0.6; }
+  to { transform: none; opacity: 1; }
+}
+.sheet-handle { width: 40px; height: 4px; border-radius: 999px; background: var(--c-border); margin: 2px auto 12px; }
+.sheet-user { display: flex; align-items: center; gap: 10px; padding: 0 40px 12px 0; border-bottom: 1px solid var(--c-border); margin-bottom: 6px; }
+.sheet-info { display: flex; flex-direction: column; gap: 6px; padding: 10px 8px 8px; border-bottom: 1px solid var(--c-border); margin-bottom: 4px; }
+.sheet-info-row { display: flex; justify-content: space-between; gap: 12px; font-size: 0.82rem; }
+.sheet-info-row span { color: var(--c-gray); font-weight: 600; }
+.sheet-info-row strong { color: var(--c-black); font-weight: 600; text-align: right; }
+.sheet-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 13px 10px;
+  border: none;
+  background: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-black);
+  text-align: left;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  line-height: 1.25;
+}
+.sheet-item:hover { background: var(--c-light); }
+.sheet-item.danger { color: #DC2626; }
+.sheet-item.danger:hover { background: #FEF2F2; }
+
 @media (max-width: 768px) {
   .usuarios-page { gap: 16px; }
-  .page-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .page-header { flex-direction: row; align-items: center; gap: 10px; flex-wrap: nowrap; }
+  .page-header > div:first-child { min-width: 0; flex: 1; }
+  .page-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .page-title { font-size: 1.2rem; }
-  .header-actions { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; }
+  .header-actions { width: auto; flex-direction: row; align-items: center; gap: 10px; margin-left: auto; }
   .summary-cards { width: 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
   .summary-card { padding: 10px; gap: 8px; justify-content: center; }
   .summary-icon { width: 28px; height: 28px; }
   .summary-count { font-size: 1rem; }
   .summary-label { font-size: 0.6rem; white-space: normal; text-align: center; }
-  .btn-primary { margin-left: 0; justify-content: center; width: 100%; padding: 13px 20px; font-size: 0.92rem; }
+  .btn-primary { margin-left: 0; justify-content: center; width: auto; padding: 8px 14px; font-size: 0.78rem; gap: 5px; flex-shrink: 0; }
+  .btn-primary svg { width: 13px; height: 13px; }
+  .btn-secondary { justify-content: center; padding: 8px 12px; font-size: 0.78rem; gap: 5px; flex-shrink: 0; }
+  .btn-secondary svg { width: 13px; height: 13px; }
+  .selection-bar { padding: 10px 12px; }
+  .selection-bar-actions { width: 100%; }
+  .selection-bar-actions .btn-primary,
+  .selection-bar-actions .btn-cancel { flex: 1; justify-content: center; padding-top: 9px; padding-bottom: 9px; }
 
-  .filters-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: end; }
+  .filters-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; margin-bottom: 2px; }
   .search-box { grid-column: 1 / -1; max-width: 100%; width: 100%; min-width: 0; }
-  .filter-group { width: auto; margin-left: 0; }
-  .filter-field { flex: 1; min-width: 0; width: 100%; }
-  .form-select { width: 100%; }
+  .search-icon { left: 10px; width: 15px; height: 15px; }
+  .search-input { padding: 7px 30px 7px 32px; font-size: 0.82rem; border-radius: 8px; }
+  .clear-btn { right: 4px; width: 22px; height: 22px; }
+  .filter-group { width: auto; margin-left: 0; gap: 6px; }
+  .filter-field { flex: 1; min-width: 0; width: 100%; gap: 3px; }
+  .filter-label { font-size: 0.62rem; }
+  .form-select { width: 100%; padding: 7px 26px 7px 10px; font-size: 0.82rem; border-radius: 8px; }
 
-  .table-responsive { -webkit-overflow-scrolling: touch; }
+  .table-responsive { -webkit-overflow-scrolling: touch; overflow-x: hidden; }
   .data-table { min-width: 760px; }
+
+  /* La tabla de usuarios se ajusta al ancho de la pantalla: sin scroll horizontal */
+  .users-table { min-width: 0; width: 100%; table-layout: fixed; }
+  .users-table th,
+  .users-table td { padding: 10px 8px; }
+  .users-table th { white-space: normal; }
+  .users-table td { white-space: normal; }
+  .users-table th.col-check { width: 40px; }
+  .users-table th.col-kebab { width: 78px; }
+  .users-table .col-check { width: 40px; }
+  .users-table .user-cell { min-width: 0; gap: 8px; }
+  .users-table .user-avatar { width: 30px; height: 30px; border-radius: 8px; font-size: 0.62rem; }
+  .users-table .user-meta { min-width: 0; }
+  .users-table .user-name {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.25;
+  }
+  .users-table .user-email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .users-table .user-cedula { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* En móvil solo quedan: checkbox, nombre (con cédula) y ⋮ al extremo derecho */
+  .users-table .col-cedula,
+  .users-table .col-celular,
+  .users-table .col-ubicacion,
+  .users-table .col-estado,
+  .users-table .col-periodo { display: none; }
+  .users-table .col-kebab { display: table-cell; width: 64px; text-align: right; padding-right: 12px; }
+  .users-table th.col-kebab { text-align: center; font-size: 0.58rem; line-height: 1.15; padding: 12px 6px; white-space: normal; }
+  .users-table .col-actions { display: none; }
+  .users-table .kebab-btn {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--c-border);
+    background: var(--c-light);
+    border-radius: 8px;
+  }
+
   .action-btn { width: 38px; height: 38px; }
   .pagination { flex-wrap: wrap; gap: 6px; }
 
   .form-grid-modal { grid-template-columns: 1fr; gap: 14px; }
 
-  .search-input, .form-select, .form-input { font-size: 16px; }
+  .form-input { font-size: 16px; }
 
   .modal-overlay { padding: 10px; }
   .modal-content { max-height: 94vh; border-radius: 14px; }
@@ -1228,7 +2133,9 @@ async function confirmSendMsg() {
   .summary-icon { width: 26px; height: 26px; }
   .filter-group { flex-direction: column; align-items: stretch; }
   .data-table { min-width: 680px; }
+  .users-table { min-width: 0; }
   .modal-header h3 { font-size: 0.92rem; }
   .delete-title { font-size: 1rem; }
+  .header-actions .btn-secondary .btn-label { display: none; }
 }
 </style>

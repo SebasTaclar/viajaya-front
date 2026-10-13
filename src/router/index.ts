@@ -16,7 +16,6 @@ const router = createRouter({
   scrollBehavior(to) {
     if (to.hash) {
       return new Promise(resolve => {
-        // Espera un tick para asegurar que el DOM de la ruta ya renderizó.
         requestAnimationFrame(() => {
           const el = document.querySelector(to.hash)
           if (el) {
@@ -65,21 +64,9 @@ const router = createRouter({
     },
 
     {
-      path: '/nosotros',
-      name: 'nosotros',
-      component: () => import('../views/NosotrosView.vue'),
-    },
-
-    {
       path: '/contacto',
       name: 'contacto',
       component: () => import('../views/ContactView.vue'),
-    },
-
-    {
-      path: '/servicios',
-      name: 'servicios',
-      component: () => import('../views/ServiciosView.vue'),
     },
 
     {
@@ -99,12 +86,6 @@ const router = createRouter({
     },
 
     {
-      path: '/admin/proyectos/:id',
-      name: 'admin-project-detail',
-      redirect: (to) => `/admin/crm/proyectos/${to.params.id}`,
-    },
-
-    {
       path: '/admin/crm',
       component: () => import('../views/crm/CRMMain.vue'),
       meta: {
@@ -117,86 +98,6 @@ const router = createRouter({
           name: 'crm-dashboard',
           component: () => import('../views/crm/CRMDashboard.vue'),
         },
-        {
-          path: 'clientes',
-          name: 'crm-clients',
-          component: () => import('../views/crm/ClientsList.vue'),
-        },
-        {
-          path: 'clientes/nuevo',
-          name: 'crm-client-new',
-          component: () => import('../views/crm/forms/ClientForm.vue'),
-        },
-        {
-          path: 'clientes/:id',
-          name: 'crm-client-detail',
-          component: () => import('../views/crm/ClientDetail.vue'),
-        },
-        {
-          path: 'clientes/:id/editar',
-          name: 'crm-client-edit',
-          component: () => import('../views/crm/forms/ClientForm.vue'),
-        },
-        {
-          path: 'proyectos',
-          name: 'crm-projects',
-          component: () => import('../views/crm/ProjectsList.vue'),
-        },
-        {
-          path: 'proyectos/nuevo',
-          name: 'crm-project-new',
-          component: () => import('../views/crm/forms/ProjectForm.vue'),
-        },
-        {
-          path: 'proyectos/:id',
-          name: 'crm-project-detail',
-          component: () => import('../views/crm/ProjectDetail.vue'),
-        },
-        {
-          path: 'proyectos/:id/editar',
-          name: 'crm-project-edit',
-          component: () => import('../views/crm/forms/ProjectForm.vue'),
-        },
-        {
-          path: 'prospectos',
-          name: 'crm-prospects',
-          component: () => import('../views/crm/ProspectsList.vue'),
-        },
-        {
-          path: 'prospectos/:id',
-          name: 'crm-prospect-detail',
-          component: () => import('../views/crm/ProspectsDetail.vue'),
-        },
-        {
-          path: 'prospectos/:id/editar',
-          name: 'crm-prospect-edit',
-          component: () => import('../views/crm/forms/ClientForm.vue'),
-        },
-        {
-          path: 'seguimientos',
-          name: 'crm-followups',
-          component: () => import('../views/crm/FollowUpsList.vue'),
-        },
-        {
-          path: 'cotizaciones',
-          name: 'crm-quotes',
-          component: () => import('../views/crm/QuotesList.vue'),
-        },
-        {
-          path: 'licitaciones',
-          name: 'crm-licitaciones',
-          component: () => import('../views/crm/LicitacionesList.vue'),
-        },
-        {
-          path: 'colaboradores',
-          name: 'crm-colaboradores',
-          component: () => import('../views/crm/ColaboradoresList.vue'),
-        },
-        {
-          path: 'colaboradores/:id',
-          name: 'crm-colaborador-detail',
-          component: () => import('../views/crm/ColaboradorDetail.vue'),
-        },
       ],
     },
 
@@ -205,7 +106,6 @@ const router = createRouter({
       name: 'TermsAndConditions',
       component: () => import('../views/TermsAndConditions.vue'),
     },
-    // Catch-all route - debe ir al final
     {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
@@ -214,12 +114,10 @@ const router = createRouter({
   ],
 })
 
-// Guard de navegación global
 router.beforeEach((to, from, next) => {
   const isClientRoute = to.path === '/portal-clientes'
   const isLoginClientRoute = to.path === '/login-clientes'
 
-  // Para rutas del portal de clientes, usar clientAuthService
   if (isClientRoute) {
     if (!clientAuthService.isAuthenticated()) {
       next('/login-clientes')
@@ -229,7 +127,6 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // Para login de clientes, verificar si ya esta autenticado como cliente
   if (isLoginClientRoute) {
     if (clientAuthService.isAuthenticated()) {
       next('/portal-clientes')
@@ -239,37 +136,31 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // Para el resto de rutas, usar authService (admin)
   const isAuthenticated = authService.isAuthenticated()
   const userRole = authService.getUserRole()
 
-  // Redirigir admins autenticados que intenten ir al login
   if (to.path === '/login' && isAuthenticated && (userRole === 'admin' || userRole === 'superadmin')) {
     next('/admin/products')
     return
   }
 
-  // Si la ruta requiere estar autenticado
   if (to.meta.requiresAuth) {
     if (!isAuthenticated) {
       next('/login')
       return
     }
 
-    // Verificar rol específico si se requiere
     if (to.meta.requiredRole && userRole !== to.meta.requiredRole) {
       next('/')
       return
     }
 
-    // Verificar múltiples roles si se requiere
     if (to.meta.requiredRoles && (!userRole || !to.meta.requiredRoles.includes(userRole))) {
       next('/')
       return
     }
   }
 
-  // Si la ruta requiere ser invitado (no autenticado)
   if (to.meta.requiresGuest && isAuthenticated) {
     if (userRole === 'admin' || userRole === 'superadmin') {
       next('/admin/products')

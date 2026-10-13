@@ -92,7 +92,12 @@
               </span>
             </a>
 
-            <a href="mailto:contacto@somosviajaya.com" class="info-item">
+            <a
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=contacto@somosviajaya.com"
+              target="_blank"
+              rel="noopener"
+              class="info-item"
+            >
               <span class="info-icon"><i class="fas fa-envelope"></i></span>
               <span class="info-text">
                 <strong>Mail</strong>
