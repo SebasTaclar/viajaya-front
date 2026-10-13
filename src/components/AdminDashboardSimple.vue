@@ -144,6 +144,22 @@
                 </svg>
               </div>
             </div>
+
+            <div class="stat-card">
+              <div class="stat-icon amber">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <div class="stat-content">
+                <span class="stat-label">SMS del mes</span>
+                <span v-if="smsUsage" class="stat-value">
+                  {{ smsEnviadosMes.toLocaleString('es-CO') }}
+                  <span class="stat-sub">/ {{ smsUsage.monthlyLimit.toLocaleString('es-CO') }}</span>
+                </span>
+                <span v-else class="stat-value">—</span>
+              </div>
+            </div>
           </div>
 
           <!-- Widgets: Top presupuesto + Alertas de inactividad -->
@@ -206,6 +222,47 @@
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Uso de SMS mensual -->
+          <div v-if="smsUsage" class="card sms-usage-card">
+            <div class="card-header">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                Uso de SMS mensual
+              </h3>
+              <span class="card-badge" :class="{ warn: smsUsagePct >= 80 }">{{ smsUsagePct }}%</span>
+            </div>
+            <div class="sms-usage-body">
+              <div class="sms-usage-track">
+                <div
+                  class="sms-usage-fill"
+                  :class="{ warn: smsUsagePct >= 80, danger: smsUsagePct >= 95 }"
+                  :style="{ width: smsUsagePct + '%' }"
+                ></div>
+              </div>
+              <div class="sms-usage-metrics">
+                <div class="sms-metric">
+                  <span class="sms-metric-value used">{{ smsEnviadosMes.toLocaleString('es-CO') }}</span>
+                  <span class="sms-metric-label">Enviados</span>
+                </div>
+                <div class="sms-metric">
+                  <span class="sms-metric-value remaining">{{ smsUsage.monthlyRemaining.toLocaleString('es-CO') }}</span>
+                  <span class="sms-metric-label">Disponibles</span>
+                </div>
+                <div class="sms-metric">
+                  <span class="sms-metric-value">{{ smsUsage.monthlyLimit.toLocaleString('es-CO') }}</span>
+                  <span class="sms-metric-label">Límite mensual</span>
+                </div>
+                <div class="sms-metric">
+                  <span class="sms-metric-value">{{ smsUsage.processedSmsToday.toLocaleString('es-CO') }}</span>
+                  <span class="sms-metric-label">Enviados hoy</span>
+                </div>
+              </div>
+              <p class="sms-reset-note">Límite se renueva el {{ formatDateShort(smsUsage.monthlyResetAt) }}</p>
             </div>
           </div>
 
@@ -1475,7 +1532,7 @@ import { userService, type User } from '@/services/api/userService'
 import { auditService } from '@/services/api/auditService'
 import { recaudoService, type RecaudoRow } from '@/services/api/recaudoService'
 import { dashboardService, type DashboardKpis, type DashboardAlert } from '@/services/api/dashboardService'
-import { messageService } from '@/services/api/messageService'
+import { messageService, type SmsUsage } from '@/services/api/messageService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
 import UsuariosList from '@/views/crm/UsuariosList.vue'
 import PanelUsersList from '@/views/crm/PanelUsersList.vue'
@@ -2685,6 +2742,36 @@ async function fetchDashboard() {
   }
 }
 
+// ========== USO DE SMS (TextBee) ==========
+const smsUsage = ref<SmsUsage | null>(null)
+
+const smsEnviadosMes = computed(() => {
+  const u = smsUsage.value
+  if (!u) return 0
+  return Math.max(0, u.monthlyLimit - u.monthlyRemaining)
+})
+
+const smsUsagePct = computed(() => {
+  const u = smsUsage.value
+  if (!u || u.monthlyLimit <= 0) return 0
+  return Math.min(100, Math.round((smsEnviadosMes.value / u.monthlyLimit) * 100))
+})
+
+async function fetchSmsUsage() {
+  try {
+    smsUsage.value = await messageService.getUsage()
+  } catch {
+    smsUsage.value = null
+  }
+}
+
+function formatDateShort(iso?: string): string {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })
+}
+
 const fondoViajeroTotal = computed(() =>
   recaudosList.value.reduce((sum, row) => sum + (Number(row.valor) || 0), 0),
 )
@@ -2903,7 +2990,7 @@ const proximoCierreFecha = computed(() => {
 let clockTimer: number | undefined
 
 async function refreshDashboard() {
-  await Promise.allSettled([loadUsuarios(true), fetchDashboard()])
+  await Promise.allSettled([loadUsuarios(true), fetchDashboard(), fetchSmsUsage()])
   nowTick.value = Date.now()
 }
 
@@ -2986,6 +3073,7 @@ async function loadDashboard() {
     fetchDashboard(),
     fetchRecaudos(),
     fetchLoginAdmins(),
+    fetchSmsUsage(),
   ])
 }
 
@@ -3440,7 +3528,7 @@ onUnmounted(() => {
 /* ===== STATS ROW ===== */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       margin-bottom: 24px;
     }
@@ -3529,6 +3617,22 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
+
+/* ===== USO DE SMS ===== */
+.sms-usage-card { margin-bottom: 20px; }
+.sms-usage-card .card-header h3 { display: inline-flex; align-items: center; gap: 8px; }
+.sms-usage-body { padding: 4px 0 0; }
+.sms-usage-track { height: 10px; background: var(--c-light, #f3f4f6); border-radius: 999px; overflow: hidden; margin-bottom: 16px; }
+.sms-usage-fill { height: 100%; background: #10B981; border-radius: 999px; transition: width 0.4s ease; }
+.sms-usage-fill.warn { background: #F59E0B; }
+.sms-usage-fill.danger { background: #EF4444; }
+.sms-usage-metrics { display: flex; gap: 12px; flex-wrap: wrap; }
+.sms-metric { flex: 1; min-width: 110px; display: flex; flex-direction: column; gap: 2px; }
+.sms-metric-value { font-size: 1.25rem; font-weight: 800; color: var(--c-black); line-height: 1.2; }
+.sms-metric-value.used { color: #0E3570; }
+.sms-metric-value.remaining { color: #10B981; }
+.sms-metric-label { font-size: 0.74rem; color: var(--c-gray); font-weight: 500; }
+.sms-reset-note { margin: 14px 0 0; font-size: 0.76rem; color: var(--c-gray); }
 
 /* ===== DASHBOARD MIDDLE ===== */
 .dashboard-middle {
@@ -4974,6 +5078,9 @@ onUnmounted(() => {
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1200px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .stats-row > .stat-card:nth-child(1) { order: 1; }
+  .stats-row > .stat-card:nth-child(3) { order: 2; }
+  .stats-row > .stat-card:nth-child(2) { order: 3; grid-column: 1 / -1; }
   .dashboard-widgets { grid-template-columns: 1fr; }
   .cierre-summary { grid-template-columns: repeat(2, 1fr); }
   .dashboard-middle { grid-template-columns: 1fr; }

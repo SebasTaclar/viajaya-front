@@ -32,8 +32,7 @@
         <select v-model="roleFilter" class="form-select">
           <option value="">Todos los roles</option>
           <option value="admin">Admin</option>
-          <option value="superadmin">Super Admin</option>
-          <option value="user">Usuario</option>
+          <option v-if="isMainSuperAdmin" value="superadmin">Super Admin</option>
         </select>
       </div>
     </div>
@@ -104,7 +103,7 @@
               <td class="col-actions">
                 <div class="actions-cell">
                   <button
-                    v-if="u.id !== currentUserId"
+                    v-if="canEditUser(u)"
                     class="action-btn edit-btn"
                     title="Editar usuario"
                     @click="openEditModal(u)"
@@ -124,7 +123,7 @@
                     </svg>
                   </button>
                   <button
-                    v-if="isSuperAdmin && u.id !== currentUserId"
+                    v-if="canDeleteUser(u)"
                     class="action-btn delete-btn"
                     title="Eliminar usuario"
                     @click="openDeleteModal(u)"
@@ -175,8 +174,9 @@
           </div>
           <div class="form-group">
             <label>Rol</label>
-            <select v-model="createForm.role" class="form-input" disabled>
+            <select v-model="createForm.role" class="form-input" :disabled="!isMainSuperAdmin">
               <option value="admin">Admin</option>
+              <option v-if="isMainSuperAdmin" value="superadmin">Super Admin</option>
             </select>
           </div>
         </div>
@@ -219,17 +219,9 @@
             <label>Correo electrónico *</label>
             <input v-model="editForm.email" type="email" class="form-input" placeholder="correo@viajaya.com" />
           </div>
-          <div class="form-group">
-            <label>Rol *</label>
-            <select v-model="editForm.role" class="form-input" :disabled="editForm.role !== 'user'">
-              <option v-if="editForm.role === 'superadmin'" value="superadmin">Super Admin</option>
-              <option v-else-if="editForm.role === 'admin'" value="admin">Admin</option>
-              <template v-else>
-                <option value="admin">Admin</option>
-                <option value="user">Usuario</option>
-              </template>
-            </select>
-          </div>
+          <!-- <p class="edit-hint">
+            El rol no se puede modificar desde aquí. Un admin solo puede editar su propio perfil; un superadmin puede editar a cualquiera.
+          </p> -->
         </div>
 
         <div class="modal-footer">
@@ -346,7 +338,7 @@
         </div>
 
         <div class="sheet-actions">
-          <button v-if="sheetUser.id !== currentUserId" class="sheet-item" @click="openEditModal(sheetUser); sheetUser = null">
+          <button v-if="canEditUser(sheetUser)" class="sheet-item" @click="openEditModal(sheetUser); sheetUser = null">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
               <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
@@ -359,7 +351,7 @@
             </svg>
             Cambiar contraseña
           </button>
-          <button v-if="isSuperAdmin && sheetUser.id !== currentUserId" class="sheet-item sheet-item-danger" @click="openDeleteModal(sheetUser); sheetUser = null">
+          <button v-if="canDeleteUser(sheetUser)" class="sheet-item sheet-item-danger" @click="openDeleteModal(sheetUser); sheetUser = null">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
             </svg>
@@ -384,7 +376,6 @@ const loading = ref(true)
 const loadError = ref('')
 const actionError = ref('')
 const searchTerm = ref('')
-const roleFilter = ref('admin')
 
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
@@ -399,16 +390,27 @@ const passwordTarget = ref<User | null>(null)
 const sheetUser = ref<User | null>(null)
 
 const createForm = ref({ name: '', email: '', password: '', role: 'admin' as string })
-const editForm = ref({ id: 0, name: '', email: '', role: 'user' as string })
+const editForm = ref({ id: 0, name: '', email: '' })
 const userPasswordForm = ref({ password: '', confirm: '' })
 
 const currentUserId = authService.getCurrentUser()?.id ?? null
 const isSuperAdmin = computed(() => authService.getUserRole() === 'superadmin')
 
+// Solo el superadmin principal (Administrador / dataor52@gmail.com) controla superadministradores:
+// puede verlos, editarlos, eliminarlos y crear nuevos superadmins
+const SUPERADMIN_CREATOR_EMAIL = 'dataor52@gmail.com'
+const currentUserEmail = (authService.getCurrentUser()?.email || '').trim().toLowerCase()
+const isMainSuperAdmin = computed(() => isSuperAdmin.value && currentUserEmail === SUPERADMIN_CREATOR_EMAIL)
+
+// El superadmin principal ve todos los roles por defecto (incluidos superadmins); los demás solo admins
+const roleFilter = ref(isMainSuperAdmin.value ? '' : 'admin')
+
 const filteredUsers = computed(() => {
-  const base = roleFilter.value
+  let base = roleFilter.value
     ? users.value.filter((u) => u.role === roleFilter.value)
     : users.value
+  base = base.filter((u) => u.role !== 'user')
+  base = base.filter((u) => u.role !== 'superadmin' || isMainSuperAdmin.value || u.id === currentUserId)
   const term = searchTerm.value.trim().toLowerCase()
   if (!term) return base
   return base.filter(
@@ -423,6 +425,18 @@ function roleLabel(role?: string): string {
   if (role === 'superadmin') return 'Super Admin'
   if (role === 'admin') return 'Admin'
   return 'Usuario'
+}
+
+function canEditUser(u: User): boolean {
+  if (u.id === currentUserId) return true
+  if (u.role === 'superadmin') return isMainSuperAdmin.value
+  return isSuperAdmin.value
+}
+
+function canDeleteUser(u: User): boolean {
+  if (u.id === currentUserId) return false
+  if (u.role === 'superadmin') return isMainSuperAdmin.value
+  return isSuperAdmin.value
 }
 
 function getInitials(name: string): string {
@@ -476,6 +490,10 @@ async function handleCreate() {
   if (!f.email.trim()) { formError.value = 'El correo electrónico es obligatorio.'; return }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) { formError.value = 'Ingrese un correo válido.'; return }
   if (!f.password || f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
+  if (f.role === 'superadmin' && !isMainSuperAdmin.value) {
+    formError.value = 'Solo el superadministrador principal puede crear superadministradores.'
+    return
+  }
 
   saving.value = true
   try {
@@ -495,7 +513,7 @@ async function handleCreate() {
 }
 
 function openEditModal(u: User) {
-  editForm.value = { id: u.id, name: u.name || '', email: u.email || '', role: u.role || 'user' }
+  editForm.value = { id: u.id, name: u.name || '', email: u.email || '' }
   formError.value = ''
   showEditModal.value = true
 }
@@ -504,6 +522,15 @@ async function handleEdit() {
   formError.value = ''
   const f = editForm.value
 
+  const target = users.value.find((u) => u.id === f.id)
+  if (target?.role === 'superadmin' && !isMainSuperAdmin.value && f.id !== currentUserId) {
+    formError.value = 'Solo el superadministrador principal puede editar superadministradores.'
+    return
+  }
+  if (!isSuperAdmin.value && f.id !== currentUserId) {
+    formError.value = 'Solo un superadministrador puede editar a otros usuarios.'
+    return
+  }
   if (!f.name.trim()) { formError.value = 'El nombre completo es obligatorio.'; return }
   if (!f.email.trim()) { formError.value = 'El correo electrónico es obligatorio.'; return }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email.trim())) { formError.value = 'Ingrese un correo válido.'; return }
@@ -513,7 +540,6 @@ async function handleEdit() {
     await userService.update(f.id, {
       name: f.name.trim(),
       email: f.email.trim(),
-      role: f.role,
     })
     showEditModal.value = false
     await loadUsers()
@@ -569,6 +595,10 @@ function openDeleteModal(u: User) {
 async function handleDelete() {
   if (!deleteTarget.value) return
   formError.value = ''
+  if (deleteTarget.value.role === 'superadmin' && !isMainSuperAdmin.value) {
+    formError.value = 'Solo el superadministrador principal puede eliminar superadministradores.'
+    return
+  }
   saving.value = true
   try {
     await userService.delete(deleteTarget.value.id)
@@ -709,6 +739,7 @@ onMounted(() => {
 .modal-error { display: flex; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(239, 68, 68, 0.16); color: #FCA5A5; border-radius: 8px; font-size: 0.85rem; border: 1px solid rgba(248, 113, 113, 0.4); }
 .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 14px; }
 .form-group { display: flex; flex-direction: column; gap: 6px; }
+.edit-hint { margin: 0; font-size: 0.78rem; color: var(--c-gray); line-height: 1.4; }
 .form-group label { font-size: 0.76rem; font-weight: 600; color: var(--c-gray, #98A4BF); text-transform: uppercase; letter-spacing: 0.3px; }
 .form-input { padding: 11px 14px; border: 1.5px solid var(--c-border, #26334F); border-radius: 10px; font-size: 0.88rem; font-family: inherit; background: var(--c-light, #0E162C); color: var(--c-black, #E7ECF6); outline: none; transition: all 0.2s; width: 100%; box-sizing: border-box; }
 .form-input::placeholder { color: var(--c-gray-light, #6F7D99); }

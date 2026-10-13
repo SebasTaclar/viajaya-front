@@ -23,7 +23,6 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-  clientId?: number
   email?: string
   name?: string
   role?: string
