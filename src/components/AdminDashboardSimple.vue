@@ -88,7 +88,6 @@
             <button
               class="refresh-btn"
               title="Actualizar métricas"
-              :disabled="dashboardLoading"
               @click="refreshDashboard()"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -98,9 +97,6 @@
               </svg>
             </button>
           </div>
-
-          <!-- Estado de las métricas del backend -->
-          <div v-if="dashboardLoading" style="margin-bottom: 14px; font-size: 0.85rem; color: var(--c-gray);">Actualizando métricas...</div>
 
           <!-- Stats Cards -->
           <div class="stats-row">
@@ -1531,7 +1527,6 @@ import { documentService } from '@/services/api/documentService'
 import { userService, type User } from '@/services/api/userService'
 import { auditService } from '@/services/api/auditService'
 import { recaudoService, type RecaudoRow } from '@/services/api/recaudoService'
-import { dashboardService, type DashboardKpis, type DashboardAlert } from '@/services/api/dashboardService'
 import { messageService, type SmsUsage } from '@/services/api/messageService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
 import UsuariosList from '@/views/crm/UsuariosList.vue'
@@ -2723,24 +2718,19 @@ const proyectosEnEjecucion = computed(() => proyectos.value.filter(p => matchSta
 const usuariosRegistrados = computed(() => usuariosCreados.value.length)
 const usuariosActivos = computed(() => usuariosCreados.value.filter((u) => u.isActive !== false).length)
 
-// ========== FONDO VIAJERO, TOP PRESUPUESTO, ALERTAS, TIEMPO REAL ==========
-const dashboardKpis = ref<DashboardKpis>({ fondoViajero: 0, usuariosRegistrados: 0, alertas: [] })
-const dashboardLoading = ref(false)
-const lastUpdated = ref(Date.now())
-const nowTick = ref(Date.now())
-
-async function fetchDashboard() {
-  dashboardLoading.value = true
-  try {
-    const kpis = await dashboardService.getKpis()
-    dashboardKpis.value = kpis
-    lastUpdated.value = Date.now()
-  } catch {
-    // Los KPIs del backend son opcionales: el dashboard sigue funcionando sin ellos
-  } finally {
-    dashboardLoading.value = false
-  }
+// ========== ALERTAS (calculadas en cliente) ==========
+interface DashboardAlert {
+  id: number | string
+  name: string
+  cedula?: string
+  email?: string
+  tipo?: 'recaudo' | 'login' | 'login-cliente'
+  periodicidad: string
+  diasInactividad: number
+  limiteDias: number
 }
+
+const nowTick = ref(Date.now())
 
 // ========== USO DE SMS (TextBee) ==========
 const smsUsage = ref<SmsUsage | null>(null)
@@ -2933,15 +2923,6 @@ const alertasInactividad = computed(() =>
   ),
 )
 
-const lastUpdatedLabel = computed(() => {
-  const seconds = Math.max(0, Math.round((nowTick.value - lastUpdated.value) / 1000))
-  if (seconds < 5) return 'ahora mismo'
-  if (seconds < 60) return `hace ${seconds} s`
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `hace ${minutes} min`
-  return `hace ${Math.floor(minutes / 60)} h`
-})
-
 // ========== CIERRE PRESUPUESTAL MENSUAL (AUTOMÁTICO) ==========
 interface CierrePresupuestal {
   key: string
@@ -2990,7 +2971,7 @@ const proximoCierreFecha = computed(() => {
 let clockTimer: number | undefined
 
 async function refreshDashboard() {
-  await Promise.allSettled([loadUsuarios(true), fetchDashboard(), fetchSmsUsage()])
+  await Promise.allSettled([loadUsuarios(true), fetchSmsUsage()])
   nowTick.value = Date.now()
 }
 
@@ -3070,7 +3051,6 @@ function getStatusLabel(status: EstadoCotizacion): string {
 
 async function loadDashboard() {
   await Promise.allSettled([
-    fetchDashboard(),
     fetchRecaudos(),
     fetchLoginAdmins(),
     fetchSmsUsage(),
