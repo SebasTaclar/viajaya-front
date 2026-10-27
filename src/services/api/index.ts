@@ -37,6 +37,7 @@ export { recaudoService } from './recaudoService'
 export type {
   RecaudoRow,
   RecaudoClient,
+  RecaudoData,
   RecaudoListParams,
   RecaudoListResponse,
   CreateRecaudoRequest,

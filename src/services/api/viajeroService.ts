@@ -29,6 +29,8 @@ export interface CreateViajeroRequest {
   email?: string
   periodicidad?: string
   password?: string
+  consentLey1581: boolean
+  acceptTerms: boolean
 }
 
 export interface UpdateViajeroRequest {
@@ -81,6 +83,8 @@ class ViajeroService {
       email: data.email?.trim() || undefined,
       periodicidad: data.periodicidad || undefined,
       password: data.password || undefined,
+      consentLey1581: data.consentLey1581,
+      acceptTerms: data.acceptTerms,
     })
     return this.mapViajero(this.unwrap(response.data))
   }
