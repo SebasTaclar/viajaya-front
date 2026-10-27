@@ -32,7 +32,7 @@
       <div class="travel-savings__right">
         <div class="travel-savings__image-wrapper">
           <img
-            src="/images/Logo - Fondo Viajero.png"
+            src="https://res.cloudinary.com/dlwzazojt/image/upload/v1793107386/FondoViajero_horizontal_web_2400x1449_utex4o.png"
             alt="Fondo Viajero"
             class="travel-savings__image"
           />

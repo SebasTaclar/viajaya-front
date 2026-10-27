@@ -8,11 +8,18 @@ export interface RecaudoClient {
   periodicidad?: string
 }
 
+export interface RecaudoData {
+  donotshow?: boolean
+  dismissedAt?: string
+  [key: string]: unknown
+}
+
 export interface RecaudoRow {
   id: number
   clientId: number
   fecha: string
   valor: number
+  data?: RecaudoData | null
   createdAt?: string
   updatedAt?: string
   client?: RecaudoClient | null
@@ -36,11 +43,13 @@ export interface CreateRecaudoRequest {
   clientId: number
   fecha?: string
   valor: number
+  data?: RecaudoData
 }
 
 export interface UpdateRecaudoRequest {
   fecha?: string
   valor?: number
+  data?: RecaudoData
 }
 
 type RawRecord = Record<string, unknown>
@@ -67,6 +76,7 @@ class RecaudoService {
   async create(data: CreateRecaudoRequest): Promise<RecaudoRow> {
     const payload: RawRecord = { clientId: data.clientId, valor: data.valor }
     if (data.fecha) payload['fecha'] = data.fecha
+    if (data.data !== undefined) payload['data'] = data.data
     const response = await apiClient.post<unknown>(this.endpoint, payload)
     return this.unwrap(response.data) as unknown as RecaudoRow
   }
@@ -75,8 +85,19 @@ class RecaudoService {
     const payload: RawRecord = {}
     if (data.valor !== undefined) payload['valor'] = data.valor
     if (data.fecha !== undefined) payload['fecha'] = data.fecha
+    if (data.data !== undefined) payload['data'] = data.data
     const response = await apiClient.patch<unknown>(`${this.endpoint}/${id}`, payload)
     return this.unwrap(response.data) as unknown as RecaudoRow
+  }
+
+  async dismissAlert(id: number): Promise<RecaudoRow> {
+    return this.update(id, {
+      data: { donotshow: true, dismissedAt: new Date().toISOString() },
+    })
+  }
+
+  async restoreAlert(id: number): Promise<RecaudoRow> {
+    return this.update(id, { data: { donotshow: false } })
   }
 
   async remove(id: number): Promise<void> {

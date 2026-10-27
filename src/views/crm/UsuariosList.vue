@@ -280,7 +280,7 @@
               </div>
             </div>
 
-            <div v-if="mostrarPolitica" class="form-group form-group-full">
+            <div class="form-group form-group-full">
               <label class="policy-box" :class="{ 'field-error': createSubmitted && !createForm.acceptPolicy }">
                 <input type="checkbox" v-model="createForm.acceptPolicy" />
                 <div class="policy-text">
@@ -289,6 +289,16 @@
                     Declaro que he leído y acepto la política de tratamiento de datos personales de Viaja Ya.
                     Autorizo el uso de mis datos (nombre, cédula, celular, ubicación y periodicidad de recaudo)
                     para las finalidades descritas. Consentimiento registrado conforme a la Ley 1581.
+                  </p>
+                </div>
+              </label>
+              <label class="policy-box" :class="{ 'field-error': createSubmitted && !createForm.acceptTerms }">
+                <input type="checkbox" v-model="createForm.acceptTerms" />
+                <div class="policy-text">
+                  <strong>Términos y condiciones</strong>
+                  <p>
+                    Declaro que he leído y acepto los
+                    <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer">términos y condiciones de Viaja Ya</a>.
                   </p>
                 </div>
               </label>
@@ -1037,7 +1047,7 @@ const actionError = ref('')
 const createSubmitted = ref(false)
 const showPassword = ref(false)
 
-const mostrarPolitica = false
+const mostrarPolitica = true
 
 const deleteId = ref(0)
 const deleteName = ref('')
@@ -1055,6 +1065,7 @@ const createForm = ref({
   email: '',
   password: '',
   acceptPolicy: false,
+  acceptTerms: false,
 })
 
 const editForm = ref({
@@ -1140,6 +1151,7 @@ function openCreateModal() {
     email: '',
     password: '',
     acceptPolicy: false,
+    acceptTerms: false,
   }
   formError.value = ''
   createSubmitted.value = false
@@ -1215,8 +1227,12 @@ async function handleCreate() {
   if (!f.celular.trim()) { formError.value = 'El celular es obligatorio.'; return }
   if (!f.ubicacion.trim()) { formError.value = 'La ubicación es obligatoria.'; return }
   if (f.password && f.password.length < 6) { formError.value = 'La contraseña debe tener al menos 6 caracteres.'; return }
-  if (mostrarPolitica && !f.acceptPolicy) {
+  if (!f.acceptPolicy) {
     formError.value = 'Debe aceptar la Política de tratamiento de datos personales (Ley 1581) para crear el usuario.'
+    return
+  }
+  if (!f.acceptTerms) {
+    formError.value = 'Debe aceptar los Términos y condiciones para crear el usuario.'
     return
   }
 
@@ -1230,6 +1246,8 @@ async function handleCreate() {
       email: f.email.trim() || undefined,
       periodicidad: f.periodicidad || undefined,
       password: f.password || undefined,
+      consentLey1581: f.acceptPolicy,
+      acceptTerms: f.acceptTerms,
     })
     showCreateModal.value = false
     await refreshList()

@@ -70,11 +70,40 @@
 
 
         <div class="topbar-actions">
-          <button class="action-btn" title="Notificaciones">
-
-
+          <button
+            v-if="recargaActiva"
+            class="action-btn"
+            :title="recargaTitulo"
+            @click="abrirRecargaModal()"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="badge badge-recarga">!</span>
           </button>
-
+          <button
+            v-else-if="recargaHechaMes"
+            class="action-btn"
+            title="Ya recargaste, recuerda que cada 19 debes recargar"
+            @click="abrirRecargaModal()"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="badge badge-recarga-ok">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </span>
+          </button>
+          <button v-else class="action-btn" title="Notificaciones">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
         </div>
       </header>
 
@@ -187,13 +216,32 @@
             <div class="card">
               <div class="card-header">
                 <h3>Alertas de inactividad</h3>
-                <span class="card-badge" :class="{ warn: alertasInactividad.length > 0 }">{{ alertasInactividad.length }}</span>
+                <div class="card-header-actions">
+                  <button
+                    v-if="isSuperAdmin && alertasInactividad.length > 0"
+                    class="alert-action-btn"
+                    :disabled="alertaAccionLoading"
+                    @click="limpiarTodasAlertas()"
+                  >
+                    Limpiar todas
+                  </button>
+                  <button
+                    v-if="isSuperAdmin && alertasOcultasCount > 0"
+                    class="alert-action-btn"
+                    :disabled="alertaAccionLoading"
+                    @click="restaurarAlertas()"
+                  >
+                    Restaurar
+                  </button>
+                  <span class="card-badge" :class="{ warn: alertasInactividad.length > 0 }">{{ alertasInactividad.length }}</span>
+                </div>
               </div>
+              <div v-if="alertaAccionError" class="form-alert" style="margin-bottom: 12px;">{{ alertaAccionError }}</div>
               <div class="widget-body">
                 <div v-if="alertasInactividad.length === 0" class="widget-empty">
                   Ningún cliente ni admin ha superado el límite de inactividad de login ni de recaudo
                 </div>
-                <div v-for="a in alertasInactividad" :key="a.id" class="alert-row" :class="a.tipo === 'recaudo' ? 'alert-recaudo' : 'alert-login'">
+                <div v-for="a in alertasPaginadas" :key="a.id" class="alert-row" :class="a.tipo === 'recaudo' ? 'alert-recaudo' : 'alert-login'">
                   <div class="alert-icon">
                     <svg v-if="a.tipo === 'recaudo'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
@@ -212,10 +260,40 @@
                       </span>
                       <span class="alert-days">{{ a.diasInactividad }} días</span>
                     </div>
-                    <span v-if="a.tipo === 'login'" class="alert-detail">Login admin · sin iniciar sesión desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días)</span>
-                    <span v-else-if="a.tipo === 'login-cliente'" class="alert-detail">Login cliente · sin iniciar sesión desde hace {{ a.diasInactividad }} días (límite 1 mes)</span>
-                    <span v-else class="alert-detail">Recaudo {{ periodLabel(a.periodicidad) }} · sin recaudo desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días = 2 ciclos)</span>
                   </div>
+                  <button
+                    v-if="isSuperAdmin"
+                    class="alert-dismiss-btn"
+                    title="Descartar alerta"
+                    :disabled="alertaAccionLoading"
+                    @click.stop="dismissAlerta(a)"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                  <span v-if="a.tipo === 'login'" class="alert-detail">Login admin · sin iniciar sesión desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días)</span>
+                  <span v-else-if="a.tipo === 'login-cliente'" class="alert-detail">Login cliente · sin iniciar sesión desde hace {{ a.diasInactividad }} días (límite 1 mes)</span>
+                  <span v-else class="alert-detail">Recaudo {{ periodLabel(a.periodicidad) }} · sin recaudo desde hace {{ a.diasInactividad }} días (límite {{ a.limiteDias }} días = 2 ciclos)</span>
+                </div>
+                <div v-if="alertasTotalPaginas > 1" class="alertas-pagination">
+                  <button
+                    class="alertas-page-btn"
+                    :disabled="alertasPagina === 1"
+                    title="Página anterior"
+                    @click="alertasPagina--"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                  </button>
+                  <span class="alertas-page-info">Página {{ Math.min(alertasPagina, alertasTotalPaginas) }} de {{ alertasTotalPaginas }}</span>
+                  <button
+                    class="alertas-page-btn"
+                    :disabled="alertasPagina >= alertasTotalPaginas"
+                    title="Página siguiente"
+                    @click="alertasPagina++"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -1504,6 +1582,38 @@
             </div>
           </div>
         </div>
+
+        <!-- Modal Recordatorio de recarga de celular -->
+        <div v-if="showRecargaModal" class="modal-overlay modal-overlay-confirm" @click.self="showRecargaModal = false">
+          <div class="modal-content modal-confirm" @click.stop>
+            <template v-if="recargaHechaMes">
+              <div class="confirm-icon confirm-icon-ok">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <h3>¡Ya recargaste!</h3>
+              <p>Recuerda que cada 19 debes recargar el celular que usamos para mensajería masiva.</p>
+              <div class="confirm-actions">
+                <button class="btn-outline" @click="showRecargaModal = false">Cerrar</button>
+              </div>
+            </template>
+            <template v-else>
+              <div class="confirm-icon" :class="{ 'confirm-icon-danger': recargaEsFechaLimite || recargaDia > RECARGA_DIA_LIMITE }">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+              </div>
+              <h3>{{ recargaTitulo }}</h3>
+              <p>{{ recargaMensaje }}</p>
+              <div class="confirm-actions">
+                <button class="btn-outline" @click="showRecargaModal = false">Cerrar</button>
+                <button class="btn-primary" @click="marcarRecargaHecha()">Ya recargué, no recordar</button>
+              </div>
+            </template>
+          </div>
+        </div>
       </main>
     </div>
   </div>
@@ -2728,6 +2838,8 @@ interface DashboardAlert {
   periodicidad: string
   diasInactividad: number
   limiteDias: number
+  recaudoId?: number
+  dismissKey?: string
 }
 
 const nowTick = ref(Date.now())
@@ -2792,7 +2904,10 @@ const CICLO_DIAS_POR_PERIODICIDAD: Record<string, number> = {
 
 // Alerta si el cliente ya pasó 2 ciclos de su periodicidad sin recaudo
 const alertasRecaudo = computed(() => {
-  const porCliente = new Map<number, { ts: number; periodicidad: string; cedula?: string; name?: string }>()
+  const porCliente = new Map<
+    number,
+    { ts: number; periodicidad: string; cedula?: string; name?: string; recaudoId?: number; donotshow?: boolean }
+  >()
   for (const row of recaudosList.value) {
     const ts = new Date(row.fecha).getTime()
     if (!Number.isFinite(ts)) continue
@@ -2803,12 +2918,15 @@ const alertasRecaudo = computed(() => {
         periodicidad: row.client?.periodicidad || '',
         cedula: row.client?.cedula,
         name: row.client?.name,
+        recaudoId: row.id,
+        donotshow: row.data?.donotshow === true,
       })
     }
   }
 
   const alertas: DashboardAlert[] = []
   for (const [clientId, last] of porCliente) {
+    if (last.donotshow) continue
     const u = usuariosCreados.value.find((x) => x.id === clientId)
     if (u && !u.isActive) continue
     const periodicidad = (u?.periodicidad || last.periodicidad || '').trim().toLowerCase()
@@ -2825,6 +2943,7 @@ const alertasRecaudo = computed(() => {
         periodicidad,
         diasInactividad,
         limiteDias,
+        recaudoId: last.recaudoId,
       })
     }
   }
@@ -2835,9 +2954,31 @@ const alertasRecaudo = computed(() => {
 // ========== ALERTAS DE LOGIN INACTIVO (ADMIN Y CLIENTE) ==========
 const LIMITE_DIAS_LOGIN_ADMIN = 2
 const LIMITE_DIAS_LOGIN_CLIENTE = 30
+const DISMISSED_ALERTS_KEY = 'viajaya.dismissedAlerts'
 const adminsPanel = ref<User[]>([])
 const loginTsPorId = ref<Map<number, number>>(new Map())
 const loginTsPorEmail = ref<Map<string, number>>(new Map())
+const dismissedLoginAlerts = ref<Set<string>>(loadDismissedLoginAlerts())
+
+function loadDismissedLoginAlerts(): Set<string> {
+  try {
+    const raw = localStorage.getItem(DISMISSED_ALERTS_KEY)
+    if (!raw) return new Set()
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return new Set()
+    return new Set(parsed.filter((k): k is string => typeof k === 'string'))
+  } catch {
+    return new Set()
+  }
+}
+
+function saveDismissedLoginAlerts() {
+  try {
+    localStorage.setItem(DISMISSED_ALERTS_KEY, JSON.stringify([...dismissedLoginAlerts.value]))
+  } catch {
+    // localStorage no disponible: los descartes solo duran la sesión
+  }
+}
 
 async function fetchLoginAdmins() {
   try {
@@ -2888,6 +3029,7 @@ const alertasLoginAdmin = computed<DashboardAlert[]>(() => {
         periodicidad: '',
         diasInactividad,
         limiteDias: LIMITE_DIAS_LOGIN_ADMIN,
+        dismissKey: `login:${u.id}:${ts}`,
       })
     }
   }
@@ -2911,6 +3053,7 @@ const alertasLoginCliente = computed<DashboardAlert[]>(() => {
         periodicidad: '',
         diasInactividad,
         limiteDias: LIMITE_DIAS_LOGIN_CLIENTE,
+        dismissKey: `login:${u.id}:${ts}`,
       })
     }
   }
@@ -2918,10 +3061,241 @@ const alertasLoginCliente = computed<DashboardAlert[]>(() => {
 })
 
 const alertasInactividad = computed(() =>
-  [...alertasRecaudo.value, ...alertasLoginAdmin.value, ...alertasLoginCliente.value].sort(
-    (a, b) => b.diasInactividad - a.diasInactividad,
-  ),
+  [...alertasRecaudo.value, ...alertasLoginAdmin.value, ...alertasLoginCliente.value]
+    .filter((a) => !a.dismissKey || !dismissedLoginAlerts.value.has(a.dismissKey))
+    .sort((a, b) => b.diasInactividad - a.diasInactividad),
 )
+
+// ========== PAGINACIÓN DE ALERTAS (7 por vista) ==========
+const ALERTAS_POR_PAGINA = 7
+const alertasPagina = ref(1)
+
+const alertasTotalPaginas = computed(() =>
+  Math.max(1, Math.ceil(alertasInactividad.value.length / ALERTAS_POR_PAGINA)),
+)
+
+const alertasPaginadas = computed(() => {
+  const pagina = Math.min(alertasPagina.value, alertasTotalPaginas.value)
+  const inicio = (pagina - 1) * ALERTAS_POR_PAGINA
+  return alertasInactividad.value.slice(inicio, inicio + ALERTAS_POR_PAGINA)
+})
+
+watch(alertasTotalPaginas, (total) => {
+  if (alertasPagina.value > total) alertasPagina.value = total
+})
+
+// ========== DESCARTE / LIMPIEZA DE ALERTAS ==========
+const alertaAccionError = ref('')
+const alertaAccionLoading = ref(false)
+let alertaErrorTimer: number | undefined
+
+function mostrarAlertaError(mensaje: string) {
+  alertaAccionError.value = mensaje
+  if (alertaErrorTimer) window.clearTimeout(alertaErrorTimer)
+  alertaErrorTimer = window.setTimeout(() => {
+    alertaAccionError.value = ''
+  }, 5000)
+}
+
+const alertasOcultasCount = computed(
+  () =>
+    recaudosList.value.filter((r) => r.data?.donotshow === true).length + dismissedLoginAlerts.value.size,
+)
+
+async function dismissAlerta(a: DashboardAlert) {
+  if (alertaAccionLoading.value) return
+  alertaAccionLoading.value = true
+  alertaAccionError.value = ''
+  try {
+    if (a.tipo === 'recaudo') {
+      if (!a.recaudoId) return
+      await recaudoService.dismissAlert(a.recaudoId)
+      const row = recaudosList.value.find((r) => r.id === a.recaudoId)
+      if (row) row.data = { ...row.data, donotshow: true, dismissedAt: new Date().toISOString() }
+    } else if (a.dismissKey) {
+      dismissedLoginAlerts.value.add(a.dismissKey)
+      saveDismissedLoginAlerts()
+    }
+  } catch (error) {
+    mostrarAlertaError(recaudoErrorMessage(error, 'No se pudo descartar la alerta.'))
+  } finally {
+    alertaAccionLoading.value = false
+  }
+}
+
+async function limpiarTodasAlertas() {
+  if (alertaAccionLoading.value || alertasInactividad.value.length === 0) return
+  const ok = window.confirm(
+    `¿Descartar las ${alertasInactividad.value.length} alertas? Puedes restaurarlas después con "Restaurar".`,
+  )
+  if (!ok) return
+  alertaAccionLoading.value = true
+  alertaAccionError.value = ''
+  try {
+    const recaudoAlertas = alertasInactividad.value.filter((a) => a.tipo === 'recaudo' && a.recaudoId)
+    const loginAlertas = alertasInactividad.value.filter((a) => a.dismissKey)
+
+    for (const a of loginAlertas) {
+      if (a.dismissKey) dismissedLoginAlerts.value.add(a.dismissKey)
+    }
+    saveDismissedLoginAlerts()
+
+    const results = await Promise.allSettled(
+      recaudoAlertas.map((a) => recaudoService.dismissAlert(a.recaudoId as number)),
+    )
+    results.forEach((result, i) => {
+      const a = recaudoAlertas[i]
+      if (!a?.recaudoId) return
+      if (result.status === 'fulfilled') {
+        const row = recaudosList.value.find((r) => r.id === a.recaudoId)
+        if (row) row.data = { ...row.data, donotshow: true, dismissedAt: new Date().toISOString() }
+      }
+    })
+    if (results.some((r) => r.status === 'rejected')) {
+      const rejected = results.find((r) => r.status === 'rejected')
+      const reason = rejected && rejected.status === 'rejected' ? rejected.reason : null
+      mostrarAlertaError(
+        recaudoErrorMessage(reason, 'Algunas alertas de recaudo no se pudieron descartar.'),
+      )
+    }
+  } catch (error) {
+    mostrarAlertaError(recaudoErrorMessage(error, 'No se pudieron descartar las alertas.'))
+  } finally {
+    alertaAccionLoading.value = false
+  }
+}
+
+async function restaurarAlertas() {
+  if (alertaAccionLoading.value || alertasOcultasCount.value === 0) return
+  alertaAccionLoading.value = true
+  alertaAccionError.value = ''
+  try {
+    dismissedLoginAlerts.value.clear()
+    saveDismissedLoginAlerts()
+
+    const ocultos = recaudosList.value.filter((r) => r.data?.donotshow === true)
+    const results = await Promise.allSettled(ocultos.map((r) => recaudoService.restoreAlert(r.id)))
+    results.forEach((result, i) => {
+      const row = ocultos[i]
+      if (!row || result.status !== 'fulfilled') return
+      row.data = { ...row.data, donotshow: false }
+    })
+    if (results.some((r) => r.status === 'rejected')) {
+      const rejected = results.find((r) => r.status === 'rejected')
+      const reason = rejected && rejected.status === 'rejected' ? rejected.reason : null
+      mostrarAlertaError(recaudoErrorMessage(reason, 'Algunas alertas de recaudo no se pudieron restaurar.'))
+    }
+  } catch (error) {
+    mostrarAlertaError(recaudoErrorMessage(error, 'No se pudieron restaurar las alertas.'))
+  } finally {
+    alertaAccionLoading.value = false
+  }
+}
+
+// ========== RECORDATORIO DE RECARGA DE CELULAR (mensajería masiva) ==========
+const RECARGA_DIA_INICIO = 17
+const RECARGA_DIA_LIMITE = 19
+const RECARGA_POPUP_INTERVALO_MS = 5 * 60 * 60 * 1000 // 5 horas
+
+const showRecargaModal = ref(false)
+const recargaDismissedMes = ref(false)
+const recargaMensajeGenerico = ref(false)
+
+function recargaMesClave(d = new Date()): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+function recargaLeerLocal(sufijo: string): string | null {
+  try {
+    return localStorage.getItem(`viajaya.recarga.${recargaMesClave()}.${sufijo}`)
+  } catch {
+    return null
+  }
+}
+
+function recargaEscribirLocal(sufijo: string, valor: string) {
+  try {
+    localStorage.setItem(`viajaya.recarga.${recargaMesClave()}.${sufijo}`, valor)
+  } catch {
+    // localStorage no disponible: el recordatorio no se podrá persistir
+  }
+}
+
+// Si el mes anterior se marcó "Ya recargué", el recordatorio del mes nuevo
+// sale con mensaje genérico (sin cuenta regresiva)
+function recargaLeerMensajeGenerico(): boolean {
+  try {
+    const anterior = new Date()
+    anterior.setDate(1)
+    anterior.setMonth(anterior.getMonth() - 1)
+    return localStorage.getItem(`viajaya.recarga.${recargaMesClave(anterior)}.dismissed`) === '1'
+  } catch {
+    return false
+  }
+}
+
+const recargaDia = computed(() => new Date(nowTick.value).getDate())
+
+const recargaActiva = computed(
+  () =>
+    isSuperAdmin.value &&
+    !recargaDismissedMes.value &&
+    recargaDia.value >= RECARGA_DIA_INICIO,
+)
+
+// Ya se pulsó "Ya recargué" este mes: la campana queda en modo "recargado"
+const recargaHechaMes = computed(
+  () => isSuperAdmin.value && recargaDismissedMes.value && recargaDia.value >= RECARGA_DIA_INICIO,
+)
+
+const recargaEsFechaLimite = computed(() => recargaDia.value === RECARGA_DIA_LIMITE)
+
+const recargaTitulo = computed(() => {
+  if (recargaEsFechaLimite.value) return '¡Hoy es fecha límite!'
+  if (recargaDia.value > RECARGA_DIA_LIMITE) return 'Fecha límite pasada'
+  return 'Recordatorio de recarga'
+})
+
+const recargaMensaje = computed(() => {
+  const base = 'Recuerda recargar el celular que usamos para mensajería masiva.'
+  if (recargaEsFechaLimite.value) return `${base} HOY ${RECARGA_DIA_LIMITE} es la fecha límite, hazlo hoy mismo.`
+  if (recargaDia.value > RECARGA_DIA_LIMITE) return `${base} La fecha límite (día ${RECARGA_DIA_LIMITE}) ya pasó, recárgalo lo antes posible.`
+  if (recargaMensajeGenerico.value) return 'Recuerda que tu fecha de recarga es cada 19 de cada mes.'
+  return `${base} Se debe hacer el día ${RECARGA_DIA_LIMITE} de cada mes (faltan ${RECARGA_DIA_LIMITE - recargaDia.value} día(s)).`
+})
+
+function marcarRecargaHecha() {
+  recargaEscribirLocal('dismissed', '1')
+  recargaDismissedMes.value = true
+  showRecargaModal.value = false
+}
+
+function abrirRecargaModal() {
+  showRecargaModal.value = true
+}
+
+function chequearPopupRecarga() {
+  if (!recargaActiva.value || showRecargaModal.value) return
+  if (recargaDia.value > RECARGA_DIA_LIMITE) return // solo popup en días 17, 18 y 19
+  const ahora = Date.now()
+  const ultimo = Number(recargaLeerLocal('lastPopup') || 0)
+  if (ultimo && ahora - ultimo < RECARGA_POPUP_INTERVALO_MS) return
+  recargaEscribirLocal('lastPopup', String(ahora))
+  showRecargaModal.value = true
+}
+
+let recargaTimer: number | undefined
+
+function iniciarRecordatorioRecarga() {
+  recargaDismissedMes.value = recargaLeerLocal('dismissed') === '1'
+  recargaMensajeGenerico.value = recargaLeerMensajeGenerico()
+  chequearPopupRecarga()
+  recargaTimer = window.setInterval(() => {
+    recargaDismissedMes.value = recargaLeerLocal('dismissed') === '1'
+    recargaMensajeGenerico.value = recargaLeerMensajeGenerico()
+    chequearPopupRecarga()
+  }, 60000)
+}
 
 // ========== CIERRE PRESUPUESTAL MENSUAL (AUTOMÁTICO) ==========
 interface CierrePresupuestal {
@@ -3067,7 +3441,8 @@ onMounted(() => {
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (showDescModal.value) showDescModal.value = false
+      if (showRecargaModal.value) showRecargaModal.value = false
+      else if (showDescModal.value) showDescModal.value = false
       else if (showDeleteEventModal.value) showDeleteEventModal.value = false
       else if (showEventModal.value) showEventModal.value = false
     }
@@ -3076,10 +3451,13 @@ onMounted(() => {
   clockTimer = window.setInterval(() => {
     nowTick.value = Date.now()
   }, 1000)
+
+  iniciarRecordatorioRecarga()
 })
 
 onUnmounted(() => {
   if (clockTimer) window.clearInterval(clockTimer)
+  if (recargaTimer) window.clearInterval(recargaTimer)
 })
 </script>
 
@@ -4131,9 +4509,11 @@ onUnmounted(() => {
     .rank-fill { height: 100%; background: linear-gradient(90deg, var(--c-primary), var(--c-primary-hover)); border-radius: 999px; }
 
     .alert-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: start;
+      column-gap: 10px;
+      row-gap: 4px;
       padding: 10px 12px;
       border: 1px solid var(--c-border);
       border-radius: 10px;
@@ -4165,8 +4545,10 @@ onUnmounted(() => {
       background: rgba(245, 158, 11, 0.16);
       color: var(--c-warning);
       flex-shrink: 0;
+      grid-column: 1;
+      grid-row: 1;
     }
-    .alert-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+    .alert-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; grid-column: 2; grid-row: 1; }
     .alert-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
     .alert-name { font-size: 0.82rem; font-weight: 600; color: var(--c-black); overflow-wrap: anywhere; }
     .alert-cedula {
@@ -4185,7 +4567,72 @@ onUnmounted(() => {
       border-radius: 999px;
       white-space: nowrap;
     }
-    .alert-detail { font-size: 0.70rem; color: var(--c-gray); text-transform: capitalize; }
+    .alert-detail {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      font-size: 0.67rem;
+      color: var(--c-gray);
+      text-transform: capitalize;
+    }
+    .card-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .alert-action-btn {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--c-gray);
+      background: var(--c-light);
+      border: 1px solid var(--c-border);
+      border-radius: 999px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .alert-action-btn:hover:not(:disabled) { color: #0E3570; border-color: #0E3570; }
+    .alert-action-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .alert-dismiss-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--c-gray);
+      cursor: pointer;
+      flex-shrink: 0;
+      grid-column: 3;
+      grid-row: 1;
+      align-self: center;
+      transition: all 0.15s ease;
+    }
+    .alert-dismiss-btn:hover:not(:disabled) { background: rgba(239, 68, 68, 0.12); color: var(--c-danger); }
+    .alert-dismiss-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .alertas-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding-top: 10px;
+      margin-top: 4px;
+      border-top: 1px solid var(--c-border);
+    }
+    .alertas-page-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 6px;
+      border: 1px solid var(--c-border);
+      border-radius: 6px;
+      background: var(--c-white);
+      color: var(--c-dark);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .alertas-page-btn:hover:not(:disabled) { border-color: #0E3570; color: #0E3570; }
+    .alertas-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .alertas-page-info { font-size: 0.75rem; color: var(--c-gray); white-space: nowrap; }
 
     /* ===== CIERRE PRESUPUESTAL ===== */
     .cierre-card { margin-bottom: 24px; }
@@ -4553,7 +5000,11 @@ onUnmounted(() => {
 
 .modal-overlay-confirm { z-index: 44500; }
 .modal-content.modal-confirm { max-width: 460px; padding: 28px 24px 24px; text-align: center; }
-.confirm-icon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; background: rgba(240, 192, 9, 0.16); color: var(--c-primary); }
+    .confirm-icon { display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; margin: 0 auto 14px; border-radius: 50%; background: rgba(240, 192, 9, 0.16); color: var(--c-primary); }
+    .confirm-icon.confirm-icon-danger { background: rgba(239, 68, 68, 0.16); color: var(--c-danger); }
+    .confirm-icon.confirm-icon-ok { background: rgba(16, 185, 129, 0.16); color: #10B981; }
+    .action-btn .badge-recarga { background: var(--c-danger); color: #fff; }
+    .action-btn .badge-recarga-ok { background: #10B981; color: #fff; display: flex; align-items: center; justify-content: center; }
 .modal-confirm h3 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 700; color: var(--c-black); }
 .modal-confirm p { margin: 0 0 14px; font-size: 0.85rem; color: var(--c-gray); line-height: 1.5; }
 .confirm-preview { background: var(--c-light); border: 1px solid var(--c-border); border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: 0.82rem; color: var(--c-black); text-align: left; line-height: 1.5; word-break: break-word; }
@@ -5796,6 +6247,12 @@ onUnmounted(() => {
 .cal-day-cell.is-today .cal-day-number,
 .action-btn .badge {
   color: #102857;
+}
+.action-btn .badge-recarga {
+  color: #fff;
+}
+.action-btn .badge-recarga-ok {
+  color: #fff;
 }
 .btn-primary:hover {
   background: var(--c-primary-hover);
