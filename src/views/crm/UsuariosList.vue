@@ -179,7 +179,10 @@
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                       </svg>
-                      <span>Enviar mensaje</span>
+                      <span class="msg-btn-label">
+                        <span>Enviar</span>
+                        <span>mensaje</span>
+                      </span>
                     </button>
                     <button v-if="isSuperAdmin" class="action-btn delete-btn" title="Eliminar" @click="deleteUsuario(u.id, u.name)">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1826,6 +1829,7 @@ async function sendBulkMsg() {
 .password-hint strong { color: var(--c-black); }
 
 .msg-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: none; border-radius: 8px; background: linear-gradient(135deg, var(--c-primary), #E8C25A); color: #102857; font-size: 0.76rem; font-weight: 700; font-family: inherit; white-space: nowrap; cursor: pointer; box-shadow: 0 2px 8px rgba(200, 155, 45, 0.4); transition: all 0.15s; }
+.msg-btn-label { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.05; }
 .msg-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(200, 155, 45, 0.5); }
 .msg-btn:active { transform: translateY(0); }
 

@@ -647,6 +647,223 @@
         <PanelUsersList v-if="currentSection === 'panel-usuarios'" />
         <AuditList v-if="currentSection === 'audit'" />
 
+        <!-- ========== BANNERS ========== -->
+        <div v-if="currentSection === 'banners'" class="section-banners">
+          <div class="section-top">
+            <div>
+              <h2 class="page-title">Banners</h2>
+              <p class="page-subtitle">Administra los banners del sitio — {{ banners.length }} registrados</p>
+            </div>
+            <button class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openCreateBanner()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Nuevo banner
+            </button>
+          </div>
+
+          <div v-if="bannerError && !showCreateBanner && !bannerEdit" class="form-alert" style="margin-bottom: 16px;">
+            {{ bannerError }}
+          </div>
+
+          <div v-if="banners.length === 0" class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--c-gray-light); margin-bottom: 16px;">
+              <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+            </svg>
+            <h3>Aún no hay banners registrados</h3>
+            <p>Crea un banner ingresando la URL de la imagen.</p>
+          </div>
+
+          <div v-else class="table-card">
+            <div class="table-responsive">
+              <table class="data-table banners-table">
+                <thead>
+                  <tr>
+                    <th class="col-tipo">Clase</th>
+                    <th class="col-name">Nombre</th>
+                    <th class="col-kebab">Info / acciones</th>
+                    <th class="col-imagen">Imagen</th>
+                    <th class="col-vigencia">Vigencia</th>
+                    <th class="col-estado">Estado</th>
+                    <th class="col-acciones">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="b in banners" :key="b.id">
+                    <td class="col-tipo" data-label="Clase"><span class="type-badge">{{ b.type }}</span></td>
+                    <td class="col-name name-cell" data-label="Nombre">{{ b.name }}</td>
+                    <td class="col-kebab">
+                      <button class="action-btn banner-kebab" title="Acciones" @click="bannerSheetRow = b">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                        </svg>
+                      </button>
+                    </td>
+                    <td class="col-imagen" data-label="Imagen">
+                      <img
+                        :src="b.imageUrl"
+                        alt="banner"
+                        class="banner-thumb"
+                        @error="(e) => ((e.target as HTMLImageElement).src = '/images/banner1.jpg')"
+                      />
+                    </td>
+                    <td class="col-vigencia banner-vigencia" data-label="Vigencia">
+                      <div>{{ formatBannerDate(b.startDate) }}</div>
+                      <div class="banner-vigencia-sep">→</div>
+                      <div>{{ formatBannerDate(b.endDate) }}</div>
+                    </td>
+                    <td class="col-estado" data-label="Estado">
+                      <label class="banner-toggle">
+                        <input type="checkbox" :checked="b.active" @change="toggleBannerActive(b, ($event.target as HTMLInputElement).checked)" />
+                        <span class="banner-status" :class="bannerStatusClass(b)">{{ bannerStatusLabel(b) }}</span>
+                      </label>
+                    </td>
+                    <td class="col-acciones" data-label="Acciones">
+                      <div class="actions-cell">
+                        <button class="action-btn" title="Activar" @click="activateBanner(b)">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                          </svg>
+                        </button>
+                        <button class="action-btn" title="Editar" @click="openEditBanner(b)">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                        </button>
+                        <button class="action-btn delete-btn" title="Eliminar" @click="bannerDeleteConfirm = b">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Sheet acciones/info (móvil) -->
+          <div v-if="bannerSheetRow" class="recaudo-sheet-overlay" @click.self="bannerSheetRow = null">
+            <div class="recaudo-sheet-panel">
+              <div class="recaudo-sheet-handle"></div>
+              <div class="recaudo-sheet-top">
+                <div class="recaudo-sheet-header">
+                  <strong>{{ bannerSheetRow.name }}</strong>
+                  <span>{{ bannerSheetRow.type }} · {{ bannerStatusLabel(bannerSheetRow) }}</span>
+                </div>
+                <button class="recaudo-sheet-close" @click="bannerSheetRow = null">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="recaudo-sheet-info">
+                <div class="recaudo-sheet-info-row"><span>Clase</span><strong>{{ bannerSheetRow.type }}</strong></div>
+                <div class="recaudo-sheet-info-row"><span>Vigencia</span><strong>{{ formatBannerDate(bannerSheetRow.startDate) }} → {{ formatBannerDate(bannerSheetRow.endDate) }}</strong></div>
+                <div class="recaudo-sheet-info-row"><span>Estado</span><strong>{{ bannerStatusLabel(bannerSheetRow) }}</strong></div>
+              </div>
+              <div class="recaudo-sheet-actions">
+                <button class="recaudo-sheet-item" @click="bannerSheetDo(activateBanner)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  Activar
+                </button>
+                <button class="recaudo-sheet-item" @click="bannerSheetDo(openEditBanner)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Editar
+                </button>
+                <button class="recaudo-sheet-item danger" @click="bannerSheetDo(deleteBanner)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Crear / Editar banner -->
+          <div v-if="showCreateBanner || bannerEdit" class="modal-overlay" @click.self="closeBannerModal()">
+            <div class="modal-content modal-wide" @click.stop>
+              <div class="modal-header">
+                <h3>{{ bannerEdit ? 'Editar banner' : 'Nuevo banner' }}</h3>
+                <button class="modal-close" @click="closeBannerModal()">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>Nombre</label>
+                    <input v-model="bannerForm.name" type="text" class="form-input" placeholder="Nombre del banner" />
+                  </div>
+                  <div class="form-group">
+                    <label>Clase</label>
+                    <select v-model="bannerForm.type" class="form-input">
+                      <option v-for="t in bannerTypes" :key="t" :value="t">{{ t }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group full-width">
+                    <label>URL de la imagen</label>
+                    <input v-model="bannerForm.imageUrl" type="url" class="form-input" placeholder="https://..." />
+                  </div>
+                  <div class="form-group">
+                    <label>Activo desde</label>
+                    <input v-model="bannerForm.startDate" type="datetime-local" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label>Activo hasta</label>
+                    <input v-model="bannerForm.endDate" type="datetime-local" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                    <label class="banner-check-label">
+                      <input v-model="bannerForm.active" type="checkbox" />
+                      Activo
+                    </label>
+                  </div>
+                </div>
+                <div v-if="bannerForm.imageUrl" class="banner-preview">
+                  <img
+                    :src="bannerForm.imageUrl"
+                    alt="preview"
+                    class="banner-preview-img"
+                    @error="(e) => ((e.target as HTMLImageElement).src = '/images/banner1.jpg')"
+                  />
+                </div>
+                <div v-if="bannerError" class="form-alert" style="margin-top: 12px;">{{ bannerError }}</div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-outline" :disabled="bannerSaving" @click="closeBannerModal()">Cancelar</button>
+                <button class="btn-primary" :disabled="bannerSaving || !bannerFormValid" @click="saveBanner()">
+                  {{ bannerSaving ? 'Guardando...' : (bannerEdit ? 'Guardar cambios' : 'Crear banner') }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Confirmar eliminación -->
+          <div v-if="bannerDeleteConfirm" class="modal-overlay" @click.self="bannerDeleteConfirm = null">
+            <div class="modal-content modal-sm" @click.stop>
+              <div class="modal-header">
+                <h3>Eliminar banner</h3>
+                <button class="modal-close" @click="bannerDeleteConfirm = null">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>¿Seguro que deseas eliminar <strong>{{ bannerDeleteConfirm.name }}</strong>?</p>
+              </div>
+              <div class="modal-footer">
+                <button class="btn-outline" @click="bannerDeleteConfirm = null">Cancelar</button>
+                <button class="btn-primary" style="background:#DC2626;border-color:#DC2626;" @click="deleteBanner(bannerDeleteConfirm!)">Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- ========== RECAUDOS ========== -->
         <div v-if="currentSection === 'recaudos'" class="section-recaudos">
           <div class="section-top">
@@ -654,7 +871,7 @@
               <h2 class="page-title">Recaudos</h2>
               <p class="page-subtitle"> {{ recaudosList.length }} recaudos{{ recaudosSeleccionados.length > 0 ? ` — ${recaudosSeleccionados.length} seleccionados` : '' }}</p>
             </div>
-            <button class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openCreateRecaudo()">
+            <button v-if="isSuperAdmin" class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openCreateRecaudo()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
@@ -873,12 +1090,125 @@
                 <div v-if="recaudoError" class="form-alert" style="margin-top: 12px;">{{ recaudoError }}</div>
               </div>
               <div class="modal-footer">
+                <button v-if="isSuperAdmin" class="recharge-action" :disabled="recaudoSaving" @click="openSaldoRecargaModal">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12h14"/>
+                  </svg>
+                  Recargar
+                </button>
                 <button class="btn-outline" :disabled="recaudoSaving" @click="showCreateRecaudo = false">Cancelar</button>
                 <button class="btn-outline" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudoAndMsg">
                   {{ recaudoSaving ? 'Guardando...' : 'Crear y enviar mensaje' }}
                 </button>
                 <button class="btn-primary" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudo">
                   {{ recaudoSaving ? 'Guardando...' : 'Crear Recaudo' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal de recarga rápida -->
+          <div v-if="showSaldoRecargaModal" class="modal-overlay" @click.self="showSaldoRecargaModal = false">
+            <div class="modal-content modal-sm recharge-modal" @click.stop>
+              <div class="modal-header">
+                <div>
+                  <h3>Recargar saldo</h3>
+                  <p class="recharge-modal-subtitle">Recarga el saldo del cliente</p>
+                </div>
+                <button class="modal-close" @click="showSaldoRecargaModal = false">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body recharge-modal-body">
+                <div class="recharge-wallet-hero">
+                  <span class="recharge-wallet-label">Valor de tu recarga</span>
+                  <div class="recharge-wallet-value-line">
+                    <span
+                      class="recharge-wallet-value"
+                      :class="{ 'recharge-value-hidden': !recargaMontoVisible }"
+                      aria-live="polite"
+                    >{{ recargaValor ? formatCurrency(recargaValor) : '$ 0' }}</span>
+                    <button
+                      type="button"
+                      class="recharge-wallet-visibility"
+                      :aria-label="recargaMontoVisible ? 'Ocultar valor' : 'Mostrar valor'"
+                      @click="recargaMontoVisible = !recargaMontoVisible"
+                    >
+                      <svg v-if="recargaMontoVisible" width="28" height="24" viewBox="0 0 30 24" fill="none" aria-hidden="true">
+                        <path d="M2 12s3.8-7 13-7 13 7 13 7-3.8 7-13 7S2 12 2 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                        <circle cx="15" cy="12" r="3.5" stroke="currentColor" stroke-width="2"/>
+                      </svg>
+                      <svg v-else width="28" height="24" viewBox="0 0 30 24" fill="none" aria-hidden="true">
+                        <path d="m3 3 24 18M12.5 5.3C13.3 5.1 14.1 5 15 5c9.2 0 13 7 13 7a22 22 0 0 1-4.1 4.7M8.2 8.2C4.3 10 2 12 2 12s3.8 7 13 7c1.7 0 3.2-.3 4.5-.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="recharge-modal-client">Cliente</label>
+                  <select id="recharge-modal-client" v-model="recargaClienteId" class="form-input">
+                    <option :value="0" disabled>Selecciona un cliente</option>
+                    <option v-for="u in usuariosCreados" :key="u.id" :value="u.id">
+                      {{ u.name }} — CC {{ u.cedula }}
+                    </option>
+                  </select>
+                </div>
+                <div class="recharge-form-row">
+                  <div class="form-group">
+                    <label for="recharge-modal-amount">Valor de recarga</label>
+                    <div class="recharge-input-wrap">
+                      <span class="recharge-input-prefix">$</span>
+                      <input
+                        id="recharge-modal-amount"
+                        :value="recargaValor || ''"
+                        type="text"
+                        inputmode="numeric"
+                        class="form-input recharge-amount-input"
+                        placeholder="0"
+                        @input="onRecargaValorInput"
+                      />
+                    </div>
+                    <span class="recharge-input-hint">El valor se reflejará arriba automáticamente.</span>
+                  </div>
+                  <div class="form-group">
+                    <label for="recharge-modal-date">Fecha de recarga</label>
+                    <input
+                      id="recharge-modal-date"
+                      :value="recargaFecha"
+                      type="datetime-local"
+                      class="form-input recharge-date-readonly"
+                      readonly
+                      tabindex="-1"
+                      aria-readonly="true"
+                    />
+                  </div>
+                </div>
+                <div v-if="recargaError" class="form-alert recharge-feedback">{{ recargaError }}</div>
+                <div v-if="recargaSuccess" class="recharge-success" role="status">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  {{ recargaSuccess }}
+                </div>
+              </div>
+              <div class="modal-footer recharge-modal-footer">
+                <button class="btn-outline recharge-cancel" :disabled="recargaSaving" @click="showSaldoRecargaModal = false">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                  <span>Cancelar</span>
+                </button>
+                <button class="btn-primary recharge-submit" :disabled="!recargaFormValid || recargaSaving" @click="recargarSaldo">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="8.5" fill="#168ED3"/>
+                    <circle cx="12" cy="12" r="5.5" fill="#F59E0B"/>
+                    <path d="M15 9.3a4.2 4.2 0 0 0-6 1M9 14.7a4.2 4.2 0 0 0 6-1" stroke="#FFF4B8" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="m9.2 8.7-.3 2.5 2.5-.3M14.8 15.3l.3-2.5-2.5.3" stroke="#FFF4B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  <span>{{ recargaSaving ? 'Guardando...' : 'Recargar' }}</span>
                 </button>
               </div>
             </div>
@@ -2139,6 +2469,15 @@ const recaudosList = ref<RecaudoRow[]>([])
 const recaudosLoading = ref(false)
 const recaudoError = ref('')
 const recaudoSaving = ref(false)
+const recargaClienteId = ref(0)
+const recargaValor = ref(0)
+const recargaFecha = ref('')
+const recargaMontoVisible = ref(true)
+const showSaldoRecargaModal = ref(false)
+const recargaSaving = ref(false)
+const recargaError = ref('')
+const recargaSuccess = ref('')
+let recargaSuccessTimer = 0
 
 const PERIOD_LABEL: Record<string, string> = {
   diario: 'Diario',
@@ -2276,6 +2615,52 @@ const recaudoFormValid = computed(() => {
   const f = recaudoForm.value
   return f.clientId > 0 && !!f.fecha.trim() && !!f.valor
 })
+
+const recargaFormValid = computed(
+  () => recargaClienteId.value > 0 && recargaValor.value > 0 && !!recargaFecha.value,
+)
+
+function onRecargaValorInput(event: Event) {
+  const digits = (event.target as HTMLInputElement).value.replace(/[^\d]/g, '')
+  recargaValor.value = digits ? Number.parseInt(digits, 10) : 0
+}
+
+function openSaldoRecargaModal() {
+  showCreateRecaudo.value = false
+  recargaClienteId.value = 0
+  recargaValor.value = 0
+  recargaFecha.value = toInputFecha(new Date().toISOString())
+  recargaMontoVisible.value = true
+  recargaError.value = ''
+  recargaSuccess.value = ''
+  showSaldoRecargaModal.value = true
+}
+
+async function recargarSaldo() {
+  if (!recargaFormValid.value || recargaSaving.value) return
+  recargaSaving.value = true
+  recargaError.value = ''
+  recargaSuccess.value = ''
+  try {
+    await recaudoService.create({
+      clientId: recargaClienteId.value,
+      fecha: fromInputFecha(recargaFecha.value),
+      valor: recargaValor.value,
+    })
+    await fetchRecaudos()
+    const cliente = usuariosCreados.value.find((u) => u.id === recargaClienteId.value)
+    recargaSuccess.value = `Recarga de ${formatCurrency(recargaValor.value)} aplicada a ${cliente?.name || 'cliente'}.`
+    recargaClienteId.value = 0
+    recargaValor.value = 0
+    recargaFecha.value = ''
+    window.clearTimeout(recargaSuccessTimer)
+    recargaSuccessTimer = window.setTimeout(() => { recargaSuccess.value = '' }, 5000)
+  } catch (error) {
+    recargaError.value = recaudoErrorMessage(error, 'No se pudo aplicar la recarga.')
+  } finally {
+    recargaSaving.value = false
+  }
+}
 
 function openCreateRecaudo() {
   recaudoForm.value = { clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' }
@@ -2465,12 +2850,14 @@ const navItems = [
   { id: 'usuarios', label: 'Clientes', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
   { id: 'panel-usuarios', label: 'Usuarios del panel', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
   { id: 'recaudos', label: 'Recaudos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>' },
+  { id: 'banners', label: 'Banners', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' },
   { id: 'audit', label: 'Auditoría', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
 ].filter(
   (item) =>
     isSuperAdmin.value ||
     item.id === 'usuarios' ||
-    item.id === 'recaudos',
+    item.id === 'recaudos' ||
+    item.id === 'banners',
 )
 
 // ========== CALENDARIO ==========
@@ -2791,7 +3178,8 @@ const setSection = (section: string) => {
   if (
     !isSuperAdmin.value &&
     section !== 'usuarios' &&
-    section !== 'recaudos'
+    section !== 'recaudos' &&
+    section !== 'banners'
   )
     return
   const item = navItems.find((n) => n.id === section)
@@ -3431,9 +3819,210 @@ async function loadDashboard() {
   ])
 }
 
+// ========== BANNERS ==========
+interface BannerItem {
+  id: number
+  name: string
+  type: string
+  imageUrl: string
+  linkUrl?: string
+  startDate: string
+  endDate: string
+  active: boolean
+  createdAt: string
+}
+
+const BANNERS_KEY = 'viajaya_banners'
+const bannerTypes = ['Principal', 'Popup', 'Lateral']
+
+const banners = ref<BannerItem[]>([])
+const showCreateBanner = ref(false)
+const bannerEdit = ref<BannerItem | null>(null)
+const bannerError = ref('')
+const bannerSaving = ref(false)
+const bannerDeleteConfirm = ref<BannerItem | null>(null)
+const bannerSheetRow = ref<BannerItem | null>(null)
+
+function bannerSheetDo(fn: (b: BannerItem) => void) {
+  const b = bannerSheetRow.value
+  bannerSheetRow.value = null
+  if (b) fn(b)
+}
+
+const bannerForm = ref({
+  name: '',
+  type: 'Principal',
+  imageUrl: '',
+  startDate: '',
+  endDate: '',
+  active: true,
+})
+
+const bannerFormValid = computed(() => {
+  return !!bannerForm.value.name.trim() && !!bannerForm.value.imageUrl.trim() && !!bannerForm.value.startDate && !!bannerForm.value.endDate
+})
+
+function loadBanners() {
+  try {
+    const raw = localStorage.getItem(BANNERS_KEY)
+    const list = raw ? (JSON.parse(raw) as BannerItem[]) : []
+    let seenActive = false
+    banners.value = list.map((b) => {
+      if (b.active && !seenActive) {
+        seenActive = true
+        return b
+      }
+      if (b.active && seenActive) {
+        return { ...b, active: false }
+      }
+      return b
+    })
+    persistBanners()
+  } catch {
+    banners.value = []
+  }
+}
+
+function persistBanners() {
+  localStorage.setItem(BANNERS_KEY, JSON.stringify(banners.value))
+}
+
+function formatBannerDate(value: string): string {
+  if (!value) return '—'
+  const d = new Date(value)
+  if (isNaN(d.getTime())) return value
+  return d.toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })
+}
+
+function bannerStatusLabel(b: BannerItem): string {
+  if (!b.active) return 'Inactivo'
+  const now = Date.now()
+  const start = Date.parse(b.startDate)
+  const end = Date.parse(b.endDate)
+  if (!isNaN(start) && now < start) return 'Programado'
+  if (!isNaN(end) && now > end) return 'Expirado'
+  return 'Activo'
+}
+
+function bannerStatusClass(b: BannerItem): string {
+  const s = bannerStatusLabel(b)
+  if (s === 'Activo') return 'status-active'
+  if (s === 'Programado') return 'status-scheduled'
+  if (s === 'Expirado') return 'status-expired'
+  return 'status-inactive'
+}
+
+function openCreateBanner() {
+  bannerEdit.value = null
+  bannerError.value = ''
+  bannerForm.value = {
+    name: '',
+    type: 'Principal',
+    imageUrl: '',
+    startDate: '',
+    endDate: '',
+    active: true,
+  }
+  showCreateBanner.value = true
+}
+
+function openEditBanner(b: BannerItem) {
+  bannerEdit.value = b
+  bannerError.value = ''
+  bannerForm.value = {
+    name: b.name,
+    type: b.type,
+    imageUrl: b.imageUrl,
+    startDate: b.startDate,
+    endDate: b.endDate,
+    active: b.active,
+  }
+  showCreateBanner.value = true
+}
+
+function closeBannerModal() {
+  showCreateBanner.value = false
+  bannerEdit.value = null
+  bannerError.value = ''
+}
+
+function saveBanner() {
+  bannerSaving.value = true
+  bannerError.value = ''
+  try {
+    if (bannerEdit.value) {
+      const idx = banners.value.findIndex((b) => b.id === bannerEdit.value!.id)
+      if (idx !== -1) {
+        banners.value[idx] = {
+          ...banners.value[idx],
+          name: bannerForm.value.name.trim(),
+          type: bannerForm.value.type,
+          imageUrl: bannerForm.value.imageUrl.trim(),
+          linkUrl: '',
+          startDate: bannerForm.value.startDate,
+          endDate: bannerForm.value.endDate,
+          active: bannerForm.value.active,
+        }
+      }
+      if (bannerForm.value.active) {
+        banners.value = banners.value.map((b) =>
+          b.id === bannerEdit.value!.id ? b : { ...b, active: false },
+        )
+      }
+    } else {
+      const newItem: BannerItem = {
+        id: Date.now(),
+        name: bannerForm.value.name.trim(),
+        type: bannerForm.value.type,
+        imageUrl: bannerForm.value.imageUrl.trim(),
+        linkUrl: '',
+        startDate: bannerForm.value.startDate,
+        endDate: bannerForm.value.endDate,
+        active: bannerForm.value.active,
+        createdAt: new Date().toISOString(),
+      }
+      banners.value.unshift(newItem)
+      if (bannerForm.value.active) {
+        banners.value = banners.value.map((b) =>
+          b.id === newItem.id ? b : { ...b, active: false },
+        )
+      }
+    }
+    persistBanners()
+    closeBannerModal()
+  } catch (e) {
+    bannerError.value = e instanceof Error ? e.message : 'No se pudo guardar el banner'
+  } finally {
+    bannerSaving.value = false
+  }
+}
+
+function deleteBanner(b: BannerItem) {
+  banners.value = banners.value.filter((x) => x.id !== b.id)
+  persistBanners()
+  bannerDeleteConfirm.value = null
+}
+
+function activateBanner(b: BannerItem) {
+  banners.value = banners.value.map((x) => ({ ...x, active: x.id === b.id }))
+  persistBanners()
+}
+
+function toggleBannerActive(b: BannerItem, value: boolean) {
+  if (value) {
+    banners.value = banners.value.map((x) => ({ ...x, active: x.id === b.id }))
+  } else {
+    banners.value = banners.value.map((x) =>
+      x.id === b.id ? { ...x, active: false } : x,
+    )
+  }
+  persistBanners()
+}
+
 onMounted(() => {
   loadDashboard()
   loadUsuarios()
+  loadBanners()
 
   document.addEventListener('click', () => {
     showEntityDropdown.value = false
@@ -3458,6 +4047,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (clockTimer) window.clearInterval(clockTimer)
   if (recargaTimer) window.clearInterval(recargaTimer)
+  window.clearTimeout(recargaSuccessTimer)
 })
 </script>
 
@@ -4942,6 +5532,202 @@ onUnmounted(() => {
 .msg-toast-fade-enter-active, .msg-toast-fade-leave-active { transition: all 0.3s ease; }
 .msg-toast-fade-enter-from, .msg-toast-fade-leave-to { opacity: 0; transform: translateY(12px); }
 
+.recharge-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(200, 155, 45, 0.45);
+  border-radius: 9px;
+  background: var(--c-primary);
+  color: #102857;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.recharge-action:hover {
+  background: var(--c-primary-hover);
+  transform: translateY(-1px);
+}
+.recharge-action:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+.recharge-modal {
+  max-width: 500px;
+  border: 1px solid rgba(38, 51, 79, 0.9);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+}
+.recharge-modal .modal-header {
+  padding: 22px 24px 20px;
+  background: linear-gradient(135deg, rgba(20, 29, 54, 0.98), rgba(14, 22, 44, 0.98));
+}
+.recharge-modal-subtitle { margin: 5px 0 0; color: var(--c-gray); font-size: 0.8rem; }
+.recharge-modal-body { display: flex; flex-direction: column; gap: 18px; padding: 22px 24px 24px; }
+.recharge-wallet-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  margin: -22px -24px 0;
+  padding: 28px 20px 30px;
+  border-radius: 0 0 32px 32px;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #09054F 0%, #10106D 55%, #17108A 100%);
+  box-shadow: 0 8px 18px rgba(8, 8, 76, 0.2);
+}
+.recharge-wallet-label {
+  color: #9FE8F3;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.recharge-wallet-value-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  gap: 3px;
+}
+.recharge-wallet-value {
+  display: block;
+  width: min(300px, 70vw);
+  min-width: 0;
+  color: #FFFFFF;
+  font-size: clamp(2rem, 8vw, 3.1rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: right;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+.recharge-wallet-value.recharge-value-hidden {
+  color: transparent;
+  text-shadow: none;
+  user-select: none;
+}
+.recharge-wallet-visibility {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: 0;
+  color: #9FE8F3;
+  background: transparent;
+  cursor: pointer;
+}
+.recharge-wallet-visibility:hover { color: #FFFFFF; }
+.recharge-wallet-arrow {
+  margin-left: 8px;
+  color: #B5F1F8;
+  font-size: 2.8rem;
+  font-weight: 300;
+  line-height: 0.8;
+}
+.recharge-modal-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 4px;
+  border-radius: 17px;
+  background: rgba(240, 192, 9, 0.18);
+  color: var(--c-primary);
+  box-shadow: inset 0 0 0 1px rgba(240, 192, 9, 0.16);
+}
+.recharge-modal .form-group { gap: 7px; }
+.recharge-modal .form-group label { font-size: 0.78rem; }
+.recharge-modal .form-input { min-height: 44px; border-radius: 9px; }
+.recharge-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.recharge-input-wrap { position: relative; }
+.recharge-input-wrap .form-input { width: 100%; padding-left: 32px; font-size: 1.05rem; font-weight: 700; }
+.recharge-input-prefix {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  z-index: 1;
+  color: var(--c-gray);
+  font-weight: 700;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.recharge-input-hint { color: var(--c-gray); font-size: 0.68rem; line-height: 1.3; }
+.recharge-date-readonly {
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.78;
+}
+.recharge-modal-footer {
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px 20px;
+  background: rgba(14, 22, 44, 0.28);
+}
+.recharge-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 118px;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  color: var(--c-gray);
+  background: transparent;
+  font-weight: 700;
+  transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.recharge-cancel:hover:not(:disabled) {
+  border-color: rgba(152, 164, 191, 0.65);
+  color: var(--c-black);
+  background: rgba(255, 255, 255, 0.07);
+}
+.recharge-cancel:disabled { cursor: not-allowed; opacity: 0.55; }
+.recharge-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 8px;
+  min-height: 48px;
+  min-width: 132px;
+  padding: 0 18px;
+  border: 1px solid rgba(240, 192, 9, 0.38);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #454182, #353267);
+  color: #F7F7FF;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.recharge-submit svg { flex-shrink: 0; }
+.recharge-submit:hover {
+  background: linear-gradient(145deg, #514c98, #403c7d);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(64, 61, 124, 0.3);
+}
+.recharge-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+.recharge-feedback { margin-top: 14px; }
+.recharge-success {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  color: #047857;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
 .section-recaudos .recaudo-kebab { display: none; }
 .section-recaudos .recaudos-table .col-kebab { display: none; }
 .recaudo-cc { display: none; }
@@ -5628,6 +6414,32 @@ onUnmounted(() => {
   .section-recaudos .modal-footer { padding: 12px 16px; }
   .section-recaudos .form-grid { grid-template-columns: 1fr; gap: 12px; }
 
+  .section-banners .section-top { flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .section-banners .section-top > div { min-width: 0; flex: 1; }
+  .section-banners .export-btn { display: flex; width: auto; justify-content: center; padding: 8px 14px; font-size: 0.78rem; gap: 5px; flex-shrink: 0; white-space: nowrap; }
+  .section-banners .table-card .table-responsive { overflow-x: hidden; }
+  .section-banners .table-card .data-table { min-width: 0; table-layout: fixed; }
+  .section-banners .table-card .data-table th,
+  .section-banners .table-card .data-table td { white-space: normal; }
+  .section-banners .banners-table .col-imagen,
+  .section-banners .banners-table .col-vigencia,
+  .section-banners .banners-table .col-acciones { display: none; }
+  .section-banners .banners-table .col-kebab { display: table-cell; width: 52px; text-align: right; padding-right: 12px; }
+  .section-banners .banners-table th.col-kebab { text-align: center; font-size: 0.58rem; line-height: 1.15; padding: 12px 6px; white-space: normal; }
+  .section-banners .banners-table th.col-tipo { width: 68px; }
+  .section-banners .banners-table th.col-estado { width: 84px; }
+  .section-banners .banners-table .col-name { word-break: break-word; }
+  .section-banners .banners-table .banner-status { display: none; }
+  .section-banners .banners-table .type-badge { font-size: 0.68rem; padding: 3px 8px; }
+  .section-banners .modal-content { width: calc(100% - 24px); max-width: none; }
+  .section-banners .modal-content.modal-wide { max-width: none; }
+  .section-banners .modal-header,
+  .section-banners .modal-body { padding: 16px; }
+  .section-banners .modal-body { max-height: calc(100vh - 140px); }
+  .section-banners .modal-footer { padding: 12px 16px; }
+  .section-banners .form-grid { grid-template-columns: 1fr; gap: 12px; }
+  .section-banners .banner-preview-img { max-height: 140px; }
+
   .main-content { padding: calc(64px + 16px) 14px 16px; }
   .page-title { font-size: 1.2rem; }
   .section-top { margin-bottom: 16px; }
@@ -5668,6 +6480,29 @@ onUnmounted(() => {
 
   .cal-day-cell { min-height: 60px; padding: 4px; }
   .calendar-legend-full { gap: 12px; }
+}
+
+@media (max-width: 560px) {
+  .recharge-form-row { grid-template-columns: 1fr; }
+  .recharge-modal .modal-header { padding: 18px 18px 16px; }
+  .recharge-modal-body { padding: 20px 18px; }
+  .recharge-modal-footer {
+    gap: 8px;
+    padding: 12px 18px 16px;
+  }
+  .recharge-modal-footer > .recharge-cancel,
+  .recharge-modal-footer > .recharge-submit {
+    flex: 0 1 auto;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+  }
+  .recharge-modal-footer > .recharge-cancel { width: 105px; }
+  .recharge-modal-footer > .recharge-submit { width: 112px; }
+  .recharge-modal-footer .recharge-cancel svg { width: 15px; height: 15px; }
+  .recharge-modal-footer .recharge-submit svg { width: 19px; height: 19px; }
 }
 
 @media (max-width: 480px) {
@@ -6352,5 +7187,85 @@ onUnmounted(() => {
 }
 .admin-layout ::-webkit-scrollbar-thumb:hover {
   background: #3A4C74;
+}
+/* ===== BANNERS ===== */
+.banner-thumb {
+  width: 80px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+}
+.banner-vigencia {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #374151;
+}
+.banner-vigencia-sep {
+  color: #9CA3AF;
+  font-size: 11px;
+}
+.banner-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-active { background: #D1FAE5; color: #065F46; }
+.status-scheduled { background: #DBEAFE; color: #1E40AF; }
+.status-expired { background: #FEE2E2; color: #991B1B; }
+.status-inactive { background: #E5E7EB; color: #374151; }
+.banner-preview {
+  margin-top: 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+  max-width: 100%;
+}
+.banner-preview-img {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  display: block;
+}
+.banner-check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.banners-table .type-badge {
+  background: #EEF2FF;
+  color: #3730A3;
+}
+.banners-table .col-kebab { display: none; }
+.banner-kebab {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--c-border);
+  background: var(--c-light);
+  border-radius: 8px;
+}
+/* ===== BANNER TOGGLE ===== */
+.banner-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.banner-toggle input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+@media (max-width: 768px) {
+  .section-banners .banner-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
 }
 </style>
