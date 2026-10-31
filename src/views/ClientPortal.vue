@@ -166,10 +166,10 @@
         </div>
 
         <!-- INICIO -->
-        <section v-if="activeSection === 'inicio'" class="section">
+        <section v-if="activeSection === 'inicio'" class="section inicio-section">
           <div class="section-head">
-            <h2>Resumen de Ahorros</h2>
-            <p>Consulta el estado de tus ahorros y último recaudos</p>
+            <h2>Recarga / Resumen de Ahorros</h2>
+            <p>Recarga tu cuenta, consulta tus ahorros y últimos recaudos</p>
           </div>
 
           <div class="stats-row">
@@ -209,23 +209,79 @@
             </div>
           </div>
 
-          <div class="saldo-banner">
-            <div class="saldo-left">
-              <span class="saldo-label">Saldo ahorrado:</span>
-              <span class="saldo-amount">{{ formatRecaudoValor(recaudosTotal) }}</span>
-              <span class="saldo-sub">Total acumulado de tus recaudos</span>
+          <div class="recarga-panel">
+            <div class="recarga-panel-grid">
+            <div class="recarga-side">
+            <div class="recarga-value-area">
+              <span class="recarga-value-label">Valor de tu recarga</span>
+              <div class="recarga-value-line">
+                <span
+                  class="recarga-value-input"
+                  :class="{ 'recarga-value-hidden': !recargaMontoVisible }"
+                  aria-live="polite"
+                >{{ recargaMonto ? formatRecaudoValor(recargaMonto) : '$ 0' }}</span>
+                <button
+                  class="recarga-visibility"
+                  type="button"
+                  :aria-label="recargaMontoVisible ? 'Ocultar valor' : 'Mostrar valor'"
+                  @click="recargaMontoVisible = !recargaMontoVisible"
+                >
+                  <svg v-if="recargaMontoVisible" width="30" height="24" viewBox="0 0 30 24" fill="none" aria-hidden="true">
+                    <path d="M2 12s3.8-7 13-7 13 7 13 7-3.8 7-13 7S2 12 2 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                    <circle cx="15" cy="12" r="3.5" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                  <svg v-else width="30" height="24" viewBox="0 0 30 24" fill="none" aria-hidden="true">
+                    <path d="m3 3 24 18M12.5 5.3C13.3 5.1 14.1 5 15 5c9.2 0 13 7 13 7a22 22 0 0 1-4.1 4.7M8.2 8.2C4.3 10 2 12 2 12s3.8 7 13 7c1.7 0 3.2-.3 4.5-.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <span class="recarga-decimal">.00</span>
+                <span class="recarga-arrow" aria-hidden="true">›</span>
+              </div>
             </div>
-            <div class="saldo-chart">
-              <svg width="56" height="40" viewBox="0 0 56 40" fill="none">
-                <polyline
-                  points="4,32 16,22 26,26 38,12 52,8"
-                  stroke="#4ADE80"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+            <div class="recarga-input-group">
+              <label for="portal-recharge-amount">Valor de recarga</label>
+              <div class="recarga-input-wrap">
+                <span class="recarga-input-prefix">$</span>
+                <input
+                  id="portal-recharge-amount"
+                  :value="recargaMontoInput"
+                  type="text"
+                  inputmode="numeric"
+                  class="recarga-input"
+                  placeholder="0"
+                  @input="onRecargaMontoInput"
                 />
+              </div>
+              <span class="recarga-input-hint">El valor se reflejará arriba automáticamente.</span>
+            </div>
+            <div class="recarga-actions">
+              <button
+                class="recarga-action-card"
+                type="button"
+                :disabled="recargaSaving || !recargaMonto"
+                @click="realizarRecarga"
+              >
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+                  <circle cx="24" cy="24" r="15" fill="#168ED3"/>
+                  <circle cx="24" cy="24" r="9.5" fill="#F59E0B"/>
+                  <path d="M29.1 18.8a7.1 7.1 0 0 0-10 1.6M18.9 29.2a7.1 7.1 0 0 0 10-1.6" stroke="#FFF4B8" stroke-width="2.2" stroke-linecap="round"/>
+                  <path d="m19.2 17.5-.4 4.3 4.3-.4M28.8 30.5l.4-4.3-4.3.4" stroke="#FFF4B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>{{ recargaSaving ? 'Procesando...' : 'Recargar' }}</span>
+              </button>
+            </div>
+            </div>
+            <div class="saldo-side">
+              <span class="saldo-side-label">Saldo ahorrado</span>
+              <span class="saldo-side-amount">{{ formatRecaudoValor(recaudosTotal) }}</span>
+              <span class="saldo-side-sub">Total acumulado de tus recaudos</span>
+              <svg class="saldo-side-chart" width="110" height="54" viewBox="0 0 110 54" fill="none" aria-hidden="true">
+                <polyline points="4,44 25,31 45,35 66,17 89,23 106,7" stroke="#4ADE80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </div>
+            </div>
+            <p v-if="recargaError" class="recarga-feedback recarga-feedback-error" role="alert">{{ recargaError }}</p>
+            <p v-if="recargaSuccess" class="recarga-feedback recarga-feedback-success" role="status">{{ recargaSuccess }}</p>
           </div>
         </section>
 
@@ -547,6 +603,11 @@ const recaudos = ref<RecaudoRow[]>([])
 const recaudosLoading = ref(false)
 const recaudosError = ref('')
 const recaudosLoaded = ref(false)
+const recargaMontoInput = ref('0')
+const recargaMontoVisible = ref(true)
+const recargaSaving = ref(false)
+const recargaError = ref('')
+const recargaSuccess = ref('')
 
 async function fetchRecaudos(force = false) {
   if (recaudosLoading.value || (recaudosLoaded.value && !force)) return
@@ -596,6 +657,40 @@ function formatRecaudoHora(fecha?: string): string {
 }
 
 const recaudosTotal = computed(() => recaudos.value.reduce((sum, r) => sum + (Number(r.valor) || 0), 0))
+const recargaMonto = computed(() => Number.parseInt(recargaMontoInput.value.replace(/[^\d]/g, ''), 10) || 0)
+
+function onRecargaMontoInput(event: Event) {
+  const input = event.target as HTMLInputElement
+  const digits = input.value.replace(/[^\d]/g, '')
+  recargaMontoInput.value = digits ? Number.parseInt(digits, 10).toLocaleString('es-CO') : '0'
+  recargaError.value = ''
+  recargaSuccess.value = ''
+}
+
+async function realizarRecarga() {
+  if (recargaSaving.value || !recargaMonto.value) return
+  if (!portalClientId.value) {
+    recargaError.value = 'No pudimos identificar tu cuenta. Inicia sesión nuevamente.'
+    return
+  }
+
+  recargaSaving.value = true
+  recargaError.value = ''
+  recargaSuccess.value = ''
+  try {
+    await recaudoService.create({
+      clientId: portalClientId.value,
+      fecha: new Date().toISOString(),
+      valor: recargaMonto.value,
+    })
+    await fetchRecaudos(true)
+    recargaSuccess.value = `Recarga de ${formatRecaudoValor(recargaMonto.value)} registrada correctamente.`
+  } catch (err: unknown) {
+    recargaError.value = err instanceof Error ? err.message : 'No se pudo realizar la recarga.'
+  } finally {
+    recargaSaving.value = false
+  }
+}
 
 const ultimoRecaudo = computed<RecaudoRow | null>(() => {
   let best: RecaudoRow | null = null
@@ -1325,6 +1420,12 @@ async function reloadData() {
 .section {
   animation: fadeUp 0.3s ease;
 }
+.inicio-section {
+  display: flex;
+  flex-direction: column;
+}
+.inicio-section .recarga-panel { order: 1; }
+.inicio-section .stats-row { order: 2; }
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
@@ -2694,6 +2795,218 @@ async function reloadData() {
 
 .saldo-btn:hover {
   background: #13ABB2;
+}
+
+/* ===== RECARGA DIGITAL ===== */
+.recarga-panel {
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 20px;
+  padding: 34px 28px 30px;
+  border-radius: 24px 24px 70px 24px;
+  color: #FFFFFF;
+  background: linear-gradient(135deg, #09054F 0%, #10106D 55%, #17108A 100%);
+  box-shadow: 0 10px 24px rgba(8, 8, 76, 0.24);
+}
+.recarga-panel-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.9fr);
+  align-items: center;
+  gap: 34px;
+}
+.recarga-side {
+  min-width: 0;
+  padding-right: 34px;
+  border-right: 1px solid rgba(159, 232, 243, 0.2);
+}
+.saldo-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 190px;
+  text-align: center;
+}
+.saldo-side-label {
+  color: #9FE8F3;
+  font-size: 19px;
+  font-weight: 500;
+}
+.saldo-side-amount {
+  margin-top: 8px;
+  color: #FFFFFF;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+.saldo-side-sub {
+  margin-top: 7px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.78rem;
+}
+.saldo-side-chart { margin-top: 16px; }
+
+.recarga-value-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.recarga-value-label {
+  color: #9FE8F3;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.recarga-value-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  gap: 4px;
+}
+
+.recarga-value-input {
+  display: block;
+  width: min(390px, 72vw);
+  min-width: 0;
+  color: #FFFFFF;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: right;
+  text-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
+.recarga-value-input.recarga-value-hidden {
+  color: transparent;
+  text-shadow: none;
+  user-select: none;
+}
+.recarga-input-group {
+  display: flex;
+  flex-direction: column;
+  width: min(320px, 100%);
+  margin: 24px auto 0;
+  gap: 7px;
+}
+.recarga-input-group label {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.recarga-input-wrap { position: relative; }
+.recarga-input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px 0 34px;
+  border: 1px solid rgba(159, 232, 243, 0.38);
+  border-radius: 10px;
+  outline: none;
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+.recarga-input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.recarga-input:focus {
+  border-color: #9FE8F3;
+  box-shadow: 0 0 0 3px rgba(159, 232, 243, 0.15);
+}
+.recarga-input-prefix {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  color: #9FE8F3;
+  font-weight: 700;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.recarga-input-hint {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+.recarga-visibility {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border: 0;
+  color: #9FE8F3;
+  background: transparent;
+  cursor: pointer;
+}
+.recarga-visibility:hover { color: #FFFFFF; }
+.recarga-decimal {
+  align-self: flex-start;
+  margin-top: 3px;
+  color: #FFFFFF;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.recarga-arrow {
+  margin-left: 12px;
+  color: #B5F1F8;
+  font-size: 3.2rem;
+  font-weight: 300;
+  line-height: 0.8;
+}
+.recarga-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 22px;
+}
+.recarga-action-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 130px;
+  height: 126px;
+  padding: 12px 10px;
+  border: 0;
+  border-radius: 22px;
+  color: #F7F7FF;
+  background: #403D7C;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.recarga-action-card:hover:not(:disabled) {
+  background: #4B478E;
+  box-shadow: 0 9px 18px rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+.recarga-action-card:disabled { cursor: not-allowed; opacity: 0.55; }
+.recarga-feedback {
+  margin: 16px auto 0;
+  max-width: 440px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+.recarga-feedback-error { color: #FFC4C4; }
+.recarga-feedback-success { color: #9FF1C9; }
+
+@media (max-width: 760px) {
+  .recarga-panel-grid { grid-template-columns: 1fr; gap: 24px; }
+  .recarga-side {
+    padding-right: 0;
+    padding-bottom: 24px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(159, 232, 243, 0.2);
+  }
+  .saldo-side { min-height: 150px; }
 }
 
 /* ===== USERS TABLE ===== */

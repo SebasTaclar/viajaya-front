@@ -99,18 +99,107 @@
       </video>
       <div class="travel-hero__image-overlay"></div>
     </div>
+    <template v-if="!isMobile">
+      <!-- Principal banner (encima del video) -->
+      <div v-if="activePrincipal && heroVisible" class="banner-principal">
+        <a v-if="activePrincipal.linkUrl" :href="activePrincipal.linkUrl" target="_blank" rel="noopener">
+          <img :src="activePrincipal.imageUrl" alt="Banner principal" />
+        </a>
+        <img v-else :src="activePrincipal.imageUrl" alt="Banner principal" />
+      </div>
+
+      <!-- Popup banner -->
+      <div v-if="activePopup && !popupClosed" class="banner-popup-overlay" @click.self="popupClosed = true">
+        <div class="banner-popup">
+          <button class="banner-popup-close" @click="popupClosed = true" aria-label="Cerrar">×</button>
+          <a v-if="activePopup.linkUrl" :href="activePopup.linkUrl" target="_blank" rel="noopener">
+            <img :src="activePopup.imageUrl" alt="Popup banner" />
+          </a>
+          <img v-else :src="activePopup.imageUrl" alt="Popup banner" />
+        </div>
+      </div>
+
+      <!-- Lateral banner -->
+      <div v-if="activeLateral && !lateralClosed && heroVisible" class="banner-lateral">
+        <button class="banner-lateral-close" @click="lateralClosed = true" aria-label="Cerrar">×</button>
+        <a v-if="activeLateral.linkUrl" :href="activeLateral.linkUrl" target="_blank" rel="noopener">
+          <img :src="activeLateral.imageUrl" alt="Banner lateral" />
+        </a>
+        <img v-else :src="activeLateral.imageUrl" alt="Banner lateral" />
+      </div>
+    </template>
+
+    <!-- Mobile: cualquier banner actúa como popup -->
+    <div v-if="isMobile && mobileBanner && !closedIds.includes(mobileBanner.id)" class="banner-popup-overlay" @click.self="closedIds.push(mobileBanner.id)">
+      <div class="banner-popup">
+        <button class="banner-popup-close" @click="closedIds.push(mobileBanner.id)" aria-label="Cerrar">×</button>
+        <a v-if="mobileBanner.linkUrl" :href="mobileBanner.linkUrl" target="_blank" rel="noopener">
+          <img :src="mobileBanner.imageUrl" alt="Banner" />
+        </a>
+        <img v-else :src="mobileBanner.imageUrl" alt="Banner" />
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
 
 defineOptions({
   name: 'MainBanner'
 })
 
+interface BannerItem {
+  id: number
+  name: string
+  type: string
+  imageUrl: string
+  linkUrl?: string
+  startDate: string
+  endDate: string
+  active: boolean
+}
+
+function readBanners(): BannerItem[] {
+  if (typeof window === 'undefined') return []
+  try {
+    const list = JSON.parse(localStorage.getItem('viajaya_banners') || '[]') as BannerItem[]
+    let seen = false
+    return list.map((b) => {
+      if (b.active && !seen) { seen = true; return b }
+      if (b.active && seen) return { ...b, active: false }
+      return b
+    })
+  } catch {
+    return []
+  }
+}
+
+function isActive(b: BannerItem): boolean {
+  if (closedIds.value.includes(b.id)) return false
+  if (!b.active || !b.imageUrl) return false
+  const now = Date.now()
+  const start = Date.parse(b.startDate)
+  const end = Date.parse(b.endDate)
+  if (!isNaN(start) && now < start) return false
+  if (!isNaN(end) && now > end) return false
+  return true
+}
+
+const banners = computed<BannerItem[]>(() => readBanners())
+const popupClosed = ref(false)
+const lateralClosed = ref(false)
+const isMobile = ref(false)
+const closedIds = ref<number[]>([])
+
+const activePrincipal = computed(() => banners.value.find((b) => b.type === 'Principal' && isActive(b)) || null)
+const activePopup = computed(() => banners.value.find((b) => b.type === 'Popup' && isActive(b)) || null)
+const activeLateral = computed(() => banners.value.find((b) => b.type === 'Lateral' && isActive(b)) || null)
+const mobileBanner = computed(() => activePopup.value || activePrincipal.value || activeLateral.value)
+
 const backgroundVideo = ref<HTMLVideoElement | null>(null)
 const heroSection = ref<HTMLElement | null>(null)
+const heroVisible = ref(true)
 const currentStep = ref(0)
 let animationFrame = 0
 let scrubFrame = 0
@@ -164,6 +253,7 @@ const updateScrollTarget = () => {
     const runway = heroDistance > 50 ? heroDistance : Math.max(section.offsetHeight, 1)
     const heroProgress = clamp(-rect.top / runway, 0, 1)
     currentStep.value = Math.min(steps.length - 1, Math.floor(heroProgress * steps.length))
+    heroVisible.value = rect.top > -window.innerHeight * 0.2
   }
 
   if (frameScrub) {
@@ -216,6 +306,12 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
+  const checkMobile = () => {
+    isMobile.value = window.matchMedia('(max-width: 768px)').matches
+  }
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+  ;(window as any).__bannerMobileCheck = checkMobile
   heroSection.value = document.querySelector<HTMLElement>('.travel-hero')
   if (frameScrub) {
     window.setTimeout(() => {
@@ -230,6 +326,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  const checkMobile = (window as any).__bannerMobileCheck
+  if (checkMobile) window.removeEventListener('resize', checkMobile)
   window.removeEventListener('scroll', handleScroll)
   window.removeEventListener('resize', handleScroll)
   if (animationFrame) window.cancelAnimationFrame(animationFrame)
@@ -1726,5 +1824,104 @@ onBeforeUnmount(() => {
     margin-top: 0;
     z-index: 0;
   }
+}
+/* ===== Banners overlays ===== */
+.banner-principal {
+  position: absolute;
+  inset: 80px 28px 28px 28px;
+  z-index: 10;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #071522;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
+}
+.banner-principal a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.banner-principal img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.banner-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+.banner-popup {
+  position: relative;
+  width: min(720px, 94vw);
+}
+.banner-popup img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  display: block;
+}
+.banner-popup-close {
+  position: absolute;
+  top: -12px;
+  right: -44px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #111;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+@media (max-width: 560px) {
+  .banner-popup-close {
+    right: 4px;
+    top: -40px;
+  }
+}
+.banner-lateral {
+  position: fixed;
+  top: 15vh;
+  right: 3.5vw;
+  width: min(640px, 47vw);
+  height: min(420px, 58vh);
+  z-index: 9998;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+}
+.banner-lateral a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.banner-lateral img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.banner-lateral-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  z-index: 2;
 }
 </style>
