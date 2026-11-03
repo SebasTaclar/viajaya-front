@@ -10,6 +10,7 @@ import {
 class ClientAuthService {
   private readonly TOKEN_KEY = 'clientAuthToken'
   private readonly USER_INFO_KEY = 'clientUserInfo'
+  private readonly LOGIN_IDENTIFIER_KEY = 'clientLoginIdentifier'
 
   async login(credentials: LoginCredentials): Promise<ApiResponse<LoginResponse>> {
     const raw = await apiClient.post<LoginResponse>('/login', {
@@ -26,7 +27,11 @@ class ClientAuthService {
       password,
     })
 
-    return this.handleLoginResponse(raw)
+    const response = this.handleLoginResponse(raw)
+    if (response.success) {
+      localStorage.setItem(this.LOGIN_IDENTIFIER_KEY, cedula.trim())
+    }
+    return response
   }
 
   private handleLoginResponse(raw: ApiResponse<LoginResponse>): ApiResponse<LoginResponse> {
@@ -44,6 +49,9 @@ class ClientAuthService {
       }
     }
 
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('userInfo')
+    localStorage.removeItem('user')
     this.setToken(token)
     const userInfo = this.decodeToken(token)
     if (userInfo) {
@@ -62,6 +70,7 @@ class ClientAuthService {
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY)
     localStorage.removeItem(this.USER_INFO_KEY)
+    localStorage.removeItem(this.LOGIN_IDENTIFIER_KEY)
   }
 
   isAuthenticated(): boolean {
@@ -75,6 +84,10 @@ class ClientAuthService {
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY)
+  }
+
+  getLoginIdentifier(): string | null {
+    return localStorage.getItem(this.LOGIN_IDENTIFIER_KEY)
   }
 
   private setToken(token: string): void {

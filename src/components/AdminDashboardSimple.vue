@@ -98,7 +98,12 @@
               </svg>
             </span>
           </button>
-          <button v-else class="action-btn" title="Notificaciones">
+          <button
+            v-else
+            class="action-btn"
+            :title="isSuperAdmin ? 'Recuerda que cada 19 debes recargar el celular que usamos para mensajería masiva.' : 'Notificaciones'"
+            @click="isSuperAdmin && abrirRecargaModal()"
+          >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
               <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
@@ -683,14 +688,14 @@
                     <th class="col-name">Nombre</th>
                     <th class="col-kebab">Info / acciones</th>
                     <th class="col-imagen">Imagen</th>
-                    <th class="col-vigencia">Vigencia</th>
+                    <th class="col-vigencia">Orden</th>
                     <th class="col-estado">Estado</th>
                     <th class="col-acciones">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="b in banners" :key="b.id">
-                    <td class="col-tipo" data-label="Clase"><span class="type-badge">{{ b.type }}</span></td>
+                    <td class="col-tipo" data-label="Clase"><span class="type-badge">{{ bannerType(b) }}</span></td>
                     <td class="col-name name-cell" data-label="Nombre">{{ b.name }}</td>
                     <td class="col-kebab">
                       <button class="action-btn banner-kebab" title="Acciones" @click="bannerSheetRow = b">
@@ -701,20 +706,19 @@
                     </td>
                     <td class="col-imagen" data-label="Imagen">
                       <img
-                        :src="b.imageUrl"
+                        :src="bannerImageUrl(b)"
                         alt="banner"
                         class="banner-thumb"
                         @error="(e) => ((e.target as HTMLImageElement).src = '/images/banner1.jpg')"
                       />
                     </td>
-                    <td class="col-vigencia banner-vigencia" data-label="Vigencia">
-                      <div>{{ formatBannerDate(b.startDate) }}</div>
-                      <div class="banner-vigencia-sep">→</div>
-                      <div>{{ formatBannerDate(b.endDate) }}</div>
+                    <td class="col-vigencia banner-vigencia" data-label="Orden">
+                      <div>Orden: {{ b.sortOrder }}</div>
+                      <div v-if="bannerLink(b)" class="banner-link">{{ bannerLink(b) }}</div>
                     </td>
                     <td class="col-estado" data-label="Estado">
                       <label class="banner-toggle">
-                        <input type="checkbox" :checked="b.active" @change="toggleBannerActive(b, ($event.target as HTMLInputElement).checked)" />
+                        <input type="checkbox" :checked="b.isActive" @change="toggleBannerActive(b, ($event.target as HTMLInputElement).checked)" />
                         <span class="banner-status" :class="bannerStatusClass(b)">{{ bannerStatusLabel(b) }}</span>
                       </label>
                     </td>
@@ -751,7 +755,7 @@
               <div class="recaudo-sheet-top">
                 <div class="recaudo-sheet-header">
                   <strong>{{ bannerSheetRow.name }}</strong>
-                  <span>{{ bannerSheetRow.type }} · {{ bannerStatusLabel(bannerSheetRow) }}</span>
+                  <span>{{ bannerType(bannerSheetRow) }} · {{ bannerStatusLabel(bannerSheetRow) }}</span>
                 </div>
                 <button class="recaudo-sheet-close" @click="bannerSheetRow = null">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -760,8 +764,8 @@
                 </button>
               </div>
               <div class="recaudo-sheet-info">
-                <div class="recaudo-sheet-info-row"><span>Clase</span><strong>{{ bannerSheetRow.type }}</strong></div>
-                <div class="recaudo-sheet-info-row"><span>Vigencia</span><strong>{{ formatBannerDate(bannerSheetRow.startDate) }} → {{ formatBannerDate(bannerSheetRow.endDate) }}</strong></div>
+                <div class="recaudo-sheet-info-row"><span>Clase</span><strong>{{ bannerType(bannerSheetRow) }}</strong></div>
+                <div class="recaudo-sheet-info-row"><span>Orden</span><strong>{{ bannerSheetRow.sortOrder }}</strong></div>
                 <div class="recaudo-sheet-info-row"><span>Estado</span><strong>{{ bannerStatusLabel(bannerSheetRow) }}</strong></div>
               </div>
               <div class="recaudo-sheet-actions">
@@ -782,7 +786,7 @@
           </div>
 
           <!-- Crear / Editar banner -->
-          <div v-if="showCreateBanner || bannerEdit" class="modal-overlay" @click.self="closeBannerModal()">
+          <div v-if="showCreateBanner || bannerEdit" class="modal-overlay">
             <div class="modal-content modal-wide" @click.stop>
               <div class="modal-header">
                 <h3>{{ bannerEdit ? 'Editar banner' : 'Nuevo banner' }}</h3>
@@ -800,32 +804,38 @@
                   </div>
                   <div class="form-group">
                     <label>Clase</label>
-                    <select v-model="bannerForm.type" class="form-input">
-                      <option v-for="t in bannerTypes" :key="t" :value="t">{{ t }}</option>
+                    <select v-model="bannerForm.clase" class="form-input">
+                      <option value="Principal">Principal</option>
+                      <option value="Popup">Popup</option>
+                      <option value="Lateral">Lateral</option>
                     </select>
                   </div>
                   <div class="form-group full-width">
-                    <label>URL de la imagen</label>
-                    <input v-model="bannerForm.imageUrl" type="url" class="form-input" placeholder="https://..." />
+                    <label>URL de la imagen *</label>
+                    <input v-model="bannerForm.url" type="url" class="form-input" placeholder="https://..." />
                   </div>
                   <div class="form-group">
-                    <label>Activo desde</label>
-                    <input v-model="bannerForm.startDate" type="datetime-local" class="form-input" />
+                    <label>Nombre de la imagen</label>
+                    <input v-model="bannerForm.imageName" type="text" class="form-input" placeholder="Ejm: promo-viajaya-enero" />
+                  </div>
+                  <div v-if="false" class="form-group">
+                    <label>Enlace (opcional)</label>
+                    <input v-model="bannerForm.link" type="text" class="form-input" placeholder="/ofertas/navidad" />
                   </div>
                   <div class="form-group">
-                    <label>Activo hasta</label>
-                    <input v-model="bannerForm.endDate" type="datetime-local" class="form-input" />
+                    <label>Orden</label>
+                    <input v-model.number="bannerForm.sortOrder" type="number" min="0" class="form-input" />
                   </div>
                   <div class="form-group">
                     <label class="banner-check-label">
-                      <input v-model="bannerForm.active" type="checkbox" />
+                      <input v-model="bannerForm.isActive" type="checkbox" />
                       Activo
                     </label>
                   </div>
                 </div>
-                <div v-if="bannerForm.imageUrl" class="banner-preview">
+                <div v-if="bannerForm.url" class="banner-preview">
                   <img
-                    :src="bannerForm.imageUrl"
+                    :src="bannerForm.url"
                     alt="preview"
                     class="banner-preview-img"
                     @error="(e) => ((e.target as HTMLImageElement).src = '/images/banner1.jpg')"
@@ -859,6 +869,146 @@
               <div class="modal-footer">
                 <button class="btn-outline" @click="bannerDeleteConfirm = null">Cancelar</button>
                 <button class="btn-primary" style="background:#DC2626;border-color:#DC2626;" @click="deleteBanner(bannerDeleteConfirm!)">Eliminar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== PURCHASES ========== -->
+        <div v-if="currentSection === 'purchases'" class="section-purchases">
+          <div class="section-top">
+            <div>
+              <h2 class="page-title">Compras</h2>
+              <p class="page-subtitle">{{ purchasesTotal }} compras</p>
+            </div>
+            <div v-if="!purchasesLoading && purchasesList.length > 0" class="purchases-summary-card">
+              <div class="purchases-summary-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div>
+                <span class="purchases-summary-label">Recaudo completado</span>
+                <strong class="purchases-summary-value">{{ formatPurchaseAmount(purchasesCompletedTotal) }}</strong>
+                <span class="purchases-summary-meta">{{ purchasesCompletedCount }} compras completadas</span>
+              </div>
+            </div>
+            <button class="export-btn" @click="fetchPurchases()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"/>
+                <polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Actualizar
+            </button>
+          </div>
+
+          <div v-if="purchasesError" class="form-alert" style="margin-bottom: 16px;">
+            {{ purchasesError }}
+          </div>
+
+          <div v-if="!purchasesLoading && purchasesList.length > 0" class="coti-filters purchases-filters">
+            <div class="coti-filter-group coti-filter-search purchase-filter-search">
+              <label>Buscar</label>
+              <input v-model="purchasesSearch" type="search" class="coti-select" placeholder="Buscar en todas las compras..." />
+            </div>
+            <div class="coti-filter-group purchase-filter-status">
+              <label>Estado</label>
+              <select v-model="purchasesStatusFilter" class="coti-select">
+                <option value="">Todos los estados</option>
+                <option value="completed">Completada</option>
+                <option value="pending">Pendiente</option>
+                <option value="failed">Fallida</option>
+              </select>
+            </div>
+            <div class="coti-filter-group purchase-filter-month">
+              <label>Mes</label>
+              <input v-model="purchasesMonthFilter" type="month" class="coti-select" />
+            </div>
+            <div class="coti-filter-group purchase-filter-from">
+              <label>Fecha desde</label>
+              <input v-model="purchasesFromDate" type="date" class="coti-select" />
+            </div>
+            <div class="coti-filter-group purchase-filter-to">
+              <label>Fecha hasta</label>
+              <input v-model="purchasesToDate" type="date" class="coti-select" />
+            </div>
+            <div class="coti-filter-group purchase-filter-clear">
+              <label aria-hidden="true">&nbsp;</label>
+              <button class="btn-outline" @click="clearPurchaseFilters">Limpiar</button>
+            </div>
+          </div>
+
+          <div v-if="purchasesLoading" class="empty-state">
+            <p>Cargando compras...</p>
+          </div>
+
+          <div v-else-if="purchasesList.length === 0" class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color: var(--c-gray-light); margin-bottom: 16px;">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            <h3>Aún no hay compras registradas</h3>
+            <p>Aquí aparecerán las compras cuando se registren.</p>
+          </div>
+
+          <div v-else-if="purchasesFiltered.length === 0" class="empty-state">
+            <h3>No se encontraron compras</h3>
+            <p>Prueba con otro término de búsqueda o estado.</p>
+          </div>
+
+          <div v-else class="table-card">
+            <div class="table-responsive">
+              <table class="data-table purchases-table">
+                <thead>
+                  <tr>
+                    <th v-for="col in purchaseColumns" :key="col" :class="purchaseColumnClass(col)" :style="col === 'id' ? 'width: 56px' : undefined">{{ purchaseColumnLabel(col) }}</th>
+                    <th class="purchase-kebab">Info</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(row, idx) in purchasesFiltered" :key="String((row as Record<string, unknown>)?.id ?? idx)">
+                    <td v-for="col in purchaseColumns" :key="col" :class="purchaseColumnClass(col)" :style="col === 'id' ? 'width: 56px' : undefined">
+                      <span v-if="isPurchaseStatusColumn(col)" class="purchase-status" :class="purchaseStatusClass(row[col])">
+                        {{ purchaseValue(row, col) }}
+                      </span>
+                      <template v-else>{{ col === 'id' ? purchasesFiltered.length - idx : purchaseValue(row, col) }}</template>
+                    </td>
+                    <td class="purchase-kebab">
+                      <button class="action-btn purchase-kebab-btn" title="Ver información" @click="purchaseSheetRow = row">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                          <circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/>
+                        </svg>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="purchasesTotalPages > 1" class="modal-footer" style="justify-content: center;">
+              <button class="btn-outline" :disabled="purchasesPage <= 1" @click="purchasesPage--; fetchPurchases()">Anterior</button>
+              <span style="align-self:center;">{{ purchasesPage }} / {{ purchasesTotalPages }}</span>
+              <button class="btn-outline" :disabled="purchasesPage >= purchasesTotalPages" @click="purchasesPage++; fetchPurchases()">Siguiente</button>
+            </div>
+            <div v-if="purchaseSheetRow" class="recaudo-sheet-overlay" @click.self="purchaseSheetRow = null">
+              <div class="recaudo-sheet-panel">
+                <div class="recaudo-sheet-handle"></div>
+                <div class="recaudo-sheet-top">
+                  <div class="recaudo-sheet-header">
+                    <strong>{{ purchaseValue(purchaseSheetRow, purchaseNameColumn) }}</strong>
+                    <span>{{ purchaseValue(purchaseSheetRow, purchaseStatusColumn) }}</span>
+                  </div>
+                  <button class="recaudo-sheet-close" @click="purchaseSheetRow = null">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="recaudo-sheet-info">
+                  <div v-for="col in purchaseColumns" :key="col" class="recaudo-sheet-info-row">
+                    <span>{{ purchaseColumnLabel(col) }}</span>
+                    <strong>{{ purchaseValue(purchaseSheetRow, col) }}</strong>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -941,6 +1091,7 @@
                     <th class="col-name" style="width: 26%;">Nombre</th>
                     <th class="col-kebab">Info / acciones</th>
                     <th class="col-cedula" style="width: 17%;">Cédula</th>
+                    <th class="recaudo-origin-column" style="width: 12%;">Origen</th>
                     <th class="col-fecha" style="width: 17%;">Fecha</th>
                     <th class="col-valor" style="width: 17%;">Valor</th>
                     <th class="col-actions" style="width: 17%;">Acciones</th>
@@ -960,6 +1111,11 @@
                       </button>
                     </td>
                     <td class="col-cedula" data-label="Cédula">{{ r.cedula }}</td>
+                    <td class="recaudo-origin-column" data-label="Origen">
+                      <span class="recaudo-origin-badge" :class="getRecaudoOriginClass(r)">
+                        {{ getRecaudoOrigin(r) }}
+                      </span>
+                    </td>
                     <td class="col-fecha" data-label="Fecha">{{ formatFecha(r.fecha) }}</td>
                     <td class="col-valor" data-label="Valor">{{ formatCurrency(r.valor) }}</td>
                     <td class="col-actions">
@@ -980,7 +1136,7 @@
                             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                           </svg>
                         </button>
-                        <button class="action-btn delete-btn" title="Eliminar" @click="removeRecaudo(r.id)">
+                        <button v-if="isSuperAdmin" class="action-btn delete-btn" title="Eliminar" @click="removeRecaudo(r.id)">
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                           </svg>
@@ -1010,6 +1166,7 @@
                   <div class="recaudo-detail-row"><span>Cédula</span><strong>{{ recaudoSelected.cedula }}</strong></div>
                   <div class="recaudo-detail-row"><span>Fecha</span><strong>{{ formatFecha(recaudoSelected.fecha) }}</strong></div>
                   <div class="recaudo-detail-row"><span>Valor</span><strong>{{ formatCurrency(recaudoSelected.valor) }}</strong></div>
+                  <div class="recaudo-detail-row"><span>Origen</span><strong>{{ getRecaudoOrigin(recaudoSelected) }}</strong></div>
                   <div class="recaudo-detail-row"><span>Periodicidad</span><strong>{{ recaudoSelected.periodicidad }}</strong></div>
                 </div>
               </div>
@@ -1150,7 +1307,7 @@
                   <label for="recharge-modal-client">Cliente</label>
                   <select id="recharge-modal-client" v-model="recargaClienteId" class="form-input">
                     <option :value="0" disabled>Selecciona un cliente</option>
-                    <option v-for="u in usuariosCreados" :key="u.id" :value="u.id">
+                    <option v-for="u in usuariosCreados" :key="u.id" :value="u.clientId || u.id">
                       {{ u.name }} — CC {{ u.cedula }}
                     </option>
                   </select>
@@ -1208,7 +1365,7 @@
                     <path d="M15 9.3a4.2 4.2 0 0 0-6 1M9 14.7a4.2 4.2 0 0 0 6-1" stroke="#FFF4B8" stroke-width="1.5" stroke-linecap="round"/>
                     <path d="m9.2 8.7-.3 2.5 2.5-.3M14.8 15.3l.3-2.5-2.5.3" stroke="#FFF4B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
-                  <span>{{ recargaSaving ? 'Guardando...' : 'Recargar' }}</span>
+                  <span>{{ recargaSaving ? 'Procesando...' : 'Recargar' }}</span>
                 </button>
               </div>
             </div>
@@ -1364,6 +1521,7 @@
                 <div class="recaudo-sheet-info-row"><span>Cédula</span><strong>CC {{ recaudoSheetRow.cedula }}</strong></div>
                 <div class="recaudo-sheet-info-row"><span>Fecha</span><strong>{{ formatFecha(recaudoSheetRow.fecha) }}</strong></div>
                 <div class="recaudo-sheet-info-row"><span>Valor</span><strong>{{ formatCurrency(recaudoSheetRow.valor) }}</strong></div>
+                <div class="recaudo-sheet-info-row"><span>Origen</span><strong>{{ getRecaudoOrigin(recaudoSheetRow) }}</strong></div>
               </div>
               <div class="recaudo-sheet-actions">
                 <button class="recaudo-sheet-item" @click="recaudoSheetDo(openEditRecaudo)">
@@ -1378,7 +1536,7 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                   Enviar mensaje
                 </button>
-                <button class="recaudo-sheet-item danger" @click="recaudoSheetDo((r) => removeRecaudo(r.id))">
+                <button v-if="isSuperAdmin" class="recaudo-sheet-item danger" @click="recaudoSheetDo((r) => removeRecaudo(r.id))">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                   Eliminar
                 </button>
@@ -1967,7 +2125,10 @@ import { documentService } from '@/services/api/documentService'
 import { userService, type User } from '@/services/api/userService'
 import { auditService } from '@/services/api/auditService'
 import { recaudoService, type RecaudoRow } from '@/services/api/recaudoService'
+import { paymentService } from '@/services/api/paymentService'
 import { messageService, type SmsUsage } from '@/services/api/messageService'
+import { orderService } from '@/services/api/orderService'
+import { bannerService, type Banner, type BannerContent } from '@/services/api/bannerService'
 import type { Evento, CreateEventoRequest, EventEntityType, EventType, DocumentoEntity } from '@/types/crmTypes'
 import UsuariosList from '@/views/crm/UsuariosList.vue'
 import PanelUsersList from '@/views/crm/PanelUsersList.vue'
@@ -2468,6 +2629,20 @@ interface RecaudoForm {
 const recaudosList = ref<RecaudoRow[]>([])
 const recaudosLoading = ref(false)
 const recaudoError = ref('')
+
+const purchasesList = ref<Record<string, unknown>[]>([])
+const purchasesLoading = ref(false)
+const purchasesError = ref('')
+const purchasesPage = ref(1)
+const purchasesPageSize = ref(10)
+const purchasesTotal = ref(0)
+const purchasesTotalPages = ref(1)
+const purchaseSheetRow = ref<Record<string, unknown> | null>(null)
+const purchasesSearch = ref('')
+const purchasesStatusFilter = ref('')
+const purchasesMonthFilter = ref('')
+const purchasesFromDate = ref('')
+const purchasesToDate = ref('')
 const recaudoSaving = ref(false)
 const recargaClienteId = ref(0)
 const recargaValor = ref(0)
@@ -2524,6 +2699,36 @@ function resolveRecaudo(row: RecaudoRow): RecaudoView {
   }
 }
 
+function getRecaudoOrigin(row: RecaudoRow): 'Wompi' | 'Manual' {
+  const data = row.data
+  if (!data) return 'Manual'
+
+  const source = [
+    data.source,
+    data.origen,
+    data.provider,
+    data.paymentMethod,
+  ]
+    .filter((value): value is string => typeof value === 'string')
+    .join(' ')
+    .toLowerCase()
+
+  if (
+    source.includes('wompi')
+    || data.paymentId !== undefined
+    || typeof data.externalReference === 'string'
+    || typeof data.wompiTransactionId === 'string'
+  ) {
+    return 'Wompi'
+  }
+
+  return 'Manual'
+}
+
+function getRecaudoOriginClass(row: RecaudoRow): string {
+  return getRecaudoOrigin(row) === 'Wompi' ? 'recaudo-origin-wompi' : 'recaudo-origin-manual'
+}
+
 async function fetchRecaudos() {
   recaudosLoading.value = true
   recaudoError.value = ''
@@ -2538,6 +2743,231 @@ async function fetchRecaudos() {
   }
 }
 
+async function fetchPurchases() {
+  purchasesLoading.value = true
+  purchasesError.value = ''
+  try {
+    const response = await orderService.getPurchases({ page: purchasesPage.value, pageSize: purchasesPageSize.value })
+    purchasesList.value = Array.isArray(response.data) ? (response.data as unknown as Record<string, unknown>[]) : []
+    purchasesTotal.value = response.total || purchasesList.value.length
+    purchasesTotalPages.value = response.totalPages || 1
+    purchasesPage.value = response.page || purchasesPage.value
+  } catch (error) {
+    purchasesList.value = []
+    purchasesError.value = error instanceof Error ? error.message : 'No se pudieron cargar las compras.'
+  } finally {
+    purchasesLoading.value = false
+  }
+}
+
+const PURCHASE_HIDDEN_COLUMNS = new Set(['items', 'email', 'buyeremail', 'buyer_email', 'orderstatus', 'order_status', 'order status', 'currency', 'updatedat', 'updated_at', 'updatedAt'])
+const PURCHASE_COLUMN_LABELS: Record<string, string> = {
+  id: '#',
+  userId: 'ID de usuario',
+  user_id: 'ID de usuario',
+  buyerName: 'Nombre',
+  buyer_name: 'Nombre',
+  buyer: 'Nombre',
+  name: 'Nombre',
+  buyerEmail: 'Correo',
+  buyer_email: 'Correo',
+  email: 'Correo',
+  buyerContactNumber: 'Celular',
+  buyer_contact_number: 'Celular',
+  contactNumber: 'Celular',
+  contact_number: 'Celular',
+  phone: 'Celular',
+  telefono: 'Celular',
+  totalAmount: 'Monto total',
+  total_amount: 'Monto total',
+  amount: 'Monto',
+  total: 'Total',
+  status: 'Estado',
+  orderStatus: 'Estado de la orden',
+  order_status: 'Estado de la orden',
+  shippingAddress: 'Dirección de envío',
+  shipping_address: 'Dirección de envío',
+  address: 'Dirección',
+  paymentId: 'ID de pago',
+  payment_id: 'ID de pago',
+  createdAt: 'Fecha de la compra',
+  created_at: 'Fecha de la compra',
+  date: 'Fecha de la compra',
+  fecha: 'Fecha de la compra',
+  purchaseDate: 'Fecha de la compra',
+  purchase_date: 'Fecha de la compra',
+  orderDate: 'Fecha de la compra',
+  order_date: 'Fecha de la compra',
+  updatedAt: 'Actualizado',
+  updated_at: 'Actualizado',
+  reference: 'Referencia',
+  transactionId: 'ID de transacción',
+  transaction_id: 'ID de transacción',
+  currency: 'Moneda',
+  provider: 'Proveedor',
+  identification: 'Identificación',
+}
+
+function isPurchaseColumnHidden(key: string): boolean {
+  return PURCHASE_HIDDEN_COLUMNS.has(key.toLowerCase().replace(/\s+/g, ''))
+}
+
+function purchaseColumnLabel(key: string): string {
+  return PURCHASE_COLUMN_LABELS[key] ?? key
+}
+
+const PURCHASE_STATUS_LABELS: Record<string, string> = {
+  pending: 'Pendiente',
+  completed: 'Completada',
+  complete: 'Completada',
+  failed: 'Fallida',
+  failure: 'Fallida',
+  paid: 'Pagado',
+  shipped: 'Enviado',
+  delivered: 'Entregado',
+  cancelled: 'Cancelado',
+  canceled: 'Cancelado',
+  approved: 'Aprobado',
+  declined: 'Rechazado',
+  error: 'Error',
+}
+
+function isPurchaseStatusColumn(key: string): boolean {
+  return key.toLowerCase().includes('status') || key.toLowerCase() === 'estado'
+}
+
+function purchaseColumnClass(key: string): string {
+  const normalized = key.toLowerCase()
+  if (normalized === 'id') return 'purchase-col-id'
+  if (isPurchaseStatusColumn(key)) return 'purchase-col-status'
+  if (normalized.includes('name') || normalized === 'buyer') return 'purchase-col-name'
+  return 'purchase-col-secondary'
+}
+
+function purchaseStatusClass(value: unknown): string {
+  const normalized = String(value ?? '').toLowerCase()
+  if (['completed', 'complete', 'paid', 'approved', 'delivered'].includes(normalized)) return 'purchase-status-completed'
+  if (['pending', 'processing', 'in_progress'].includes(normalized)) return 'purchase-status-pending'
+  if (['failed', 'failure', 'error', 'declined', 'cancelled', 'canceled'].includes(normalized)) return 'purchase-status-failed'
+  return 'purchase-status-pending'
+}
+
+function purchaseStatusValue(row: Record<string, unknown>): string {
+  const key = Object.keys(row).find(isPurchaseStatusColumn)
+  return key ? String(row[key] ?? '').toLowerCase() : ''
+}
+
+function purchaseAmountValue(row: Record<string, unknown>): number {
+  const key = Object.keys(row).find((candidate) => {
+    const normalized = candidate.toLowerCase()
+    return normalized.includes('amount') || normalized.includes('total') || normalized.includes('monto') ||
+      normalized.includes('valor') || normalized === 'price' || normalized === 'value'
+  })
+  if (!key) return 0
+  const amount = Number(row[key])
+  return Number.isFinite(amount) ? amount : 0
+}
+
+function purchaseDateValue(row: Record<string, unknown>): string {
+  const key = Object.keys(row).find((candidate) => {
+    const normalized = candidate.toLowerCase()
+    return normalized.includes('date') || normalized.includes('created') ||
+      normalized.includes('fecha') || normalized.endsWith('at')
+  })
+  return key ? String(row[key] ?? '') : ''
+}
+
+function purchaseDateOnly(row: Record<string, unknown>): string {
+  const value = purchaseDateValue(row)
+  if (!value) return ''
+  const date = new Date(value)
+  if (!Number.isNaN(date.getTime())) {
+    const pad = (part: number) => String(part).padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  }
+  return value.slice(0, 10)
+}
+
+function formatPurchaseAmount(value: number): string {
+  return `$${value.toLocaleString('es-CO')}`
+}
+
+const purchasesFiltered = computed(() => {
+  const search = purchasesSearch.value.trim().toLowerCase()
+  const status = purchasesStatusFilter.value
+  return purchasesList.value.filter((row) => {
+    if (status && !purchaseStatusValue(row).includes(status)) return false
+    const date = purchaseDateOnly(row)
+    if (purchasesMonthFilter.value && !date.startsWith(purchasesMonthFilter.value)) return false
+    if (purchasesFromDate.value && (!date || date < purchasesFromDate.value)) return false
+    if (purchasesToDate.value && (!date || date > purchasesToDate.value)) return false
+    if (!search) return true
+    return Object.values(row).some((value) => String(value ?? '').toLowerCase().includes(search))
+  })
+})
+
+const completedPurchases = computed(() =>
+  purchasesList.value.filter((row) => ['completed', 'complete'].includes(purchaseStatusValue(row))),
+)
+
+const purchasesCompletedTotal = computed(() =>
+  completedPurchases.value.reduce((total, row) => total + purchaseAmountValue(row), 0),
+)
+
+const purchasesCompletedCount = computed(() => completedPurchases.value.length)
+
+function clearPurchaseFilters() {
+  purchasesSearch.value = ''
+  purchasesStatusFilter.value = ''
+  purchasesMonthFilter.value = ''
+  purchasesFromDate.value = ''
+  purchasesToDate.value = ''
+}
+
+function purchaseValue(row: Record<string, unknown>, key: string): string {
+  const val = row?.[key]
+  if (val === null || val === undefined || val === '') return '—'
+  const normalizedKey = key.toLowerCase()
+  if (normalizedKey.includes('status')) {
+    const normalized = String(val).toLowerCase()
+    if (PURCHASE_STATUS_LABELS[normalized]) return PURCHASE_STATUS_LABELS[normalized]
+  }
+  if (normalizedKey.includes('date') || normalizedKey.includes('created') || normalizedKey.includes('fecha') || normalizedKey.endsWith('at')) {
+    return formatPurchaseFecha(String(val))
+  }
+  if (normalizedKey.includes('amount') || normalizedKey.includes('total') || normalizedKey.includes('monto') || normalizedKey.includes('valor') || normalizedKey === 'price' || normalizedKey === 'value') {
+    const num = Number(val)
+    if (Number.isFinite(num)) {
+      return `$${num.toLocaleString('es-CO')}`
+    }
+  }
+  if (typeof val === 'object') {
+    try { return JSON.stringify(val) } catch { return String(val) }
+  }
+  return String(val)
+}
+
+const purchaseColumns = computed(() => {
+  const keys = new Set<string>()
+  for (const row of purchasesList.value.slice(0, 5)) {
+    if (row && typeof row === 'object') Object.keys(row).forEach((k) => keys.add(k))
+  }
+  return Array.from(keys).filter((k) => !isPurchaseColumnHidden(k))
+})
+
+const purchaseNameColumn = computed(() =>
+  purchaseColumns.value.find((column) => purchaseColumnClass(column) === 'purchase-col-name') ||
+  purchaseColumns.value.find((column) => column.toLowerCase() === 'id') ||
+  purchaseColumns.value[0] ||
+  'id',
+)
+
+const purchaseStatusColumn = computed(() =>
+  purchaseColumns.value.find((column) => isPurchaseStatusColumn(column)) ||
+  purchaseColumns.value[0] ||
+  'status',
+)
+
 function formatFecha(value: string): string {
   if (!value) return ''
   if (!value.includes('T')) return value
@@ -2545,6 +2975,23 @@ function formatFecha(value: string): string {
   const [y, m, d] = datePart.split('-')
   if (!y || !m || !d) return value
   return `${d}/${m}/${y} ${timePart.slice(0, 5)}`
+}
+
+function formatPurchaseFecha(value: string): string {
+  if (!value) return ''
+  if (!value.includes('T')) return value
+  const hasTz = /Z$|[+-]\d{2}:?\d{2}$/.test(value.trim())
+  const d = new Date(hasTz ? value : `${value}Z`)
+  if (Number.isNaN(d.getTime())) return formatFecha(value)
+  return d.toLocaleString('es-CO', {
+    timeZone: 'America/Bogota',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 
 function formatFechaLarga(value: string): string {
@@ -2638,25 +3085,33 @@ function openSaldoRecargaModal() {
 
 async function recargarSaldo() {
   if (!recargaFormValid.value || recargaSaving.value) return
+  const cliente = usuariosCreados.value.find((u) => (u.clientId || u.id) === recargaClienteId.value)
+  if (!cliente) {
+    recargaError.value = 'No se encontró el cliente seleccionado.'
+    return
+  }
+  const buyerIdentificationNumber = cliente?.cedula?.trim()
+  if (!buyerIdentificationNumber) {
+    recargaError.value = 'El cliente seleccionado no tiene una cédula registrada.'
+    return
+  }
   recargaSaving.value = true
   recargaError.value = ''
   recargaSuccess.value = ''
   try {
-    await recaudoService.create({
-      clientId: recargaClienteId.value,
-      fecha: fromInputFecha(recargaFecha.value),
-      valor: recargaValor.value,
+    const normalizedEmail = cliente.email?.trim()
+    const payment = await paymentService.createValuePayment({
+      buyerIdentificationNumber,
+      amount: recargaValor.value,
+      buyerEmail: normalizedEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)
+        ? normalizedEmail
+        : undefined,
+      buyerName: cliente.name?.trim() || undefined,
+      buyerContactNumber: cliente.celular?.trim() || undefined,
     })
-    await fetchRecaudos()
-    const cliente = usuariosCreados.value.find((u) => u.id === recargaClienteId.value)
-    recargaSuccess.value = `Recarga de ${formatCurrency(recargaValor.value)} aplicada a ${cliente?.name || 'cliente'}.`
-    recargaClienteId.value = 0
-    recargaValor.value = 0
-    recargaFecha.value = ''
-    window.clearTimeout(recargaSuccessTimer)
-    recargaSuccessTimer = window.setTimeout(() => { recargaSuccess.value = '' }, 5000)
+    window.location.href = payment.paymentUrl
   } catch (error) {
-    recargaError.value = recaudoErrorMessage(error, 'No se pudo aplicar la recarga.')
+    recargaError.value = error instanceof Error ? error.message : 'No se pudo iniciar el pago de la recarga.'
   } finally {
     recargaSaving.value = false
   }
@@ -2682,7 +3137,7 @@ watch(
     const user = usuariosCreados.value.find((u) => u.name === name)
     recaudoForm.value.cedula = user ? user.cedula : ''
     recaudoForm.value.periodicidad = user ? (PERIOD_LABEL[String(user.periodicidad).toLowerCase()] || 'Mensual') : ''
-    recaudoForm.value.clientId = user ? user.id : 0
+    recaudoForm.value.clientId = user ? (user.clientId || user.id) : 0
   },
 )
 
@@ -2716,7 +3171,7 @@ async function createRecaudo(): Promise<RecaudoView | null> {
     await fetchRecaudos()
     const row = created && created.id
       ? created
-      : recaudosList.value.filter((r) => r.clientId === f.clientId).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0]
+      : recaudosList.value.filter((r) => Number(r.clientId) === f.clientId).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)))[0]
     return row ? resolveRecaudo(row) : null
   } catch (error) {
     recaudoError.value = recaudoErrorMessage(error, 'No se pudo crear el recaudo.')
@@ -2727,6 +3182,10 @@ async function createRecaudo(): Promise<RecaudoView | null> {
 }
 
 async function removeRecaudo(id: number) {
+  if (!isSuperAdmin.value) {
+    recaudoError.value = 'Solo un superadmin puede eliminar recaudos.'
+    return
+  }
   if (!window.confirm('¿Estás seguro de eliminar este recaudo?')) return
   recaudoError.value = ''
   try {
@@ -2851,13 +3310,13 @@ const navItems = [
   { id: 'panel-usuarios', label: 'Usuarios del panel', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
   { id: 'recaudos', label: 'Recaudos', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg>' },
   { id: 'banners', label: 'Banners', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' },
+  { id: 'purchases', label: 'Compras', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' },
   { id: 'audit', label: 'Auditoría', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' },
 ].filter(
   (item) =>
     isSuperAdmin.value ||
     item.id === 'usuarios' ||
-    item.id === 'recaudos' ||
-    item.id === 'banners',
+    item.id === 'recaudos',
 )
 
 // ========== CALENDARIO ==========
@@ -3178,8 +3637,7 @@ const setSection = (section: string) => {
   if (
     !isSuperAdmin.value &&
     section !== 'usuarios' &&
-    section !== 'recaudos' &&
-    section !== 'banners'
+    section !== 'recaudos'
   )
     return
   const item = navItems.find((n) => n.id === section)
@@ -3191,6 +3649,9 @@ const setSection = (section: string) => {
   sidebarOpen.value = false
   if (section === 'recaudos' && recaudosList.value.length === 0 && !recaudosLoading.value) {
     fetchRecaudos()
+  }
+  if (section === 'purchases' && purchasesList.value.length === 0 && !purchasesLoading.value) {
+    fetchPurchases()
   }
 }
 
@@ -3633,7 +4094,7 @@ const recargaActiva = computed(
 
 // Ya se pulsó "Ya recargué" este mes: la campana queda en modo "recargado"
 const recargaHechaMes = computed(
-  () => isSuperAdmin.value && recargaDismissedMes.value && recargaDia.value >= RECARGA_DIA_INICIO,
+  () => isSuperAdmin.value && recargaDismissedMes.value,
 )
 
 const recargaEsFechaLimite = computed(() => recargaDia.value === RECARGA_DIA_LIMITE)
@@ -3820,22 +4281,10 @@ async function loadDashboard() {
 }
 
 // ========== BANNERS ==========
-interface BannerItem {
-  id: number
-  name: string
-  type: string
-  imageUrl: string
-  linkUrl?: string
-  startDate: string
-  endDate: string
-  active: boolean
-  createdAt: string
-}
-
-const BANNERS_KEY = 'viajaya_banners'
-const bannerTypes = ['Principal', 'Popup', 'Lateral']
+type BannerItem = Banner
 
 const banners = ref<BannerItem[]>([])
+const bannersLoading = ref(false)
 const showCreateBanner = ref(false)
 const bannerEdit = ref<BannerItem | null>(null)
 const bannerError = ref('')
@@ -3843,7 +4292,7 @@ const bannerSaving = ref(false)
 const bannerDeleteConfirm = ref<BannerItem | null>(null)
 const bannerSheetRow = ref<BannerItem | null>(null)
 
-function bannerSheetDo(fn: (b: BannerItem) => void) {
+function bannerSheetDo(fn: (b: BannerItem) => void | Promise<void>) {
   const b = bannerSheetRow.value
   bannerSheetRow.value = null
   if (b) fn(b)
@@ -3851,57 +4300,46 @@ function bannerSheetDo(fn: (b: BannerItem) => void) {
 
 const bannerForm = ref({
   name: '',
-  type: 'Principal',
-  imageUrl: '',
-  startDate: '',
-  endDate: '',
-  active: true,
+  imageName: '',
+  url: '',
+  link: '',
+  clase: 'Principal',
+  isActive: true,
+  sortOrder: 0,
 })
 
 const bannerFormValid = computed(() => {
-  return !!bannerForm.value.name.trim() && !!bannerForm.value.imageUrl.trim() && !!bannerForm.value.startDate && !!bannerForm.value.endDate
+  return !!bannerForm.value.name.trim() && !!bannerForm.value.url.trim()
 })
 
-function loadBanners() {
+function bannerType(b: BannerItem): string {
+  return typeof b.content.clase === 'string' && b.content.clase ? b.content.clase : 'Principal'
+}
+
+function bannerImageUrl(b: BannerItem): string {
+  return b.content.url
+}
+
+function bannerLink(b: BannerItem): string {
+  return typeof b.content.link === 'string' ? b.content.link : ''
+}
+
+async function loadBanners() {
+  bannersLoading.value = true
+  bannerError.value = ''
   try {
-    const raw = localStorage.getItem(BANNERS_KEY)
-    const list = raw ? (JSON.parse(raw) as BannerItem[]) : []
-    let seenActive = false
-    banners.value = list.map((b) => {
-      if (b.active && !seenActive) {
-        seenActive = true
-        return b
-      }
-      if (b.active && seenActive) {
-        return { ...b, active: false }
-      }
-      return b
-    })
-    persistBanners()
-  } catch {
+    const response = await bannerService.getAll(true)
+    banners.value = response.data
+  } catch (error) {
     banners.value = []
+    bannerError.value = error instanceof Error ? error.message : 'No se pudieron cargar los banners.'
+  } finally {
+    bannersLoading.value = false
   }
 }
 
-function persistBanners() {
-  localStorage.setItem(BANNERS_KEY, JSON.stringify(banners.value))
-}
-
-function formatBannerDate(value: string): string {
-  if (!value) return '—'
-  const d = new Date(value)
-  if (isNaN(d.getTime())) return value
-  return d.toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })
-}
-
 function bannerStatusLabel(b: BannerItem): string {
-  if (!b.active) return 'Inactivo'
-  const now = Date.now()
-  const start = Date.parse(b.startDate)
-  const end = Date.parse(b.endDate)
-  if (!isNaN(start) && now < start) return 'Programado'
-  if (!isNaN(end) && now > end) return 'Expirado'
-  return 'Activo'
+  return b.isActive ? 'Activo' : 'Inactivo'
 }
 
 function bannerStatusClass(b: BannerItem): string {
@@ -3917,11 +4355,12 @@ function openCreateBanner() {
   bannerError.value = ''
   bannerForm.value = {
     name: '',
-    type: 'Principal',
-    imageUrl: '',
-    startDate: '',
-    endDate: '',
-    active: true,
+    imageName: '',
+    url: '',
+    link: '',
+    clase: 'Principal',
+    isActive: true,
+    sortOrder: banners.value.length,
   }
   showCreateBanner.value = true
 }
@@ -3931,11 +4370,12 @@ function openEditBanner(b: BannerItem) {
   bannerError.value = ''
   bannerForm.value = {
     name: b.name,
-    type: b.type,
-    imageUrl: b.imageUrl,
-    startDate: b.startDate,
-    endDate: b.endDate,
-    active: b.active,
+    imageName: typeof b.content.imageName === 'string' ? b.content.imageName : '',
+    url: b.content.url,
+    link: bannerLink(b),
+    clase: bannerType(b),
+    isActive: b.isActive,
+    sortOrder: b.sortOrder,
   }
   showCreateBanner.value = true
 }
@@ -3946,77 +4386,63 @@ function closeBannerModal() {
   bannerError.value = ''
 }
 
-function saveBanner() {
+async function saveBanner() {
   bannerSaving.value = true
   bannerError.value = ''
   try {
-    if (bannerEdit.value) {
-      const idx = banners.value.findIndex((b) => b.id === bannerEdit.value!.id)
-      if (idx !== -1) {
-        banners.value[idx] = {
-          ...banners.value[idx],
-          name: bannerForm.value.name.trim(),
-          type: bannerForm.value.type,
-          imageUrl: bannerForm.value.imageUrl.trim(),
-          linkUrl: '',
-          startDate: bannerForm.value.startDate,
-          endDate: bannerForm.value.endDate,
-          active: bannerForm.value.active,
-        }
-      }
-      if (bannerForm.value.active) {
-        banners.value = banners.value.map((b) =>
-          b.id === bannerEdit.value!.id ? b : { ...b, active: false },
-        )
-      }
-    } else {
-      const newItem: BannerItem = {
-        id: Date.now(),
-        name: bannerForm.value.name.trim(),
-        type: bannerForm.value.type,
-        imageUrl: bannerForm.value.imageUrl.trim(),
-        linkUrl: '',
-        startDate: bannerForm.value.startDate,
-        endDate: bannerForm.value.endDate,
-        active: bannerForm.value.active,
-        createdAt: new Date().toISOString(),
-      }
-      banners.value.unshift(newItem)
-      if (bannerForm.value.active) {
-        banners.value = banners.value.map((b) =>
-          b.id === newItem.id ? b : { ...b, active: false },
-        )
-      }
+    const content: BannerContent = {
+      ...(bannerEdit.value?.content || {}),
+      imageName: bannerForm.value.imageName.trim() || undefined,
+      url: bannerForm.value.url.trim(),
+      link: bannerForm.value.link.trim() || undefined,
+      clase: bannerForm.value.clase,
     }
-    persistBanners()
+    const payload = {
+      name: bannerForm.value.name.trim(),
+      content,
+      isActive: bannerForm.value.isActive,
+      sortOrder: Number.isFinite(bannerForm.value.sortOrder) ? bannerForm.value.sortOrder : 0,
+    }
+    if (bannerEdit.value) {
+      await bannerService.update(bannerEdit.value.id, payload)
+    } else {
+      await bannerService.create(payload)
+    }
+    await loadBanners()
     closeBannerModal()
-  } catch (e) {
-    bannerError.value = e instanceof Error ? e.message : 'No se pudo guardar el banner'
+  } catch (error) {
+    bannerError.value = error instanceof Error ? error.message : 'No se pudo guardar el banner'
   } finally {
     bannerSaving.value = false
   }
 }
 
-function deleteBanner(b: BannerItem) {
-  banners.value = banners.value.filter((x) => x.id !== b.id)
-  persistBanners()
-  bannerDeleteConfirm.value = null
-}
-
-function activateBanner(b: BannerItem) {
-  banners.value = banners.value.map((x) => ({ ...x, active: x.id === b.id }))
-  persistBanners()
-}
-
-function toggleBannerActive(b: BannerItem, value: boolean) {
-  if (value) {
-    banners.value = banners.value.map((x) => ({ ...x, active: x.id === b.id }))
-  } else {
-    banners.value = banners.value.map((x) =>
-      x.id === b.id ? { ...x, active: false } : x,
-    )
+async function deleteBanner(b: BannerItem) {
+  try {
+    await bannerService.delete(b.id)
+    banners.value = banners.value.filter((x) => x.id !== b.id)
+    bannerDeleteConfirm.value = null
+  } catch (error) {
+    bannerError.value = error instanceof Error ? error.message : 'No se pudo eliminar el banner'
   }
-  persistBanners()
+}
+
+async function activateBanner(b: BannerItem) {
+  try {
+    await bannerService.update(b.id, { isActive: true })
+    await loadBanners()
+  } catch (error) {
+    bannerError.value = error instanceof Error ? error.message : 'No se pudo activar el banner'
+  }
+}
+
+async function toggleBannerActive(b: BannerItem, value: boolean) {
+  try {
+    await bannerService.update(b.id, { isActive: value })
+    b.isActive = value
+  } catch (error) {
+    bannerError.value = error instanceof Error ? error.message : 'No se pudo actualizar el banner'
+  }
 }
 
 onMounted(() => {
@@ -4034,6 +4460,8 @@ onMounted(() => {
       else if (showDescModal.value) showDescModal.value = false
       else if (showDeleteEventModal.value) showDeleteEventModal.value = false
       else if (showEventModal.value) showEventModal.value = false
+      else if (showCreateBanner.value || bannerEdit.value) closeBannerModal()
+      else if (bannerDeleteConfirm.value) bannerDeleteConfirm.value = null
     }
   })
 
@@ -5731,6 +6159,23 @@ onUnmounted(() => {
 .section-recaudos .recaudo-kebab { display: none; }
 .section-recaudos .recaudos-table .col-kebab { display: none; }
 .recaudo-cc { display: none; }
+.recaudo-origin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.recaudo-origin-wompi {
+  color: #075985;
+  background: #E0F2FE;
+}
+.recaudo-origin-manual {
+  color: #475569;
+  background: #F1F5F9;
+}
 .recaudo-sheet-overlay {
   position: fixed;
   inset: 0;
@@ -5850,6 +6295,94 @@ onUnmounted(() => {
 }
 .status-badge.status-active { background: #F0FDF4; color: #15803D; }
 .status-badge.status-inactive { background: #FEF2F2; color: #DC2626; }
+
+.purchase-status {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.purchase-status-completed {
+  background: #D1FAE5;
+  color: #047857;
+}
+
+.purchase-status-pending {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+.purchase-status-failed {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+.purchases-table .purchase-kebab {
+  display: none;
+}
+
+.purchases-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.purchases-summary-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #6EE7B7;
+}
+
+.purchases-summary-label,
+.purchases-summary-meta {
+  display: block;
+  color: var(--c-gray);
+  font-size: 0.78rem;
+}
+
+.purchases-summary-value {
+  display: block;
+  margin: 2px 0;
+  color: #6EE7B7;
+  font-size: 1.35rem;
+}
+
+.purchases-summary-meta {
+  font-size: 0.72rem;
+}
+
+.section-purchases .section-top {
+  align-items: center;
+}
+
+.section-purchases .section-top .purchases-summary-card {
+  margin-left: auto;
+  margin-right: 12px;
+  padding: 10px 14px;
+}
+
+.section-purchases .section-top .purchases-summary-icon {
+  width: 34px;
+  height: 34px;
+}
+
+.section-purchases .section-top .purchases-summary-value {
+  font-size: 1.05rem;
+}
 
 .url-input-wrapper {
   display: flex;
@@ -6381,7 +6914,8 @@ onUnmounted(() => {
   .section-recaudos .table-card .data-table td { white-space: normal; }
   .section-recaudos .recaudos-table .col-cedula,
   .section-recaudos .recaudos-table .col-fecha,
-  .section-recaudos .recaudos-table .col-valor { display: none; }
+  .section-recaudos .recaudos-table .col-valor,
+  .section-recaudos .recaudos-table .recaudo-origin-column { display: none; }
   .section-recaudos .recaudos-table .col-name { word-break: break-word; }
   .section-recaudos .recaudos-table .recaudo-cc {
     display: block;
@@ -6413,6 +6947,97 @@ onUnmounted(() => {
   .section-recaudos .modal-body { max-height: calc(100vh - 140px); }
   .section-recaudos .modal-footer { padding: 12px 16px; }
   .section-recaudos .form-grid { grid-template-columns: 1fr; gap: 12px; }
+
+  .section-purchases .table-card .table-responsive { overflow-x: hidden; }
+  .section-purchases .purchases-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: end; margin-bottom: 16px; }
+  .section-purchases .purchases-filters .coti-filter-search { min-width: 0; }
+  .section-purchases .purchases-filters .coti-filter-group { width: 100%; min-width: 0; }
+  .section-purchases .purchases-filters .coti-select { width: 100%; min-width: 0; }
+  .section-purchases .purchases-filters .btn-outline { width: 100%; }
+  .section-purchases .section-top {
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .section-purchases .section-top > div:first-child {
+    min-width: 0;
+    flex: 1;
+  }
+  .section-purchases .section-top .purchases-summary-card {
+    order: initial;
+    flex-basis: auto;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 7px 9px;
+    gap: 7px;
+    border-radius: 10px;
+  }
+  .section-purchases .section-top .purchases-summary-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .section-purchases .section-top .purchases-summary-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+  .section-purchases .section-top .purchases-summary-label,
+  .section-purchases .section-top .purchases-summary-meta {
+    font-size: 0.6rem;
+    white-space: nowrap;
+  }
+  .section-purchases .section-top .purchases-summary-value {
+    margin: 1px 0;
+    font-size: 0.82rem;
+  }
+  .section-purchases .purchases-summary-card { margin-bottom: 10px; }
+  .section-purchases .purchases-filters {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .section-purchases .purchases-filters .coti-filter-group {
+    gap: 2px;
+  }
+  .section-purchases .purchases-filters .coti-filter-group label {
+    font-size: 0.6rem;
+  }
+  .section-purchases .purchases-filters .coti-select {
+    padding: 6px 8px;
+    font-size: 0.72rem;
+    border-radius: 7px;
+  }
+  .section-purchases .purchases-filters .btn-outline {
+    padding: 6px 10px;
+    font-size: 0.72rem;
+    border-radius: 7px;
+  }
+  .section-purchases .table-card .data-table { min-width: 0; table-layout: fixed; }
+  .section-purchases .table-card .data-table th,
+  .section-purchases .table-card .data-table td { white-space: normal; }
+  .section-purchases .purchases-table .purchase-col-secondary { display: none; }
+  .section-purchases .purchases-table .purchase-col-id { width: 44px; }
+  .section-purchases .purchases-table .purchase-col-name { word-break: break-word; }
+  .section-purchases .purchases-table .purchase-col-status { width: 110px; }
+  .section-purchases .purchases-table .purchase-kebab {
+    display: table-cell;
+    width: 52px;
+    text-align: right;
+    padding-right: 12px;
+  }
+  .section-purchases .purchases-table th.purchase-kebab {
+    text-align: center;
+    font-size: 0.58rem;
+    line-height: 1.15;
+    padding: 12px 6px;
+    white-space: normal;
+  }
+  .section-purchases .purchase-kebab-btn {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--c-border);
+    background: var(--c-light);
+    border-radius: 8px;
+  }
+  .section-purchases .purchase-status { font-size: 0.68rem; padding: 4px 7px; }
 
   .section-banners .section-top { flex-direction: row; align-items: center; gap: 10px; flex-wrap: wrap; }
   .section-banners .section-top > div { min-width: 0; flex: 1; }
@@ -7040,6 +7665,21 @@ onUnmounted(() => {
 .section-recaudos .coti-input { padding: 6px 10px; font-size: 0.8rem; border-radius: 7px; }
 .section-recaudos .coti-filter-group .btn-outline { padding: 6px 14px; font-size: 0.8rem; border-radius: 7px; }
 @media (min-width: 769px) {
+  .section-purchases .purchases-filters {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .section-purchases .purchases-filters .purchase-filter-search { grid-column: 1 / 3; }
+  .section-purchases .purchases-filters .purchase-filter-status { grid-column: 3 / 5; }
+  .section-purchases .purchases-filters .purchase-filter-month { grid-column: 1; }
+  .section-purchases .purchases-filters .purchase-filter-from { grid-column: 2; }
+  .section-purchases .purchases-filters .purchase-filter-to { grid-column: 3; }
+  .section-purchases .purchases-filters .purchase-filter-clear { grid-column: 4; }
+  .section-purchases .purchases-filters .coti-select {
+    width: 100%;
+    min-width: 0;
+  }
   .section-recaudos .coti-select,
   .section-recaudos .coti-input { min-width: 150px; }
   .section-recaudos .coti-filter-search { min-width: 220px; flex: 1 1 220px; }
