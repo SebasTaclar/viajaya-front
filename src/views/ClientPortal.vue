@@ -261,12 +261,12 @@
                 :disabled="recargaSaving || recargaCooldown > 0 || !recargaMonto"
                 @click="iniciarRecarga"
               >
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-                  <circle cx="24" cy="24" r="15" fill="#168ED3"/>
-                  <circle cx="24" cy="24" r="9.5" fill="#F59E0B"/>
-                  <path d="M29.1 18.8a7.1 7.1 0 0 0-10 1.6M18.9 29.2a7.1 7.1 0 0 0 10-1.6" stroke="#FFF4B8" stroke-width="2.2" stroke-linecap="round"/>
-                  <path d="m19.2 17.5-.4 4.3 4.3-.4M28.8 30.5l.4-4.3-4.3.4" stroke="#FFF4B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
+                <img
+                  class="recarga-action-icon"
+                  src="https://res.cloudinary.com/dlwzazojt/image/upload/v1793728240/Para_fondos_oscuros_nbnfbw.png"
+                  alt=""
+                  aria-hidden="true"
+                />
                 <span>
                   {{ recargaSaving ? 'Procesando...' : recargaCooldown > 0 ? `Espera ${recargaCooldown}s` : 'Recarga ahora' }}
                 </span>
@@ -3025,6 +3025,12 @@ async function reloadData() {
   transform: translateY(-2px);
 }
 .recarga-action-card:disabled { cursor: not-allowed; opacity: 0.55; }
+.recarga-action-icon {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  object-fit: contain;
+}
 .recarga-confirmation-backdrop {
   position: fixed;
   z-index: 1000;

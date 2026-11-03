@@ -1258,6 +1258,12 @@
                   {{ recaudoSaving ? 'Guardando...' : 'Crear y enviar mensaje' }}
                 </button>
                 <button class="btn-primary" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudo">
+                  <img
+                    class="create-recaudo-icon"
+                    src="https://res.cloudinary.com/dlwzazojt/image/upload/v1793728240/Para_fondos_claros_np1d8m.png"
+                    alt=""
+                    aria-hidden="true"
+                  />
                   {{ recaudoSaving ? 'Guardando...' : 'Crear Recaudo' }}
                 </button>
               </div>
@@ -1359,12 +1365,12 @@
                   <span>Cancelar</span>
                 </button>
                 <button class="btn-primary recharge-submit" :disabled="!recargaFormValid || recargaSaving" @click="recargarSaldo">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                    <circle cx="12" cy="12" r="8.5" fill="#168ED3"/>
-                    <circle cx="12" cy="12" r="5.5" fill="#F59E0B"/>
-                    <path d="M15 9.3a4.2 4.2 0 0 0-6 1M9 14.7a4.2 4.2 0 0 0 6-1" stroke="#FFF4B8" stroke-width="1.5" stroke-linecap="round"/>
-                    <path d="m9.2 8.7-.3 2.5 2.5-.3M14.8 15.3l.3-2.5-2.5.3" stroke="#FFF4B8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
+                  <img
+                    class="recharge-submit-icon"
+                    src="https://res.cloudinary.com/dlwzazojt/image/upload/v1793728240/Para_fondos_claros_np1d8m.png"
+                    alt=""
+                    aria-hidden="true"
+                  />
                   <span>{{ recargaSaving ? 'Procesando...' : 'Recargar' }}</span>
                 </button>
               </div>
@@ -6133,7 +6139,19 @@ onUnmounted(() => {
   white-space: nowrap;
   transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
-.recharge-submit svg { flex-shrink: 0; }
+.recharge-submit-icon {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  object-fit: contain;
+}
+.create-recaudo-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  vertical-align: middle;
+  object-fit: contain;
+}
 .recharge-submit:hover {
   background: linear-gradient(145deg, #514c98, #403c7d);
   color: #fff;
