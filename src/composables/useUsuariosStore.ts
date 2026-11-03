@@ -3,6 +3,7 @@ import { viajeroService, type Viajero } from '@/services/api/viajeroService'
 
 export interface ViajeroUsuario {
   id: number
+  clientId?: number | null
   name: string
   email: string
   cedula: string
@@ -27,6 +28,7 @@ let loadedOnce = false
 function mapViajero(v: Viajero): ViajeroUsuario {
   return {
     id: v.id,
+    clientId: v.clientId ?? null,
     name: v.name,
     email: v.email,
     cedula: v.cedula,

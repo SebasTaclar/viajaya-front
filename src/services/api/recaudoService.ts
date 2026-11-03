@@ -11,6 +11,13 @@ export interface RecaudoClient {
 export interface RecaudoData {
   donotshow?: boolean
   dismissedAt?: string
+  source?: string
+  origen?: string
+  provider?: string
+  paymentMethod?: string
+  paymentId?: number | string
+  externalReference?: string
+  wompiTransactionId?: string
   [key: string]: unknown
 }
 

@@ -258,8 +258,8 @@
               <button
                 class="recarga-action-card"
                 type="button"
-                :disabled="recargaSaving || !recargaMonto"
-                @click="realizarRecarga"
+                :disabled="recargaSaving || recargaCooldown > 0 || !recargaMonto"
+                @click="iniciarRecarga"
               >
                 <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
                   <circle cx="24" cy="24" r="15" fill="#168ED3"/>
@@ -267,7 +267,9 @@
                   <path d="M29.1 18.8a7.1 7.1 0 0 0-10 1.6M18.9 29.2a7.1 7.1 0 0 0 10-1.6" stroke="#FFF4B8" stroke-width="2.2" stroke-linecap="round"/>
                   <path d="m19.2 17.5-.4 4.3 4.3-.4M28.8 30.5l.4-4.3-4.3.4" stroke="#FFF4B8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-                <span>{{ recargaSaving ? 'Procesando...' : 'Recargar' }}</span>
+                <span>
+                  {{ recargaSaving ? 'Procesando...' : recargaCooldown > 0 ? `Espera ${recargaCooldown}s` : 'Recarga ahora' }}
+                </span>
               </button>
             </div>
             </div>
@@ -575,14 +577,15 @@
           </div>
         </section>
       </template>
+
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { clientAuthService, portalService, userService, recaudoService } from '@/services/api'
+import { clientAuthService, paymentService, portalService, userService, recaudoService } from '@/services/api'
 import type { RecaudoRow } from '@/services/api'
 import type { Cliente, DocumentoEntity } from '@/types/crmTypes'
 import type { User } from '@/services/api/userService'
@@ -606,8 +609,10 @@ const recaudosLoaded = ref(false)
 const recargaMontoInput = ref('0')
 const recargaMontoVisible = ref(true)
 const recargaSaving = ref(false)
+const recargaCooldown = ref(0)
 const recargaError = ref('')
 const recargaSuccess = ref('')
+let recargaCooldownTimer: ReturnType<typeof setInterval> | undefined
 
 async function fetchRecaudos(force = false) {
   if (recaudosLoading.value || (recaudosLoaded.value && !force)) return
@@ -624,7 +629,7 @@ async function fetchRecaudos(force = false) {
   recaudosError.value = ''
   try {
     const res = await recaudoService.getAll({ clientId, page: 1, limit: 9999 })
-    recaudos.value = res.data.filter((r) => r.clientId === clientId)
+    recaudos.value = res.data.filter((r) => Number(r.clientId) === clientId)
     recaudosLoaded.value = true
   } catch (err: unknown) {
     recaudos.value = []
@@ -659,6 +664,32 @@ function formatRecaudoHora(fecha?: string): string {
 const recaudosTotal = computed(() => recaudos.value.reduce((sum, r) => sum + (Number(r.valor) || 0), 0))
 const recargaMonto = computed(() => Number.parseInt(recargaMontoInput.value.replace(/[^\d]/g, ''), 10) || 0)
 
+function getValidPaymentEmail(email?: string): string | undefined {
+  const normalizedEmail = email?.trim()
+  if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return undefined
+  }
+  return normalizedEmail
+}
+
+function iniciarRecarga() {
+  if (!recargaMonto.value || recargaSaving.value || recargaCooldown.value > 0) return
+  iniciarCooldownRecarga()
+  void realizarRecarga()
+}
+
+function iniciarCooldownRecarga() {
+  recargaCooldown.value = 30
+  if (recargaCooldownTimer) clearInterval(recargaCooldownTimer)
+  recargaCooldownTimer = setInterval(() => {
+    recargaCooldown.value -= 1
+    if (recargaCooldown.value <= 0 && recargaCooldownTimer) {
+      clearInterval(recargaCooldownTimer)
+      recargaCooldownTimer = undefined
+    }
+  }, 1000)
+}
+
 function onRecargaMontoInput(event: Event) {
   const input = event.target as HTMLInputElement
   const digits = input.value.replace(/[^\d]/g, '')
@@ -669,22 +700,27 @@ function onRecargaMontoInput(event: Event) {
 
 async function realizarRecarga() {
   if (recargaSaving.value || !recargaMonto.value) return
-  if (!portalClientId.value) {
-    recargaError.value = 'No pudimos identificar tu cuenta. Inicia sesión nuevamente.'
+  const buyerIdentificationNumber = clientData.value?.nit || clientAuthService.getLoginIdentifier()
+  if (!buyerIdentificationNumber) {
+    recargaError.value = 'No pudimos identificar tu cédula o NIT. Inicia sesión nuevamente.'
     return
   }
 
+  onBeforeUnmount(() => {
+    if (recargaCooldownTimer) clearInterval(recargaCooldownTimer)
+  })
   recargaSaving.value = true
   recargaError.value = ''
   recargaSuccess.value = ''
   try {
-    await recaudoService.create({
-      clientId: portalClientId.value,
-      fecha: new Date().toISOString(),
-      valor: recargaMonto.value,
+    const payment = await paymentService.createValuePayment({
+      buyerIdentificationNumber,
+      amount: recargaMonto.value,
+      buyerEmail: getValidPaymentEmail(clientData.value?.correo),
+      buyerName: clientData.value?.razonSocial || undefined,
+      buyerContactNumber: clientData.value?.telefono || undefined,
     })
-    await fetchRecaudos(true)
-    recargaSuccess.value = `Recarga de ${formatRecaudoValor(recargaMonto.value)} registrada correctamente.`
+    window.location.href = payment.paymentUrl
   } catch (err: unknown) {
     recargaError.value = err instanceof Error ? err.message : 'No se pudo realizar la recarga.'
   } finally {
@@ -2989,6 +3025,83 @@ async function reloadData() {
   transform: translateY(-2px);
 }
 .recarga-action-card:disabled { cursor: not-allowed; opacity: 0.55; }
+.recarga-confirmation-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(3, 18, 48, 0.68);
+}
+.recarga-confirmation-modal {
+  position: relative;
+  width: min(100%, 390px);
+  padding: 28px;
+  border: 1px solid rgba(159, 232, 243, 0.35);
+  border-radius: 18px;
+  color: #FFFFFF;
+  background: #0E3570;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+.recarga-confirmation-modal h3 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+.recarga-confirmation-modal p {
+  margin: 0 0 18px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.9rem;
+}
+.recarga-confirmation-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  border: 0;
+  color: rgba(255, 255, 255, 0.75);
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.8rem;
+  line-height: 1;
+}
+.recarga-confirmation-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(159, 232, 243, 0.5);
+  border-radius: 10px;
+  outline: none;
+  color: #FFFFFF;
+  background: rgba(255, 255, 255, 0.1);
+  font: inherit;
+  box-sizing: border-box;
+}
+.recarga-confirmation-input:focus {
+  border-color: #9FE8F3;
+  box-shadow: 0 0 0 3px rgba(159, 232, 243, 0.15);
+}
+.recarga-confirmation-input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.recarga-confirmation-error {
+  margin: 8px 0 0 !important;
+  color: #FFC4C4 !important;
+  font-size: 0.78rem !important;
+}
+.recarga-confirmation-submit {
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 10px;
+  color: #FFFFFF;
+  background: #168ED3;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+.recarga-confirmation-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 .recarga-feedback {
   margin: 16px auto 0;
   max-width: 440px;

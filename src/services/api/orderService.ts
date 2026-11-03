@@ -27,7 +27,8 @@ class OrderService {
     if (!params) return ''
     const parts: string[] = []
     if (params.page) parts.push(`page=${params.page}`)
-    if (params.pageSize) parts.push(`limit=${params.pageSize}`)
+    const limit = params.pageSize ?? params.limit
+    if (limit) parts.push(`limit=${limit}`)
     return parts.length > 0 ? `?${parts.join('&')}` : ''
   }
 
@@ -37,12 +38,34 @@ class OrderService {
     }
     if (data && typeof data === 'object') {
       const obj = data as Record<string, unknown>
+      const nested =
+        obj['data'] && typeof obj['data'] === 'object' && !Array.isArray(obj['data'])
+          ? (obj['data'] as Record<string, unknown>)
+          : obj
+      const candidate =
+        (Array.isArray(nested['data']) ? nested['data'] : null) ||
+        (Array.isArray(obj['data']) ? obj['data'] : null) ||
+        nested['purchases'] ||
+        nested['orders'] ||
+        nested['items'] ||
+        nested['rows'] ||
+        nested['results'] ||
+        obj['purchases'] ||
+        obj['orders'] ||
+        obj['items'] ||
+        obj['rows'] ||
+        obj['results']
+      const rows = Array.isArray(candidate) ? candidate : []
+      const total = Number(obj['total'] ?? nested['total'] ?? rows.length) || rows.length
+      const page = Number(obj['page'] ?? nested['page']) || 1
+      const limit = Number(obj['limit'] ?? obj['pageSize'] ?? nested['limit'] ?? nested['pageSize']) || rows.length || 10
+      const totalPages = Number(obj['totalPages'] ?? nested['totalPages']) || Math.max(1, Math.ceil(total / (limit || 10)))
       return {
-        data: (obj['data'] || obj['orders'] || []) as Orden[],
-        total: (obj['total'] as number) || 0,
-        page: (obj['page'] as number) || 1,
-        pageSize: (obj['limit'] as number) || 0,
-        totalPages: (obj['totalPages'] as number) || 1,
+        data: rows as Orden[],
+        total,
+        page,
+        pageSize: limit,
+        totalPages,
       }
     }
     return { data: [], total: 0, page: 1, pageSize: 0, totalPages: 0 }

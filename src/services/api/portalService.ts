@@ -46,13 +46,15 @@ class PortalService {
       return userInfo.clientId
     }
 
-    if (userInfo.teamId) {
-      return userInfo.teamId
-    }
+    const identifiers = [
+      clientAuthService.getLoginIdentifier(),
+      userInfo.name,
+      userInfo.email,
+    ].filter((value): value is string => !!value && value.trim().length > 0)
 
-    const clientList = await clientService.getAll({ search: userInfo.email || '' }).catch(() => null)
-    if (clientList && clientList.data.length > 0) {
-      return clientList.data[0].id
+    for (const search of identifiers) {
+      const clientList = await clientService.getAll({ search }).catch(() => null)
+      if (clientList && clientList.data.length > 0) return clientList.data[0].id
     }
 
     throw new Error('No se encontro un cliente asociado a esta cuenta')

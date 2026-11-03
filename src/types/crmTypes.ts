@@ -342,6 +342,7 @@ export interface PaginatedResponse<T> {
 export interface PaginationParams {
   page?: number
   pageSize?: number
+  limit?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
 }

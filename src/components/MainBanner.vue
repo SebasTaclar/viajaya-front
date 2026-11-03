@@ -144,6 +144,7 @@
 
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, computed } from 'vue'
+import { bannerService, type Banner } from '@/services/api/bannerService'
 
 defineOptions({
   name: 'MainBanner'
@@ -155,38 +156,16 @@ interface BannerItem {
   type: string
   imageUrl: string
   linkUrl?: string
-  startDate: string
-  endDate: string
   active: boolean
-}
-
-function readBanners(): BannerItem[] {
-  if (typeof window === 'undefined') return []
-  try {
-    const list = JSON.parse(localStorage.getItem('viajaya_banners') || '[]') as BannerItem[]
-    let seen = false
-    return list.map((b) => {
-      if (b.active && !seen) { seen = true; return b }
-      if (b.active && seen) return { ...b, active: false }
-      return b
-    })
-  } catch {
-    return []
-  }
 }
 
 function isActive(b: BannerItem): boolean {
   if (closedIds.value.includes(b.id)) return false
   if (!b.active || !b.imageUrl) return false
-  const now = Date.now()
-  const start = Date.parse(b.startDate)
-  const end = Date.parse(b.endDate)
-  if (!isNaN(start) && now < start) return false
-  if (!isNaN(end) && now > end) return false
   return true
 }
 
-const banners = computed<BannerItem[]>(() => readBanners())
+const banners = ref<BannerItem[]>([])
 const popupClosed = ref(false)
 const lateralClosed = ref(false)
 const isMobile = ref(false)
@@ -196,6 +175,23 @@ const activePrincipal = computed(() => banners.value.find((b) => b.type === 'Pri
 const activePopup = computed(() => banners.value.find((b) => b.type === 'Popup' && isActive(b)) || null)
 const activeLateral = computed(() => banners.value.find((b) => b.type === 'Lateral' && isActive(b)) || null)
 const mobileBanner = computed(() => activePopup.value || activePrincipal.value || activeLateral.value)
+
+async function loadBanners() {
+  try {
+    const response = await bannerService.getAll()
+    banners.value = (Array.isArray(response.data) ? response.data : []).map((banner: Banner) => ({
+      id: banner.id,
+      name: banner.name,
+      type: typeof banner.content.clase === 'string' && banner.content.clase ? banner.content.clase : 'Principal',
+      imageUrl: banner.content.url,
+      linkUrl: typeof banner.content.link === 'string' ? banner.content.link : undefined,
+      active: banner.isActive,
+    }))
+  } catch (error) {
+    console.error('Error loading public banners:', error)
+    banners.value = []
+  }
+}
 
 const backgroundVideo = ref<HTMLVideoElement | null>(null)
 const heroSection = ref<HTMLElement | null>(null)
@@ -306,6 +302,7 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
+  void loadBanners()
   const checkMobile = () => {
     isMobile.value = window.matchMedia('(max-width: 768px)').matches
   }

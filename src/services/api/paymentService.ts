@@ -6,10 +6,52 @@ import type {
   PaginationParams,
 } from '@/types/crmTypes'
 
+export interface CreateValuePaymentRequest {
+  buyerIdentificationNumber: string
+  amount: number
+  buyerEmail?: string
+  buyerName?: string
+  buyerContactNumber?: string
+}
+
+export interface ValuePaymentResponse {
+  paymentUrl: string
+  externalReference?: string
+}
+
 class PaymentService {
   async createPayment(data: CreatePagoRequest): Promise<Pago> {
     const response = await apiClient.post<Pago>('/payment/create', data)
     return response.data as unknown as Pago
+  }
+
+  async createValuePayment(payload: CreateValuePaymentRequest): Promise<ValuePaymentResponse> {
+    const response = await apiClient.post<unknown>('/payment/create', payload)
+    const root = response.data && typeof response.data === 'object'
+      ? response.data as Record<string, unknown>
+      : {}
+    const responseData = root.data && typeof root.data === 'object'
+      ? root.data as Record<string, unknown>
+      : root
+    const payment = responseData.payment && typeof responseData.payment === 'object'
+      ? responseData.payment as Record<string, unknown>
+      : responseData
+    const paymentUrl = typeof payment.paymentUrl === 'string'
+      ? payment.paymentUrl
+      : typeof payment.url === 'string'
+        ? payment.url
+        : ''
+
+    if (!paymentUrl) {
+      throw new Error('El pago fue creado, pero no se recibió la URL de Wompi.')
+    }
+
+    return {
+      paymentUrl,
+      externalReference: typeof payment.externalReference === 'string'
+        ? payment.externalReference
+        : undefined,
+    }
   }
 
   async getPaymentById(id: number): Promise<Pago> {
