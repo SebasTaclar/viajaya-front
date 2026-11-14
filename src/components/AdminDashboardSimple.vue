@@ -1021,7 +1021,7 @@
               <h2 class="page-title">Recaudos</h2>
               <p class="page-subtitle"> {{ recaudosList.length }} recaudos{{ recaudosSeleccionados.length > 0 ? ` — ${recaudosSeleccionados.length} seleccionados` : '' }}</p>
             </div>
-            <button v-if="isSuperAdmin" class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openCreateRecaudo()">
+            <button v-if="isAdmin" class="export-btn" style="background: var(--c-primary); color: #102857; border: none;" @click="openCreateRecaudo()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
               </svg>
@@ -1219,16 +1219,6 @@
                     <input v-model="recaudoForm.cedula" type="text" class="form-input" readonly placeholder="Se completa al elegir el usuario" />
                   </div>
                   <div class="form-group">
-                    <label>Periodicidad</label>
-                    <select v-model="recaudoForm.periodicidad" class="form-input" disabled>
-                      <option value="" disabled>Se completa al elegir el usuario</option>
-                      <option value="Diario">Diario</option>
-                      <option value="Semanal">Semanal</option>
-                      <option value="Quincenal">Quincenal</option>
-                      <option value="Mensual">Mensual</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
                     <label>Fecha y hora</label>
                     <input v-model="recaudoForm.fecha" type="datetime-local" class="form-input" />
                   </div>
@@ -1257,7 +1247,7 @@
                 <button class="btn-outline" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudoAndMsg">
                   {{ recaudoSaving ? 'Guardando...' : 'Crear y enviar mensaje' }}
                 </button>
-                <button class="btn-primary" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudo">
+                <button v-if="isSuperAdmin" class="btn-primary" :disabled="!recaudoFormValid || recaudoSaving" @click="createRecaudo">
                   <img
                     class="create-recaudo-icon"
                     src="https://res.cloudinary.com/dlwzazojt/image/upload/v1793728240/Para_fondos_claros_np1d8m.png"
@@ -1399,17 +1389,8 @@
                     <input v-model="recaudoEdit.cedula" type="text" class="form-input" readonly />
                   </div>
                   <div class="form-group">
-                    <label>Periodicidad</label>
-                    <select v-model="recaudoEdit.periodicidad" class="form-input" disabled>
-                      <option value="Diario">Diario</option>
-                      <option value="Semanal">Semanal</option>
-                      <option value="Quincenal">Quincenal</option>
-                      <option value="Mensual">Mensual</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
                     <label>Fecha y hora</label>
-                    <input v-model="recaudoEdit.fecha" type="datetime-local" class="form-input" />
+                    <input v-model="recaudoEdit.fecha" type="datetime-local" class="form-input" :disabled="isRecaudoWompi(recaudoEdit)" />
                   </div>
                   <div class="form-group">
                     <label>Valor</label>
@@ -1419,6 +1400,7 @@
                       inputmode="numeric"
                       class="form-input"
                       placeholder="$ 0"
+                      :disabled="isRecaudoWompi(recaudoEdit)"
                       @input="onValorInput($event, 'edit')"
                     />
                   </div>
@@ -2144,6 +2126,7 @@ const router = useRouter()
 const { clientes, proyectos } = useCRM()
 const currentRole = ref(authService.getUserRole() || 'admin')
 const isSuperAdmin = computed(() => currentRole.value === 'superadmin')
+const isAdmin = computed(() => currentRole.value === 'superadmin' || currentRole.value === 'admin')
 const currentSection = ref(isSuperAdmin.value ? 'dashboard' : 'usuarios')
 const sidebarOpen = ref(false)
 const userAvatar = ref<string | null>(null)
@@ -2629,7 +2612,6 @@ interface RecaudoForm {
   cedula: string
   fecha: string
   valor: number
-  periodicidad: string
 }
 
 const recaudosList = ref<RecaudoRow[]>([])
@@ -2733,6 +2715,10 @@ function getRecaudoOrigin(row: RecaudoRow): 'Wompi' | 'Manual' {
 
 function getRecaudoOriginClass(row: RecaudoRow): string {
   return getRecaudoOrigin(row) === 'Wompi' ? 'recaudo-origin-wompi' : 'recaudo-origin-manual'
+}
+
+function isRecaudoWompi(row: RecaudoRow | null): boolean {
+  return !!row && getRecaudoOrigin(row) === 'Wompi'
 }
 
 async function fetchRecaudos() {
@@ -3062,7 +3048,7 @@ const recaudoSelected = ref<RecaudoView | null>(null)
 const recaudoSheetRow = ref<RecaudoView | null>(null)
 const recaudoEdit = ref<RecaudoView | null>(null)
 const showCreateRecaudo = ref(false)
-const recaudoForm = ref<RecaudoForm>({ clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' })
+const recaudoForm = ref<RecaudoForm>({ clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0 })
 
 const recaudoFormValid = computed(() => {
   const f = recaudoForm.value
@@ -3124,7 +3110,7 @@ async function recargarSaldo() {
 }
 
 function openCreateRecaudo() {
-  recaudoForm.value = { clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0, periodicidad: '' }
+  recaudoForm.value = { clientId: 0, nombre: '', cedula: '', fecha: '', valor: 0 }
   recaudoError.value = ''
   showCreateRecaudo.value = true
 }
@@ -3142,7 +3128,6 @@ watch(
   (name) => {
     const user = usuariosCreados.value.find((u) => u.name === name)
     recaudoForm.value.cedula = user ? user.cedula : ''
-    recaudoForm.value.periodicidad = user ? (PERIOD_LABEL[String(user.periodicidad).toLowerCase()] || 'Mensual') : ''
     recaudoForm.value.clientId = user ? (user.clientId || user.id) : 0
   },
 )
@@ -3220,6 +3205,10 @@ async function saveRecaudo(): Promise<RecaudoView | null> {
   recaudoSaving.value = true
   recaudoError.value = ''
   try {
+    if (isRecaudoWompi(edit)) {
+      recaudoEdit.value = null
+      return resolveRecaudo(edit)
+    }
     const updated = await recaudoService.update(edit.id, {
       fecha: fromInputFecha(edit.fecha),
       valor: edit.valor,
